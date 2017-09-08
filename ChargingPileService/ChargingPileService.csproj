@@ -91,9 +91,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Controllers\MessagesController.cs" />
+    <Compile Include="Controllers\ProductsController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\Product.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -108,8 +111,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Controllers\" />
-    <Folder Include="Models\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\aliyun-net-sdk-core\aliyun-net-sdk-core.csproj">
@@ -119,6 +120,10 @@
     <ProjectReference Include="..\aliyun-net-sdk-dysmsapi\aliyun-net-sdk-dysmsapi.csproj">
       <Project>{5012802c-da46-44c8-8f40-741022e5bbd7}</Project>
       <Name>aliyun-net-sdk-dysmsapi</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CPS.Infrastructure\CPS.Infrastructure.csproj">
+      <Project>{099d33ee-0e51-41b8-bed7-0c6272b38327}</Project>
+      <Name>CPS.Infrastructure</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
