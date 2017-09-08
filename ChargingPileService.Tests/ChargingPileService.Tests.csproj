@@ -48,14 +48,25 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="UnitTest1.cs" />
+    <Compile Include="SendMessageTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\aliyun-net-sdk-core\aliyun-net-sdk-core.csproj">
+      <Project>{bb84cecb-295d-4772-a669-3726e511ccfa}</Project>
+      <Name>aliyun-net-sdk-core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\aliyun-net-sdk-dysmsapi\aliyun-net-sdk-dysmsapi.csproj">
+      <Project>{5012802c-da46-44c8-8f40-741022e5bbd7}</Project>
+      <Name>aliyun-net-sdk-dysmsapi</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ChargingPileService\ChargingPileService.csproj">
       <Project>{3EFA8CC6-03D7-48B6-BC5E-EBCF91C502EA}</Project>
       <Name>ChargingPileService</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

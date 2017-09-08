@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChargingPileService", "Char
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChargingPileService.Tests", "ChargingPileService.Tests\ChargingPileService.Tests.csproj", "{F798627B-EB51-4BA3-94CA-095A20CEF3EB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "aliyun-net-sdk-core", "aliyun-net-sdk-core\aliyun-net-sdk-core.csproj", "{BB84CECB-295D-4772-A669-3726E511CCFA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "aliyun-net-sdk-dysmsapi", "aliyun-net-sdk-dysmsapi\aliyun-net-sdk-dysmsapi.csproj", "{5012802C-DA46-44C8-8F40-741022E5BBD7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +25,14 @@ Global
 		{F798627B-EB51-4BA3-94CA-095A20CEF3EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F798627B-EB51-4BA3-94CA-095A20CEF3EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F798627B-EB51-4BA3-94CA-095A20CEF3EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB84CECB-295D-4772-A669-3726E511CCFA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB84CECB-295D-4772-A669-3726E511CCFA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB84CECB-295D-4772-A669-3726E511CCFA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB84CECB-295D-4772-A669-3726E511CCFA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5012802C-DA46-44C8-8F40-741022E5BBD7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5012802C-DA46-44C8-8F40-741022E5BBD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5012802C-DA46-44C8-8F40-741022E5BBD7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5012802C-DA46-44C8-8F40-741022E5BBD7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
