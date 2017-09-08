@@ -4,6 +4,7 @@ using Aliyun.Acs.Core.Profile;
 using Aliyun.Acs.Dysmsapi.Model.V20170525;
 using Aliyun.Acs.Core.Exceptions;
 using Aliyun.Acs.Core;
+using System.Threading.Tasks;
 
 namespace ChargingPileService.Tests
 {
@@ -13,6 +14,7 @@ namespace ChargingPileService.Tests
         // ali accesskey
         const string MyAccessKeyId = "LTAI8WvkvOREy741";
         const string MyAccessKeySecret = "GEe7u89wEHwP89tJqBsLVv5vzRl5Ly";
+        const string MyRegionId = "cn-beijing";
 
         [TestMethod]
         public void TestSendMessage()
@@ -27,11 +29,11 @@ namespace ChargingPileService.Tests
             String accessKeyId = MyAccessKeyId;//你的accessKeyId
             String accessKeySecret = MyAccessKeySecret;//你的accessKeySecret
 
-            IClientProfile profile = DefaultProfile.GetProfile("cn-beijing", accessKeyId, accessKeySecret);
+            IClientProfile profile = DefaultProfile.GetProfile(MyRegionId, accessKeyId, accessKeySecret);
             //IAcsClient client = new DefaultAcsClient(profile);
             // SingleSendSmsRequest request = new SingleSendSmsRequest();
 
-            DefaultProfile.AddEndpoint("cn-beijing", "cn-beijing", product, domain);
+            DefaultProfile.AddEndpoint(MyRegionId, MyRegionId, product, domain);
             IAcsClient acsClient = new DefaultAcsClient(profile);
             SendSmsRequest request = new SendSmsRequest();
             try
