@@ -8,6 +8,7 @@ using System.Web.Http;
 
 namespace ChargingPileService.Controllers
 {
+    [RoutePrefix("api/{stations}")]
     public class StationsController : ApiController
     {
         Station[] stations = new Station[]
@@ -41,17 +42,23 @@ namespace ChargingPileService.Controllers
             },
         };
 
-        public IEnumerable<Station> GetAllStations()
+        public IEnumerable<Station> Get()
         {
             return stations;
         }
 
-        public IHttpActionResult GetStation(string id)
+        public IHttpActionResult Get(string id)
         {
             var station = stations.FirstOrDefault(_ => _.Id == id);
             if (station == null)
                 return NotFound();
             return Ok(station);
+        }
+
+        [Route("names/{name}")]
+        public IEnumerable<string> Get(string name)
+        {
+            return stations.Where(_ => _.Name.Contains(name)).Select(_=>_.Name);
         }
     }
 }
