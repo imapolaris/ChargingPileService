@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 
-namespace ChargingPileService.Entities
+namespace CPS.Entities
 {
-    public class Station
+    /// <summary>
+    /// 电站
+    /// </summary>
+    public class Station : EntityBase
     {
-        public string Id { get; set; }
         public string Name { get; set; }
         public double Longitude { get; set; }
         public double Latitude { get; set; }

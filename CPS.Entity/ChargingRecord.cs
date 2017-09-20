@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 
-namespace ChargingPileService.Entities
+namespace CPS.Entities
 {
     public class ChargingRecord
     {

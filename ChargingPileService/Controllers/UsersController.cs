@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CPS.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -7,12 +8,14 @@ using System.Web.Http;
 
 namespace ChargingPileService.Controllers
 {
+    [RoutePrefix("api/users")]
     public class UsersController : ApiController
     {
         [HttpPost]
-        public IHttpActionResult Login(string username, string password)
+        [Route("login")]
+        public IHttpActionResult Login(User user)
         {
-            if (username == "soaring" && password == "soaring")
+            if (user.UserName == "soaring" && user.Password == "soaring")
             {
                 return Ok(true);
             }
@@ -22,23 +25,31 @@ namespace ChargingPileService.Controllers
             }
         }
 
-        public IHttpActionResult Register(string username, string phoneNumber, string password)
+        [HttpPost]
+        [Route("register")]
+        public IHttpActionResult Register(User user)
         {
             return Ok(true);
         }
 
-        public IHttpActionResult ResetPwd(string phoneNumber, string verifyCode, string newPwd)
+        [HttpPost]
+        [Route("reset")]
+        public IHttpActionResult ResetPwd(User user)
         {
             return Ok(true);
         }
 
         // 保存头像
+        [HttpPost]
+        [Route("avatar")]
         public IHttpActionResult SaveAvatar(byte[] avatar)
         {
             return Ok(true);
         }
 
         // 更新个人信息
+        [HttpPost]
+        [Route("userprofile")]
         public IHttpActionResult UpdateUserProfile()
         {
             return Ok(true);

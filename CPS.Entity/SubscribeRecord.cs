@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 
-namespace ChargingPileService.Entities
+namespace CPS.Entities
 {
-    public class SubscribeRecord
+    public class SubscribeRecord : EntityBase
     {
-        public string Id { get; set; }
         public string SerialNumber { get; set; }
         public string SubscribeDate { get; set; }
         public string SubscribeStatus { get; set; }

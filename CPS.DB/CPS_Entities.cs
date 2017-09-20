@@ -8,15 +8,15 @@ using System.Threading.Tasks;
 using System.Configuration;
 using System.Data.Entity.Validation;
 using System.Data.Entity.Infrastructure;
-using ChargingPileService.Entities;
+using CPS.Entities;
 
 namespace CPS.DB
 {
-    //[DbConfigurationType(typeof(MySql.Data.Entity.MySqlEFConfiguration))]
+    [DbConfigurationType(typeof(MySql.Data.Entity.MySqlEFConfiguration))]
     public partial class CPS_Entities : DbContext
     {
         public CPS_Entities()
-            : base("name=cps_db_model")
+            : base("name=cps_db")
         {
             //Configuration.ProxyCreationEnabled = false;
             //Configuration.AutoDetectChangesEnabled = false;
