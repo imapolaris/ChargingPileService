@@ -15,13 +15,13 @@ namespace ChargingPileService.Controllers
         [Route("login")]
         public IHttpActionResult Login(User user)
         {
-            if (user.UserName == "soaring" && user.Password == "soaring")
+            if (user.UserName == "s" && user.Password == "s")
             {
-                return Ok(true);
+                return Ok(new Models.SingleResult<bool>(true));
             }
             else
             {
-                return Ok(false);
+                return Ok(new Models.SingleResult<bool>(false));
             }
         }
 
@@ -29,6 +29,7 @@ namespace ChargingPileService.Controllers
         [Route("register")]
         public IHttpActionResult Register(User user)
         {
+
             return Ok(true);
         }
 

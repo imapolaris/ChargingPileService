@@ -38,6 +38,10 @@ namespace CPS.Entities
         [StringLength(11)]
         public string PhoneNumber { get; set; }
         /// <summary>
+        /// 头像
+        /// </summary>
+        public string Avatar { get; set; }
+        /// <summary>
         /// 住址
         /// </summary>
         [StringLength(100)]
