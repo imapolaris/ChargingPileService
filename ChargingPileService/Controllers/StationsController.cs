@@ -1,4 +1,4 @@
-﻿using ChargingPileService.Models;
+﻿using ChargingPileService.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,12 +42,12 @@ namespace ChargingPileService.Controllers
             },
         };
 
-        public IEnumerable<Station> Get()
+        public IEnumerable<Station> GetAllStations()
         {
             return stations;
         }
 
-        public IHttpActionResult Get(string id)
+        public IHttpActionResult GetStationById(string id)
         {
             var station = stations.FirstOrDefault(_ => _.Id == id);
             if (station == null)
@@ -56,7 +56,7 @@ namespace ChargingPileService.Controllers
         }
 
         [Route("names/{name}")]
-        public IEnumerable<string> Get(string name)
+        public IEnumerable<string> GetStationNames(string name)
         {
             return stations.Where(_ => _.Name.Contains(name)).Select(_=>_.Name);
         }

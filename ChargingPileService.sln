@@ -13,6 +13,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "aliyun-net-sdk-dysmsapi", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CPS.Infrastructure", "CPS.Infrastructure\CPS.Infrastructure.csproj", "{099D33EE-0E51-41B8-BED7-0C6272B38327}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CPS.DB", "CPS.DB\CPS.DB.csproj", "{5E5B50F1-C22D-4CCB-B692-5A7957B6D1AE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CPS.Entities", "CPS.Entity\CPS.Entities.csproj", "{ABB3A8FD-B21B-402D-AF96-45F65A8D2E1A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +43,14 @@ Global
 		{099D33EE-0E51-41B8-BED7-0C6272B38327}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{099D33EE-0E51-41B8-BED7-0C6272B38327}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{099D33EE-0E51-41B8-BED7-0C6272B38327}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5E5B50F1-C22D-4CCB-B692-5A7957B6D1AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E5B50F1-C22D-4CCB-B692-5A7957B6D1AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E5B50F1-C22D-4CCB-B692-5A7957B6D1AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E5B50F1-C22D-4CCB-B692-5A7957B6D1AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ABB3A8FD-B21B-402D-AF96-45F65A8D2E1A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ABB3A8FD-B21B-402D-AF96-45F65A8D2E1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ABB3A8FD-B21B-402D-AF96-45F65A8D2E1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ABB3A8FD-B21B-402D-AF96-45F65A8D2E1A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

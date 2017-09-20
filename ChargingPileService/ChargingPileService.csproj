@@ -101,10 +101,6 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Controllers\ChargingRecordsController.cs" />
-    <Compile Include="Models\ChargingRecord.cs" />
-    <Compile Include="Models\Product.cs" />
-    <Compile Include="Models\Station.cs" />
-    <Compile Include="Models\SubscribeRecord.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -119,6 +115,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Models\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\aliyun-net-sdk-core\aliyun-net-sdk-core.csproj">
@@ -128,6 +125,14 @@
     <ProjectReference Include="..\aliyun-net-sdk-dysmsapi\aliyun-net-sdk-dysmsapi.csproj">
       <Project>{5012802c-da46-44c8-8f40-741022e5bbd7}</Project>
       <Name>aliyun-net-sdk-dysmsapi</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CPS.DB\CPS.DB.csproj">
+      <Project>{5e5b50f1-c22d-4ccb-b692-5a7957b6d1ae}</Project>
+      <Name>CPS.DB</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CPS.Entity\CPS.Entities.csproj">
+      <Project>{abb3a8fd-b21b-402d-af96-45f65a8d2e1a}</Project>
+      <Name>CPS.Entities</Name>
     </ProjectReference>
     <ProjectReference Include="..\CPS.Infrastructure\CPS.Infrastructure.csproj">
       <Project>{099d33ee-0e51-41b8-bed7-0c6272b38327}</Project>
