@@ -2,6 +2,7 @@
 using Aliyun.Acs.Core.Exceptions;
 using Aliyun.Acs.Core.Profile;
 using Aliyun.Acs.Dysmsapi.Model.V20170525;
+using ChargingPileService.Models;
 using CPS.Infrastructure.Utils;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ using System.Web.Http;
 
 namespace ChargingPileService.Controllers
 {
-    public class MessagesController : ApiController
+    public class MessagesController : OperatorBase
     {
         // ali accesskey
         private static readonly string MyAccessKeyId = ConfigHelper.AliAccessKeyId;
@@ -25,6 +26,13 @@ namespace ChargingPileService.Controllers
         [HttpGet]
         public IHttpActionResult SendMessage(string phoneNumber)
         {
+            // 检测手机号是否已注册
+            var exists = EntityContext.CPS_User.Any(_ => _.PhoneNumber == phoneNumber);
+            if (exists)
+            {
+                return Ok(new SimpleResult(false, "手机号已注册！"));
+            }
+
             String product = "Dysmsapi";//短信API产品名称
             String domain = "dysmsapi.aliyuncs.com";//短信API产品域名
             String accessKeyId = MyAccessKeyId;//你的accessKeyId
@@ -37,6 +45,7 @@ namespace ChargingPileService.Controllers
             DefaultProfile.AddEndpoint(MyRegionId, MyRegionId, product, domain);
             IAcsClient acsClient = new DefaultAcsClient(profile);
             SendSmsRequest request = new SendSmsRequest();
+            var vcode = Number();
             try
             {
                 //必填:待发送手机号。支持以逗号分隔的形式进行批量调用，批量上限为20个手机号码,批量调用相对于单条调用及时性稍有延迟,验证码类型的短信推荐使用单条调用的方式
@@ -46,13 +55,21 @@ namespace ChargingPileService.Controllers
                 //必填:短信模板-可在短信控制台中找到
                 request.TemplateCode = MyTemplateCode;
                 //可选:模板中的变量替换JSON串,如模板内容为"亲爱的${name},您的验证码为${code}"时,此处的值为
-                request.TemplateParam = "{\""+ MyTemplateParam + "\":\"" + Number() + "\"}";
+                request.TemplateParam = "{\""+ MyTemplateParam + "\":\"" + vcode + "\"}";
                 //可选:outId为提供给业务方扩展字段,最终在短信回执消息中将此值带回给调用者
                 //request.OutId = "mayew.com";
                 //请求失败这里会抛ClientException异常
                 SendSmsResponse sendSmsResponse = acsClient.GetAcsResponse(request);
-
-                return Ok(sendSmsResponse);
+                var status = ReturnStatus(sendSmsResponse, phoneNumber, vcode);
+                if (status == true)
+                {
+                    return Ok(new SimpleResult(true, "验证码发送成功！"));
+                }
+                else
+                {
+                    Logger.Instance.Error(sendSmsResponse.Message);
+                    return Ok(new SimpleResult(false, "验证码发送失败！"));
+                }
             }
             catch (ServerException e)
             {
@@ -67,17 +84,19 @@ namespace ChargingPileService.Controllers
         }
 
         [NonAction]
-        private bool ClientRequestResult(SendSmsResponse response)
+        private bool ReturnStatus(SendSmsResponse response, string phoneNumber, string vcode)
         {
             if (response.Code == "OK")
+            {
+                SmsServiceConfig.Instance.AppendVCode(phoneNumber, vcode);
                 return true;
+            }
             return false;
         }
 
         [NonAction]
-        private string Number(int Length=6, bool Sleep=true)
+        private string Number(int Length=6)
         {
-            //if (Sleep) System.Threading.Thread.Sleep(3);
             string result = "";
             System.Random random = new Random();
             for (int i = 0; i < Length; i++)
@@ -86,6 +105,5 @@ namespace ChargingPileService.Controllers
             }
             return result;
         }
-
     }
 }

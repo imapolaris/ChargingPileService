@@ -8,7 +8,7 @@ using System.Web.Http;
 
 namespace ChargingPileService.Controllers
 {
-    public class ProductsController : ApiController
+    public class ProductsController : OperatorBase
     {
         Product[] products = new Product[]
         {

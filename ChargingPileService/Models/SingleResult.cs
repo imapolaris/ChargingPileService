@@ -11,26 +11,17 @@ namespace ChargingPileService.Models
     [Serializable]
     public class SingleResult<T> : ResultBase
     {
-        public SingleResult(T t)
+        public SingleResult(bool r, string m, T d)
+            : base(r, m)
         {
-            result = t;
+            data = d;
         }
 
-        private T result;
-        [JsonProperty]
-        public T Result
+        private T data;
+        public T Data
         {
-            get { return result; }
-            set { result = value; }
-        }
-
-        [NonSerialized]
-        private int statusCode = 0;
-        [JsonIgnore]
-        public int StatusCode
-        {
-            get { return statusCode; }
-            set { statusCode = value; }
+            get { return data; }
+            set { data = value; }
         }
     }
 }

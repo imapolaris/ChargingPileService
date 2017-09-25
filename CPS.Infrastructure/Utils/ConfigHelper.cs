@@ -56,5 +56,13 @@ namespace CPS.Infrastructure.Utils
                 return ConfigurationManager.AppSettings["AliTemplateParam"];
             }
         }
+
+        public static int VCodeValidityDuration
+        {
+            get
+            {
+                return int.Parse(ConfigurationManager.AppSettings["VCodeValidityDuration"]);
+            }
+        }
     }
 }

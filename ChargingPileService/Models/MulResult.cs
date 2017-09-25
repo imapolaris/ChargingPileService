@@ -10,7 +10,8 @@ namespace ChargingPileService.Models
     [Serializable]
     public class MulResult<T> : ResultBase
     {
-        public MulResult() : base()
+        public MulResult(bool r, string m)
+            : base(r, m)
         {
             this.OperateResult = new List<T>();
         }

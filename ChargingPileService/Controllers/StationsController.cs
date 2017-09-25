@@ -9,7 +9,7 @@ using System.Web.Http;
 namespace ChargingPileService.Controllers
 {
     [RoutePrefix("api/{stations}")]
-    public class StationsController : ApiController
+    public class StationsController : OperatorBase
     {
         Station[] stations = new Station[]
         {

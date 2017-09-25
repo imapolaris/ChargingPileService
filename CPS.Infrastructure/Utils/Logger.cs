@@ -26,14 +26,7 @@ namespace CPS.Infrastructure.Utils
 
         private void InitLogger()
         {
-            var path = System.Environment.CurrentDirectory;
-            if (!path.EndsWith(System.IO.Path.DirectorySeparatorChar.ToString()))
-            {
-                path += System.IO.Path.DirectorySeparatorChar;
-            }
-            path += "log4net.config";
-            var logCfg = new System.IO.FileInfo(path);
-            XmlConfigurator.ConfigureAndWatch(logCfg);
+            XmlConfigurator.Configure();
         }
 
         public void Debug(object message)

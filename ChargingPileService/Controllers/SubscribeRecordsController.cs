@@ -8,7 +8,7 @@ using System.Web.Http;
 
 namespace ChargingPileService.Controllers
 {
-    public class SubscribeRecordsController : ApiController
+    public class SubscribeRecordsController : OperatorBase
     {
         SubscribeRecord[] records = new SubscribeRecord[]
         {

@@ -7,7 +7,7 @@ using System.Web.Http;
 
 namespace ChargingPileService.Controllers
 {
-    public class ChargingController : ApiController
+    public class ChargingController : OperatorBase
     {
         /// <summary>
         /// 开始充电

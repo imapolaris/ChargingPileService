@@ -1,18 +1,19 @@
-namespace Soaring.EMNMS.DB.Migrations
+namespace CPS.DB.Migrations
 {
     using System;
     using System.Data.Entity;
     using System.Data.Entity.Migrations;
     using System.Linq;
 
-    internal sealed class Configuration : DbMigrationsConfiguration<Soaring.EMNMS.DB.EMNMS_Entities>
+    internal sealed class Configuration : DbMigrationsConfiguration<CPS.DB.CPS_Entities>
     {
         public Configuration()
         {
             AutomaticMigrationsEnabled = true;
+            ContextKey = "CPS.DB.CPS_Entities";
         }
 
-        protected override void Seed(Soaring.EMNMS.DB.EMNMS_Entities context)
+        protected override void Seed(CPS.DB.CPS_Entities context)
         {
             //  This method will be called after migrating to the latest version.
 

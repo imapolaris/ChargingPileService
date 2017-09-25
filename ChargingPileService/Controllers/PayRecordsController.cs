@@ -7,7 +7,7 @@ using System.Web.Http;
 
 namespace ChargingPileService.Controllers
 {
-    public class PayRecordsController : ApiController
+    public class PayRecordsController : OperatorBase
     {
         public IHttpActionResult Get(string userId)
         {
