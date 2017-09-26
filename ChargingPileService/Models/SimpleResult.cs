@@ -12,5 +12,15 @@ namespace ChargingPileService.Models
             : base(r, m)
         {
         }
+
+        public static SimpleResult Succeed(string message)
+        {
+            return new SimpleResult(true, message);
+        }
+
+        public static SimpleResult Failed(string message)
+        {
+            return new SimpleResult(false, message);
+        }
     }
 }

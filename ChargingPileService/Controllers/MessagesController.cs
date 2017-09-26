@@ -26,13 +26,6 @@ namespace ChargingPileService.Controllers
         [HttpGet]
         public IHttpActionResult SendMessage(string phoneNumber)
         {
-            // 检测手机号是否已注册
-            var exists = EntityContext.CPS_User.Any(_ => _.PhoneNumber == phoneNumber);
-            if (exists)
-            {
-                return Ok(new SimpleResult(false, "手机号已注册！"));
-            }
-
             String product = "Dysmsapi";//短信API产品名称
             String domain = "dysmsapi.aliyuncs.com";//短信API产品域名
             String accessKeyId = MyAccessKeyId;//你的accessKeyId
