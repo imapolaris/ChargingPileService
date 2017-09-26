@@ -20,9 +20,10 @@ namespace ChargingPileService.Controllers
         {
             try
             {
-                var theUser = EntityContext.CPS_User.Where(_ => _.PhoneNumber == user.PhoneNumber && _.Password == user.Password).First();
-                if (theUser != null)
+                var exists = EntityContext.CPS_User.Any(_ => _.PhoneNumber == user.PhoneNumber && _.Password == user.Password);
+                if (exists)
                 {
+                    var theUser = EntityContext.CPS_User.Where(_ => _.PhoneNumber == user.PhoneNumber && _.Password == user.Password).First();
                     return Ok(new Models.SingleResult<User>(true, "登录成功！", new CPS.Entities.User
                     {
                         Id = theUser.Id,
