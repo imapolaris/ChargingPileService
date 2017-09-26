@@ -18,13 +18,28 @@ namespace ChargingPileService.Controllers
         [Route("login")]
         public IHttpActionResult Login(User user)
         {
-            var exists = EntityContext.CPS_User.Any(_ => _.PhoneNumber == user.PhoneNumber && _.Password == user.Password);
-            if (exists)
+            try
             {
-                return Ok(SimpleResult.Succeed("登录成功！"));
+                var theUser = EntityContext.CPS_User.Where(_ => _.PhoneNumber == user.PhoneNumber && _.Password == user.Password).First();
+                if (theUser != null)
+                {
+                    return Ok(new Models.SingleResult<User>(true, "登录成功！", new CPS.Entities.User
+                    {
+                        Id = theUser.Id,
+                        PhoneNumber = theUser.PhoneNumber,
+                        Avatar = theUser.Avatar,
+                        Gender = theUser.Gender,
+                        NickName = theUser.NickName,
+                    }));
+                }
+                else
+                {
+                    return Ok(SimpleResult.Failed("手机号或密码错误！"));
+                }
             }
-            else
+            catch (Exception ex)
             {
+                Logger.Instance.Error(ex);
                 return Ok(SimpleResult.Failed("手机号或密码错误！"));
             }
         }
@@ -89,20 +104,29 @@ namespace ChargingPileService.Controllers
             return Ok(SimpleResult.Failed("重置密码失败！"));
         }
 
-        // 保存头像
-        [HttpPost]
-        [Route("avatar")]
-        public IHttpActionResult SaveAvatar(byte[] avatar)
-        {
-            return Ok(true);
-        }
-
         // 检索个人信息
         [HttpPost]
         [Route("info")]
         public IHttpActionResult GetUserProfile(User user)
         {
-            return Ok();
+            try
+            {
+                var theUser = EntityContext.CPS_User.Where(_ => _.Id == user.Id).First();
+
+                return Ok(new Models.SingleResult<User>(true, "", new User
+                {
+                    Id = theUser.Id,
+                    NickName = theUser.NickName,
+                    Gender = theUser.Gender,
+                    Avatar = theUser.Avatar,
+                    PhoneNumber = theUser.PhoneNumber,
+                }));
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Error(ex);
+                return Ok(new SimpleResult(false, "无法获取用户信息！"));
+            }
         }
 
         // 更新个人信息
@@ -110,17 +134,18 @@ namespace ChargingPileService.Controllers
         [Route("update")]
         public IHttpActionResult UpdateUserProfile(User user)
         {
-            var exists = EntityContext.CPS_User.Any(_ => _.PhoneNumber == user.PhoneNumber);
+            var exists = EntityContext.CPS_User.Any(_ => _.Id == user.Id);
             if (!exists)
             {
-                return Ok(SimpleResult.Failed("手机号不存在！"));
+                return Ok(SimpleResult.Failed("用户不存在！"));
             }
 
             try
             {
-                var theUser = EntityContext.CPS_User.Where(_ => _.PhoneNumber == user.PhoneNumber).First();
+                var theUser = EntityContext.CPS_User.Where(_ => _.Id == user.Id).First();
                 if (theUser == null)
-                    return Ok(SimpleResult.Failed("手机号不存在！"));
+                    return Ok(SimpleResult.Failed("用户不存在！"));
+                theUser.Avatar = user.Avatar;
                 theUser.NickName = user.NickName;
                 theUser.Gender = user.Gender;
                 EntityContext.SaveChanges();

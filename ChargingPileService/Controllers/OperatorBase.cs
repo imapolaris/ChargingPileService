@@ -12,6 +12,7 @@ namespace ChargingPileService
         protected bool IsDispose;
         protected CPS_Entities EntityContext;
         public OperatorBase()
+            : base()
         {
             EntityContext = new CPS_Entities();
         }

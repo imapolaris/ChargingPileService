@@ -13,11 +13,15 @@ namespace CPS.Entities
     {
         public EntityBase()
         {
-            this.Id = Guid.NewGuid().ToString();
+            this.id = Guid.NewGuid().ToString();
         }
 
         [Key, Column(Order = 1), StringLength(50)]
-        [JsonProperty]
-        public virtual string Id { get; set; }
+        private string id;
+        public virtual string Id
+        {
+            get { return id; }
+            set { id = value; }
+        }
     }
 }

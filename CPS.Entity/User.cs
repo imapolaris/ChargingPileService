@@ -14,7 +14,7 @@ namespace CPS.Entities
     public class User : EntityBase
     {
         private string nickname;
-        private string gender;
+        private string gender = "男";
         private string password;
         private string phoneNumber;
         private string avatar;
@@ -32,7 +32,6 @@ namespace CPS.Entities
         /// <summary>
         /// 性别
         /// </summary>
-        [DefaultValue("男")]
         [StringLength(1)]
         public string Gender
         {
@@ -74,6 +73,7 @@ namespace CPS.Entities
         public string VCode
         {
             get { return vcode; }
+            set { vcode = value; }
         }
     }
 }

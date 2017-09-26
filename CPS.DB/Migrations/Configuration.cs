@@ -10,7 +10,6 @@ namespace CPS.DB.Migrations
         public Configuration()
         {
             AutomaticMigrationsEnabled = true;
-            ContextKey = "CPS.DB.CPS_Entities";
         }
 
         protected override void Seed(CPS.DB.CPS_Entities context)

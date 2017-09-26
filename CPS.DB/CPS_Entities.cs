@@ -43,7 +43,7 @@ namespace CPS.DB
 
         #region entities
 
-        public virtual DbSet<Station> CPS_Station { get; set; }
+        //public virtual DbSet<Station> CPS_Station { get; set; }
         public virtual DbSet<User> CPS_User { get; set; }
 
         #endregion
