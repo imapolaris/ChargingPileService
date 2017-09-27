@@ -33,16 +33,13 @@ namespace ChargingPileService.Controllers
                         NickName = theUser.NickName,
                     }));
                 }
-                else
-                {
-                    return Ok(SimpleResult.Failed("手机号或密码错误！"));
-                }
             }
             catch (Exception ex)
             {
                 Logger.Instance.Error(ex);
-                return Ok(SimpleResult.Failed("手机号或密码错误！"));
             }
+
+            return Ok(SimpleResult.Failed("手机号或密码错误！"));
         }
 
         [HttpPost]
@@ -98,7 +95,6 @@ namespace ChargingPileService.Controllers
                 catch (Exception ex)
                 {
                     Logger.Instance.Error(ex);
-                    return Ok(SimpleResult.Failed("重置密码失败！"));
                 }
             }
 
