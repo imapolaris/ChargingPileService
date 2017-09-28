@@ -46,5 +46,23 @@ namespace ChargingPileService.Controllers
 
             return Ok(stations);
         }
+
+        [HttpPost]
+        [Route("nearby")]
+        public IHttpActionResult GetNearbyStations(LngLat lngLat)
+        {
+            if (lngLat == null
+                || !MapHelper.IsValidCoord(lngLat.Longitude, lngLat.Latitude))
+            {
+                return NotFound();
+            }
+
+            var stations = EntityContext.CPS_Station.AsEnumerable()
+                .Where(_ => lngLat.IsNearby(new LngLat { Longitude = _.Longitude, Latitude = _.Latitude })).ToList();
+
+            stations.ForEach(_ => _.Distance = lngLat.Between2Coords(new LngLat { Longitude = _.Longitude, Latitude = _.Latitude }));
+
+            return Ok(stations.OrderBy(_=>_.Distance));
+        }
     }
 }

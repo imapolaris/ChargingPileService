@@ -64,5 +64,13 @@ namespace CPS.Infrastructure.Utils
                 return int.Parse(ConfigurationManager.AppSettings["VCodeValidityDuration"]);
             }
         }
+
+        public static double NearbyDistance
+        {
+            get
+            {
+                return double.Parse(ConfigurationManager.AppSettings["NearbyDistance"]);
+            }
+        }
     }
 }

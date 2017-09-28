@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Web;
 
@@ -17,6 +18,7 @@ namespace CPS.Entities
         private double latitude;
         private string numbers;
         private string address;
+        private double distance;
 
         [StringLength(50)]
         [Required]
@@ -53,6 +55,13 @@ namespace CPS.Entities
         {
             get { return address; }
             set { address = value; }
+        }
+
+        [NotMapped]
+        public double Distance
+        {
+            get { return distance; }
+            set { distance = Math.Round(value, 2); }
         }
     }
 }

@@ -48,17 +48,25 @@
     <Compile Include="ChargingPile.cs" />
     <Compile Include="ChargingRecord.cs" />
     <Compile Include="EntityBase.cs" />
+    <Compile Include="LngLat.cs" />
     <Compile Include="LogRecord.cs" />
     <Compile Include="PayRecord.cs" />
     <Compile Include="Product.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Station.cs" />
+    <Compile Include="StationDetail.cs" />
     <Compile Include="SubscribeRecord.cs" />
     <Compile Include="User.cs" />
     <Compile Include="Wallet.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CPS.Infrastructure\CPS.Infrastructure.csproj">
+      <Project>{099d33ee-0e51-41b8-bed7-0c6272b38327}</Project>
+      <Name>CPS.Infrastructure</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -71,6 +71,7 @@
     <Compile Include="SendMessageTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DbTest.cs" />
+    <Compile Include="MapTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\aliyun-net-sdk-core\aliyun-net-sdk-core.csproj">
