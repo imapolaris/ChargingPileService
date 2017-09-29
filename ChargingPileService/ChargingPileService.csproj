@@ -109,9 +109,11 @@
     <Compile Include="App_Start\SmsServiceConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\ChargingController.cs" />
+    <Compile Include="Controllers\ChargingPilesController.cs" />
     <Compile Include="Controllers\MessagesController.cs" />
     <Compile Include="Controllers\PayRecordsController.cs" />
     <Compile Include="Controllers\ProductsController.cs" />
+    <Compile Include="Controllers\StationDetailsController.cs" />
     <Compile Include="Controllers\StationsController.cs" />
     <Compile Include="Controllers\SubscribeRecordsController.cs" />
     <Compile Include="Controllers\UsersController.cs" />

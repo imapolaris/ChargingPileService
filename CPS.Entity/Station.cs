@@ -42,6 +42,9 @@ namespace CPS.Entities
             set { latitude = value; }
         }
 
+        /// <summary>
+        /// 电桩数量
+        /// </summary>
         [StringLength(30)]
         public string Numbers
         {
