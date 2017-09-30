@@ -16,6 +16,7 @@ namespace CPS.Entities
         private string nickname;
         private string gender = "男";
         private string password;
+        private string newPassword;
         private string phoneNumber;
         private string avatar;
         private string vcode;
@@ -48,6 +49,17 @@ namespace CPS.Entities
             get { return password; }
             set { password = value; }
         }
+        /// <summary>
+        /// 新密码
+        /// </summary>
+        [StringLength(100)]
+        [NotMapped]
+        public string NewPassword
+        {
+            get { return newPassword; }
+            set { newPassword = value; }
+        }
+
         /// <summary>
         /// 手机号码
         /// </summary>

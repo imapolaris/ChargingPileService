@@ -85,8 +85,6 @@ namespace ChargingPileService.Controllers
                 try
                 {
                     var theUser = EntityContext.CPS_User.Where(_ => _.PhoneNumber == user.PhoneNumber).First();
-                    if (theUser == null)
-                        return Ok(SimpleResult.Failed("手机号不存在！"));
                     theUser.Password = user.Password;
                     EntityContext.SaveChanges();
 
@@ -140,8 +138,6 @@ namespace ChargingPileService.Controllers
             try
             {
                 var theUser = EntityContext.CPS_User.Where(_ => _.Id == user.Id).First();
-                if (theUser == null)
-                    return Ok(SimpleResult.Failed("用户不存在！"));
                 theUser.Avatar = user.Avatar;
                 theUser.NickName = user.NickName;
                 theUser.Gender = user.Gender;
@@ -154,6 +150,32 @@ namespace ChargingPileService.Controllers
                 Logger.Instance.Error(ex);
                 return Ok(SimpleResult.Failed("修改个人资料失败！"));
             }
+        }
+
+        [HttpPost]
+        [Route("change")]
+        public IHttpActionResult ChangePwd(User user)
+        {
+            var exists = EntityContext.CPS_User.Any(_ => _.Id == user.Id && _.Password == user.Password);
+            if (!exists)
+            {
+                return Ok(SimpleResult.Failed("原密码不正确！"));
+            }
+
+            try
+            {
+                var theUser = EntityContext.CPS_User.Where(_ => _.Id == user.Id && _.Password == user.Password).First();
+                theUser.Password = user.NewPassword;
+                EntityContext.SaveChanges();
+
+                return Ok(SimpleResult.Succeed("修改密码成功！"));
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Error(ex);
+            }
+
+            return Ok(SimpleResult.Failed("修改密码失败！"));
         }
     }
 }
