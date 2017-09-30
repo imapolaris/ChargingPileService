@@ -48,6 +48,7 @@ namespace CPS.DB
         public virtual DbSet<User> CPS_User { get; set; }
         public virtual DbSet<ChargingPile> CPS_ChargingPile { get; set; }
         public virtual DbSet<ChargingRecord> CPS_ChargingRecord { get; set; }
+        public virtual DbSet<SubscribeRecord> CPS_SubscribeRecord { get; set; }
 
         #endregion
     }
