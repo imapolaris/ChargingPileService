@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CPS.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -9,9 +10,9 @@ namespace ChargingPileService.Controllers
 {
     public class PayRecordsController : OperatorBase
     {
-        public IHttpActionResult Get(string userId)
+        public IEnumerable<PayRecord> GetRecordsByUserId(string id)
         {
-            return Ok();
+            return EntityContext.CPS_PayRecord.Where(_=>_.UserId == id);
         }
     }
 }
