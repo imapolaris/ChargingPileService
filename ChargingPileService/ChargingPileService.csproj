@@ -150,6 +150,10 @@
       <Project>{5012802c-da46-44c8-8f40-741022e5bbd7}</Project>
       <Name>aliyun-net-sdk-dysmsapi</Name>
     </ProjectReference>
+    <ProjectReference Include="..\CPS.Communication.Service\CPS.Communication.Service.csproj">
+      <Project>{1c05b477-5de7-41fa-ba73-0cd90e74dc56}</Project>
+      <Name>CPS.Communication.Service</Name>
+    </ProjectReference>
     <ProjectReference Include="..\CPS.DB\CPS.DB.csproj">
       <Project>{5e5b50f1-c22d-4ccb-b692-5a7957b6d1ae}</Project>
       <Name>CPS.DB</Name>
