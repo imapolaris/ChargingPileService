@@ -50,6 +50,7 @@ namespace CPS.DB
         public virtual DbSet<ChargingRecord> CPS_ChargingRecord { get; set; }
         public virtual DbSet<SubscribeRecord> CPS_SubscribeRecord { get; set; }
         public virtual DbSet<PayRecord> CPS_PayRecord { get; set; }
+        public virtual DbSet<Wallet> CPS_Wallet { get; set; }
 
         #endregion
     }
