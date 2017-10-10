@@ -10,6 +10,7 @@ using System.Web.Http;
 
 namespace ChargingPileService.Controllers
 {
+    [RoutePrefix("api/chargingPiles")]
     public class ChargingPilesController : OperatorBase
     {
         public IEnumerable<ChargingPile> GetChargingPilesByStationId(string id)
@@ -18,8 +19,8 @@ namespace ChargingPileService.Controllers
         }
 
         [HttpGet]
-        [Route("subscribe/{sn}")]
-        public IHttpActionResult Subscribe(string sn)
+        [Route("subscribe")]
+        public IHttpActionResult Subscribe(string userId, string sn)
         {
             var exists = EntityContext.CPS_ChargingPile.Any(_ => _.SerialNumber == sn);
             if (!exists)
@@ -37,6 +38,16 @@ namespace ChargingPileService.Controllers
                 else
                 {
                     theCPile.Status = "预约";
+
+                    // record it.
+                    EntityContext.CPS_SubscribeRecord.Add(new SubscribeRecord()
+                    {
+                        SerialNumber = sn,
+                        SubscribeDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                        SubscribeStatus = "预约成功",
+                        UserId = userId,
+                    });
+
                     EntityContext.SaveChanges();
                 }
 
