@@ -31,7 +31,7 @@ namespace ChargingPileService.Controllers
             try
             {
                 var theCPile = EntityContext.CPS_ChargingPile.Where(_ => _.SerialNumber == sn).First();
-                if (theCPile.Status != "在线")
+                if (/*theCPile.Status != "在线"*/false)
                 {
                     return Ok(SimpleResult.Failed("无法预约！"));
                 }

@@ -12,7 +12,7 @@ namespace ChargingPileService.Controllers
     {
         public IEnumerable<ChargingRecord> GetAllRecords(string id)
         {
-            return EntityContext.CPS_ChargingRecord.Where(_=>_.UserId == id);
+            return EntityContext.CPS_ChargingRecord.Where(_=>_.UserId == id).OrderByDescending(_=>_.ChargingDate);
         }
     }
 }
