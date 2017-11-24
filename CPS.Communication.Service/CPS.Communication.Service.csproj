@@ -11,6 +11,7 @@
     <AssemblyName>CPS.Communication.Service</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -45,11 +46,53 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ChargingService.cs" />
+    <Compile Include="DataPackets\ChangeSecretKeyPacket.cs" />
+    <Compile Include="DataPackets\ConfirmPacket.cs" />
+    <Compile Include="DataPackets\DenyPacket.cs" />
+    <Compile Include="DataPackets\GetElecPricePacket.cs" />
+    <Compile Include="DataPackets\GetElecPriceResultPacket.cs" />
+    <Compile Include="DataPackets\GetReportIntervalPacket.cs" />
+    <Compile Include="DataPackets\GetReportIntervalResultPacket.cs" />
+    <Compile Include="DataPackets\GetServicePricePacket.cs" />
+    <Compile Include="DataPackets\GetServicePriceResultPacket.cs" />
+    <Compile Include="DataPackets\HeartBeatPacket.cs" />
+    <Compile Include="DataPackets\LoginPacket.cs" />
+    <Compile Include="DataPackets\LoginResultPacket.cs" />
+    <Compile Include="DataPackets\PacketBase.cs" />
+    <Compile Include="DataPackets\PacketHeader.cs" />
+    <Compile Include="DataPackets\OperBasePacket.cs" />
+    <Compile Include="DataPackets\RebootPacket.cs" />
+    <Compile Include="DataPackets\RebootResultPacket.cs" />
+    <Compile Include="DataPackets\SetElecPricePacket.cs" />
+    <Compile Include="DataPackets\SetReportIntervalPacket.cs" />
+    <Compile Include="DataPackets\SetServicePricePacket.cs" />
+    <Compile Include="DataPackets\SetTimePeriodPacket.cs" />
+    <Compile Include="Events\ClientEventArgs.cs" />
+    <Compile Include="Events\ErrorEventArgs.cs" />
+    <Compile Include="Events\ErrorTypes.cs" />
+    <Compile Include="Events\EventDelegate.cs" />
+    <Compile Include="Events\ReceiveEventArgs.cs" />
+    <Compile Include="Events\SendEventArgs.cs" />
+    <Compile Include="Events\ServerEventArgs.cs" />
+    <Compile Include="Exceptions\UnConnectException.cs" />
     <Compile Include="IChargingService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Server.cs" />
+    <Compile Include="State\ReceiveState.cs" />
+    <Compile Include="State\SendState.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="DataPackets\充电桩=平台\" />
+    <Folder Include="DataPackets\平台=充电桩\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CPS.Infrastructure\CPS.Infrastructure.csproj">
+      <Project>{099D33EE-0E51-41B8-BED7-0C6272B38327}</Project>
+      <Name>CPS.Infrastructure</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
