@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CPS.Communication.Service.DataPackets;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -57,7 +58,14 @@ namespace CPS.Communication.Client
         /// </summary>
         private void login_Click(object sender, RoutedEventArgs e)
         {
-
+            LoginPacket packet = new LoginPacket()
+            {
+                SerialNumber = "1234567890AbcBCa",
+                TimeStamp = int.Parse(DateTime.Now.ToString("yyyyMMdd")),
+                Username = "alex",
+                Pwd = "123"
+            };
+            client.Send(packet.GeneratePacket());
         }
 
         /// <summary>

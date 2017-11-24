@@ -95,6 +95,9 @@ namespace CPS.Communication.Service
                 Socket wSocket = s.EndAccept(ar);
                 // 引发事件
                 Client client = new Client(wSocket);
+                client.ReceiveCompleted += Client_ReceiveCompleted;
+                client.SendCompleted += Client_SendCompleted;
+                client.ErrorOccurred += Client_ErrorOccurred;
                 client.Receive();
 
                 OnClientAccepted(new ClientAcceptedEventArgs());
@@ -109,6 +112,21 @@ namespace CPS.Communication.Service
                     return;
                 handleSocketException(se, ErrorTypes.SocketAccept);
             }
+        }
+
+        private void Client_ErrorOccurred(object sender, ErrorEventArgs args)
+        {
+        }
+
+        private void Client_SendCompleted(object sender, SendCompletedEventArgs args)
+        {
+        }
+
+        private void Client_ReceiveCompleted(object sender, ReceiveCompletedEventArgs args)
+        {
+            PacketBase packet = new PacketBase();
+            packet = packet.AnalysePacket(args.ReceivedBytes);
+
         }
 
         private void handleSocketException(SocketException se, ErrorTypes eType)
@@ -308,9 +326,13 @@ namespace CPS.Communication.Service
                     int byteLen = s.EndReceive(ar);
                     if (byteLen == 0)
                     {
-                        OnErrorOccurred(new ErrorEventArgs("连续接收到无效的空白信息，可能由于远端连接已异常关闭，连接自动退出！", ErrorTypes.Receive));
-                        Close();
-                        return;
+                        _emptyTimes++;
+                        if (_emptyTimes == 100)
+                        {
+                            OnErrorOccurred(new ErrorEventArgs("连续接收到无效的空白信息，可能由于远端连接已异常关闭，连接自动退出！", ErrorTypes.SocketAccept));
+                            Close();
+                            return;
+                        }
                     }
                     else
                     {

@@ -65,7 +65,6 @@ namespace CPS.Communication.Server
         private static void Server_ClientAccepted(object sender, Service.Events.ClientAcceptedEventArgs args)
         {
             Console.WriteLine("Client Connected！");
-           // Console.WriteLine(args.Adapter.RemoteEndPoint);
         }
 
         private static void Server_ErrorOccurred(object sender, Service.Events.ErrorEventArgs args)
