@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,6 +21,9 @@ namespace CPS.Entities
         private double power;
         private string status = "在线";
         private double price;
+
+        private string username;
+        private string pwd;
 
         /// <summary>
         /// 电站Id
@@ -84,6 +88,26 @@ namespace CPS.Entities
         {
             get { return price; }
             set { price = value; }
+        }
+
+        /// <summary>
+        /// 充电桩用户名
+        /// </summary>
+        [NotMapped]
+        public string Username
+        {
+            get { return username; }
+            set { username = value; }
+        }
+
+        /// <summary>
+        /// 充电桩密码
+        /// </summary>
+        [NotMapped]
+        public string Pwd
+        {
+            get { return pwd; }
+            set { pwd = value; }
         }
     }
 }

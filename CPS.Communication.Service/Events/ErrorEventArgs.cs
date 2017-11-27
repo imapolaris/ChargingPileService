@@ -29,5 +29,29 @@ namespace CPS.Communication.Service.Events
             _inner = innerEx;
             _code = errorCode;
         }
+
+        public override string ToString()
+        {
+            string msg = $"----错误类型：{this._eType.ToString()}, 错误信息：{this._msg}, 错误编码：{this._code}\n";
+            if (this._inner != null)
+            {
+                msg += $"堆栈信息：\n";
+                msg += PrintInnerException(this._inner);
+            }
+            return msg;
+        }
+
+        private string PrintInnerException(Exception ex, string msg="")
+        {
+            if (ex != null)
+            {
+                msg += ex.Message + "\n";
+                return PrintInnerException(ex.InnerException, msg);
+            }
+            else
+            {
+                return msg;
+            }
+        }
     }
 }

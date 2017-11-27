@@ -12,7 +12,7 @@ namespace ChargingPileService.Controllers
     [RoutePrefix("api/charging")]
     public class ChargingController : OperatorBase
     {
-        IChargingService chargingService = new ChargingService();
+        IChargingPileService chargingService = ChargingService.Instance;
 
         /// <summary>
         /// 开始充电

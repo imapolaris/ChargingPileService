@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CPS.Communication.Service.DataPackets;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,25 +9,22 @@ namespace CPS.Communication.Service.Events
 {
     public class ReceiveCompletedEventArgs : EventArgs
     {
-        private byte[] _buffer;
-        public ReceiveCompletedEventArgs(byte[] bytes)
+        private PacketBase _packet;
+
+        public ReceiveCompletedEventArgs(PacketBase packet)
         {
-            _buffer = bytes;
+            _packet = packet;
         }
 
-        public byte[] ReceivedBytes { get { return _buffer; } }
-
-        private string _rStr;
-        public string ReceivedAsString
+        public ReceiveCompletedEventArgs(PacketBase packet, Server.Client client)
+            : this(packet)
         {
-            get
-            {
-                if (_rStr == null && ReceivedBytes != null)
-                    _rStr = Encoding.UTF8.GetString(ReceivedBytes);
-                return _rStr;
-            }
+            _client = client;
         }
 
-        public int ByteLength { get { return _buffer == null ? 0 : _buffer.Length; } }
+        public PacketBase ReceivedPacket { get { return _packet; } }
+
+        private Server.Client _client;
+        public Server.Client CurClient { get { return _client; } }
     }
 }

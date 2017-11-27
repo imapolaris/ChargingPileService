@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CPS.Communication.Service
 {
-    public interface IChargingService
+    public interface IChargingPileService
     {
         bool startCharging(string sn);
         object getChargingStatus(string sn);

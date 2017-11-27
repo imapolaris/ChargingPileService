@@ -12,6 +12,7 @@ using CPS.Communication.Service.Exceptions;
 using CPS.Communication.Service.State;
 using CPS.Infrastructure.Utils;
 using CPS.Communication.Service.DataPackets;
+using System.Collections;
 
 namespace CPS.Communication.Service
 {
@@ -116,16 +117,31 @@ namespace CPS.Communication.Service
 
         private void Client_ErrorOccurred(object sender, ErrorEventArgs args)
         {
+            if (args != null)
+            {
+                Logger.Instance.Error(args.ToString());
+                Console.WriteLine(args.ToString());
+            }
         }
 
         private void Client_SendCompleted(object sender, SendCompletedEventArgs args)
         {
+
         }
 
         private void Client_ReceiveCompleted(object sender, ReceiveCompletedEventArgs args)
         {
-            PacketBase packet = PacketAnalyzer.AnalysePacket(args.ReceivedBytes);
-
+            switch (args.ReceivedPacket.Command)
+            {
+                case PacketType.None:
+                    break;
+                case PacketType.Login:
+                    break;
+                case PacketType.LoginResult:
+                    break;
+                default:
+                    break;
+            }
         }
 
         private void handleSocketException(SocketException se, ErrorTypes eType)
@@ -135,8 +151,32 @@ namespace CPS.Communication.Service
 
         public override string ToString()
         {
-            //打印 IP/Port/在线客户端数 等信息
-            return base.ToString();
+            string info = $"本地端点：{this._listener.LocalEndPoint}";
+            if (this._clients != null)
+            {
+                info += $"当前客户端数：{this._clients.Count} 个\n";
+                int normal = 0, unnormal = 0;
+                string cInfo = "";
+                int index = 1;
+                foreach (var item in this._clients)
+                {
+                    if (item != null)
+                    {
+                        if (item.IsConnected)
+                            normal++;
+                        else
+                            unnormal++;
+
+                        cInfo += $"客户端{index++}：\n";
+                        cInfo += item.ToString();
+                    }
+                }
+
+                info += $"正常客户端数：{normal}，非正常客户端数：{unnormal}\n";
+                info += $"客户端列表：\n";
+                info += cInfo;
+            }
+            return info;
         }
 
         #region 【事件定义】
@@ -221,6 +261,14 @@ namespace CPS.Communication.Service
                 }
             }
 
+            public string IsConnectedDesc
+            {
+                get
+                {
+                    return this.IsConnected ? "已连接" : "未连接";
+                }
+            }
+
             private bool _closed = false;
             private object _closeObj = new object();
             private int _emptyTimes;
@@ -244,7 +292,9 @@ namespace CPS.Communication.Service
 
             public void Send(PacketBase packet)
             {
-
+                if (packet == null) return;
+                byte[] buffer = PacketAnalyzer.GeneratePacket(packet);
+                Send(buffer);
             }
 
             public void Send(byte[] buffer)
@@ -356,7 +406,8 @@ namespace CPS.Communication.Service
                         if (rs.Completed)
                         {
                             // 解析数据包
-                            OnReceiveCompleted(new ReceiveCompletedEventArgs(rs.Received));
+                            PacketBase packet = PacketAnalyzer.AnalysePacket(rs.Received);
+                            OnReceiveCompleted(new ReceiveCompletedEventArgs(packet));
                         }
                         else
                         {
@@ -440,7 +491,10 @@ namespace CPS.Communication.Service
             public override string ToString()
             {
                 // 打印充电桩编号、充电桩机器 等信息
-                return base.ToString();
+                if (this.WorkSocket != null)
+                    return $"状态：{this.IsConnectedDesc}，地址：{this.WorkSocket.LocalEndPoint}\n";
+                else
+                    return $"状态：{this.IsConnectedDesc}\n";
             }
 
             #region 【事件定义】
@@ -471,7 +525,7 @@ namespace CPS.Communication.Service
             #endregion 【事件定义】
         }
 
-        public class ClientCollection
+        public class ClientCollection : IEnumerable<Client>
         {
             private List<Client> _clients = null;
             private ManualResetEvent _mEventClients = new ManualResetEvent(true);
@@ -485,6 +539,14 @@ namespace CPS.Communication.Service
             public void CloseClient(Client client)
             {
                 client.Close();
+            }
+
+            public int Count
+            {
+                get
+                {
+                    return this._clients == null ? 0 : this._clients.Count;
+                }
             }
 
             public void AddClient(Client client)
@@ -522,6 +584,16 @@ namespace CPS.Communication.Service
                 }
 
                 _mEventClients.Set();
+            }
+
+            public IEnumerator<Client> GetEnumerator()
+            {
+                return this._clients.GetEnumerator();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return this._clients.GetEnumerator();
             }
         }
         #endregion 【客户端】

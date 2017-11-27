@@ -8,12 +8,21 @@ namespace CPS.Communication.Service.Events
 {
     public class SendCompletedEventArgs : EventArgs
     {
-        private int _sendHandle;
-        public SendCompletedEventArgs(int handle)
+        private int _len;
+
+        public int Len
         {
-            _sendHandle = handle;
+            get { return _len; }
+            set { _len = value; }
         }
 
-        public int SendHandle { get { return _sendHandle; } }
+        public SendCompletedEventArgs()
+        {
+        }
+
+        public SendCompletedEventArgs(int len)
+        {
+            this._len = len;
+        }
     }
 }
