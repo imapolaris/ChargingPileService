@@ -21,6 +21,13 @@ namespace CPS.Entities
         private string avatar;
         private string vcode;
 
+        private string username;
+        private string shippingAddress;
+        private string familyAddress;
+        private string memberLevel;
+        private string carLicense;
+        private string carType;
+
         /// <summary>
         /// 昵称
         /// </summary>
@@ -86,6 +93,66 @@ namespace CPS.Entities
         {
             get { return vcode; }
             set { vcode = value; }
+        }
+
+        /// <summary>
+        /// 账号
+        /// </summary>
+        [StringLength(100)]
+        public string Username
+        {
+            get { return username; }
+            set { username = value; }
+        }
+
+        /// <summary>
+        /// 收货地址
+        /// </summary>
+        [StringLength(255)]
+        public string ShippingAddress
+        {
+            get { return shippingAddress; }
+            set { shippingAddress = value; }
+        }
+
+        /// <summary>
+        /// 家庭地址
+        /// </summary>
+        [StringLength(255)]
+        public string FamilyAddress
+        {
+            get { return familyAddress; }
+            set { familyAddress = value; }
+        }
+
+        /// <summary>
+        /// 会员等级
+        /// </summary>
+        [StringLength(10)]
+        public string MemberLevel
+        {
+            get { return memberLevel; }
+            set { memberLevel = value; }
+        }
+
+        /// <summary>
+        /// 车牌号
+        /// </summary>
+        [StringLength(10)]
+        public string CarLicense
+        {
+            get { return carLicense; }
+            set { carLicense = value; }
+        }
+
+        /// <summary>
+        /// 车型号
+        /// </summary>
+        [StringLength(15)]
+        public string CarType
+        {
+            get { return carType; }
+            set { carType = value; }
         }
     }
 }

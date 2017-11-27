@@ -11,6 +11,7 @@ namespace CPS.Entities
     {
         private string userId;
         private double remaining=0.0;
+        private int integral;
 
         [Required]
         [StringLength(50)]
@@ -26,6 +27,15 @@ namespace CPS.Entities
         {
             get { return remaining; }
             set { remaining = value; }
+        }
+
+        /// <summary>
+        /// 积分
+        /// </summary>
+        public int Integral
+        {
+            get { return integral; }
+            set { integral = value; }
         }
     }
 }
