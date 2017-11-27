@@ -9,12 +9,16 @@ namespace CPS.Communication.Service.DataPackets
 {
     public class PacketHeader
     {
-        public PacketHeader(PacketType command)
+        public PacketHeader()
+        {
+        }
+
+        public PacketHeader(PacketType command) : this()
         {
             this._command = command;
         }
 
-        private byte _ver;
+        private byte _ver = 0x01;
         /// <summary>
         /// 协议版本号
         /// </summary>
@@ -24,7 +28,7 @@ namespace CPS.Communication.Service.DataPackets
             set { _ver = value; }
         }
 
-        private byte _attr;
+        private byte _attr = 0x00;
         /// <summary>
         /// 消息包属性
         /// </summary>
@@ -44,11 +48,11 @@ namespace CPS.Communication.Service.DataPackets
             set { _command = value; }
         }
 
-        private string _reserveP = "";
+        private int _reserveP = 0x00;
         /// <summary>
         /// 预留字段
         /// </summary>
-        public string ReserveP
+        public int ReserveP
         {
             get { return _reserveP; }
             set { _reserveP = value; }
@@ -74,9 +78,9 @@ namespace CPS.Communication.Service.DataPackets
             set { _verifyCode = value; }
         }
 
-        private bool VerifyPacket()
+        public bool VerifyPacket()
         {
-            if (this._verifyCode == (short)(PacketBase.HeaderLen - 2))
+            if (this._verifyCode == (short)(this._ver+this._attr+(int)this._command+this._reserveP+this._bodyLen))
                 return true;
             return false;
         }
@@ -92,12 +96,13 @@ namespace CPS.Communication.Service.DataPackets
             byte[] temp = BitConverter.GetBytes((short)this._command);
             Array.Copy(temp, 0, header, start, 2);
             start += 2;
-            temp = EncodeHelper.GetBytes(this._reserveP);
+            temp = BitConverter.GetBytes(this._reserveP);
             Array.Copy(temp, 0, header, start, temp.Length);
             start += 4;
             temp = BitConverter.GetBytes(this._bodyLen);
             Array.Copy(temp, 0, header, start, 4);
             start += 4;
+            this._verifyCode = (short)(this._ver + this._attr + (int)this._command + this._reserveP + this._bodyLen);
             temp = BitConverter.GetBytes(this._verifyCode);
             Array.Copy(temp, 0, header, start, 2);
 
@@ -121,7 +126,7 @@ namespace CPS.Communication.Service.DataPackets
             start += 2;
             byte[] temp = new byte[4];
             Array.Copy(header, start, temp, 0, 4);
-            this._reserveP = EncodeHelper.GetString(temp);
+            this._reserveP = BitConverter.ToInt32(header, start);
             start += 4;
             this._bodyLen = BitConverter.ToInt32(header, start);
             start += 4;

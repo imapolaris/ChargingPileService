@@ -8,8 +8,8 @@ namespace CPS.Communication.Service.DataPackets
 {
     public enum PacketType : short
     {
-        Login=1,
+        None,
+        Login =1,
         LoginResult,
-
     }
 }

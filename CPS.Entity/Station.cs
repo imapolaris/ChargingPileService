@@ -26,6 +26,9 @@ namespace CPS.Entities
         private string briefIntroduce;
         private byte[][] introduceImages;
 
+        private float elecPrice;
+        private float servicePrice;
+
         [StringLength(50)]
         [Required]
         public string Name
@@ -161,6 +164,26 @@ namespace CPS.Entities
         {
             get { return introduceImages; }
             set { introduceImages = value; }
+        }
+
+        /// <summary>
+        /// 电价
+        /// </summary>
+        [NotMapped]
+        public float ElecPrice
+        {
+            get { return elecPrice; }
+            set { elecPrice = value; }
+        }
+
+        /// <summary>
+        /// 服务费
+        /// </summary>
+        [NotMapped]
+        public float ServicePrice
+        {
+            get { return servicePrice; }
+            set { servicePrice = value; }
         }
     }
 }

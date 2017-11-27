@@ -124,8 +124,7 @@ namespace CPS.Communication.Service
 
         private void Client_ReceiveCompleted(object sender, ReceiveCompletedEventArgs args)
         {
-            PacketBase packet = new PacketBase();
-            packet = packet.AnalysePacket(args.ReceivedBytes);
+            PacketBase packet = PacketAnalyzer.AnalysePacket(args.ReceivedBytes);
 
         }
 

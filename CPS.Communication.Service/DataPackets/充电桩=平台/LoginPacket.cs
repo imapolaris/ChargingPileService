@@ -65,7 +65,7 @@ namespace CPS.Communication.Service.DataPackets
             return body;
         }
 
-        protected override PacketBase Decode(byte[] buffer)
+        public override PacketBase Decode(byte[] buffer)
         {
             int start = 0;
             base.Decode(buffer);

@@ -46,6 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ChargingService.cs" />
+    <Compile Include="DataPackets\PacketAnalyzer.cs" />
     <Compile Include="DataPackets\PacketType.cs" />
     <Compile Include="DataPackets\平台=充电桩\ChangeSecretKeyPacket.cs" />
     <Compile Include="DataPackets\充电桩=平台\ConfirmPacket.cs" />

@@ -65,7 +65,7 @@ namespace CPS.Communication.Client
                 Username = "alex",
                 Pwd = "123"
             };
-            client.Send(packet.GeneratePacket());
+            client.Send(PacketAnalyzer.GeneratePacket(packet));
         }
 
         /// <summary>

@@ -18,21 +18,21 @@ namespace CPS.Communication.Service.DataPackets
         public const int BodyLenIndex = 8;
         private PacketType _command;
 
-        public PacketBase()
+        public PacketBase() : this(PacketType.None)
         {
-            _header = new PacketHeader(_command);
         }
 
-        public PacketBase(PacketType command) : this()
+        public PacketBase(PacketType command)
         {
             _command = command;
+            _header = new PacketHeader(_command);
         }
 
         private PacketHeader _header;
         /// <summary>
         /// 报文头
         /// </summary>
-        protected PacketHeader Header
+        public PacketHeader Header
         {
             get { return _header; }
             set { _header = value; }
@@ -48,66 +48,12 @@ namespace CPS.Communication.Service.DataPackets
             set { _serialNumber = value; }
         }
 
-        public PacketType Command { get { return this._command; } }
+        public PacketType Command { get { return this.Header == null ? PacketType.None : this.Header.Command; } }
 
         /// <summary>
         /// 报文体长度
         /// </summary>
         protected int BodyLen { get; set; }
-
-        public PacketBase AnalysePacket(byte[] buffer)
-        {
-            try
-            {
-                PacketType command = this._header.Decode(buffer);
-                this._command = this._header.Command;
-
-                PacketBase packet = null;
-                switch (command)
-                {
-                    case PacketType.Login:
-                        packet = new LoginPacket();
-                        break;
-                    case PacketType.LoginResult:
-                        break;
-                    default:
-                        break;
-                }
-
-                byte[] body = new byte[buffer.Length - HeaderLen];
-                Array.Copy(buffer, HeaderLen, body, 0, body.Length);
-                packet.Decode(body);
-
-                return packet;
-            }
-            catch (ArgumentOutOfRangeException ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-
-            return null;
-        }
-
-        public byte[] GeneratePacket()
-        {
-            byte[] body = this.Encode();
-            this._header.BodyLen = body.Length;
-            byte[] header = this._header.Encode();
-
-            int len = header.Length + body.Length;
-            if (len < HeaderLen)
-                throw new ArgumentOutOfRangeException("包格式不正确...");
-
-            byte[] packet = new byte[len];
-            Array.Copy(header, 0, packet, 0, header.Length);
-            Array.Copy(body, 0, packet, header.Length, body.Length);
-
-            return packet;
-        }
 
         public virtual byte[] Encode()
         {
@@ -118,7 +64,7 @@ namespace CPS.Communication.Service.DataPackets
             return body;
         }
 
-        protected virtual PacketBase Decode(byte[] buffer) {
+        public virtual PacketBase Decode(byte[] buffer) {
 
             byte[] body = new byte[SerialNumberLen];
            

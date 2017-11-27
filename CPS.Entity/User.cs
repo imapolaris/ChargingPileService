@@ -28,6 +28,8 @@ namespace CPS.Entities
         private string carLicense;
         private string carType;
 
+        private int subscribeTimesToday;
+
         /// <summary>
         /// 昵称
         /// </summary>
@@ -153,6 +155,28 @@ namespace CPS.Entities
         {
             get { return carType; }
             set { carType = value; }
+        }
+
+        /// <summary>
+        /// 今天预约次数
+        /// </summary>
+        [NotMapped]
+        public int SubscribeTimesToday
+        {
+            get { return subscribeTimesToday; }
+            set { subscribeTimesToday = value; }
+        }
+
+        /// <summary>
+        /// 今天是否可以再预约
+        /// </summary>
+        [NotMapped]
+        public bool CanSubscribeToday
+        {
+            get
+            {
+                return this.subscribeTimesToday <= 5;
+            }
         }
     }
 }
