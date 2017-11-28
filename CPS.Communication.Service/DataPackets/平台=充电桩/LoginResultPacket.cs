@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CPS.Infrastructure.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,12 +9,12 @@ namespace CPS.Communication.Service.DataPackets
 {
     public class LoginResultPacket : PacketBase
     {
-        private LoginResult _result;
+        private LoginResultEnum _result;
         /// <summary>
         /// 登录结果
         /// 1、登录成功；2、设备不存在；3、已经登录；4、密钥失效；5、其他错误
         /// </summary>
-        public LoginResult ResultEnum
+        public LoginResultEnum ResultEnum
         {
             get { return _result; }
             set { _result = value; }
@@ -38,8 +39,25 @@ namespace CPS.Communication.Service.DataPackets
             set { _timestamp = value; }
         }
 
-        public LoginResultPacket(PacketType command) : base(PacketType.LoginResult)
+        public DateTime CurDate
         {
+            get
+            {
+                return DateHelper.ConvertToDateX(this._timestamp);
+            }
+        }
+
+        public LoginResultPacket() : base(PacketTypeEnum.LoginResult)
+        {
+            BodyLen = PacketBase.SerialNumberLen + 5;
+        }
+
+        public bool HasLogined
+        {
+            get
+            {
+                return ResultEnum == LoginResultEnum.Succeed || ResultEnum == LoginResultEnum.HasLogined;
+            }
         }
 
         public override byte[] Encode()
@@ -51,8 +69,7 @@ namespace CPS.Communication.Service.DataPackets
             byte[] temp = base.Encode();
             Array.Copy(temp, 0, body, start, SerialNumberLen);
             start += SerialNumberLen;
-            temp = BitConverter.GetBytes(this.Result);
-            Array.Copy(temp, 0, body, start, temp.Length);
+            body[start] = this.Result;
             start += 1;
             temp = BitConverter.GetBytes(this._timestamp);
             Array.Copy(temp, 0, body, start, temp.Length);
@@ -65,7 +82,7 @@ namespace CPS.Communication.Service.DataPackets
             int start = 0;
             base.Decode(buffer);
             start += SerialNumberLen;
-            this._result = (LoginResult)buffer[start];
+            this._result = (LoginResultEnum)buffer[start];
             start += 1;
             this._timestamp = BitConverter.ToInt32(buffer, start);
 

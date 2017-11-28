@@ -13,7 +13,7 @@ namespace CPS.Communication.Service.DataPackets
         {
         }
 
-        public PacketHeader(PacketType command) : this()
+        public PacketHeader(PacketTypeEnum command) : this()
         {
             this._command = command;
         }
@@ -38,11 +38,11 @@ namespace CPS.Communication.Service.DataPackets
             set { _attr = value; }
         }
 
-        private PacketType _command;
+        private PacketTypeEnum _command;
         /// <summary>
         /// 消息命令字
         /// </summary>
-        public PacketType Command
+        public PacketTypeEnum Command
         {
             get { return _command; }
             set { _command = value; }
@@ -109,7 +109,7 @@ namespace CPS.Communication.Service.DataPackets
             return header;
         }
 
-        public PacketType Decode(byte[] buffer)
+        public PacketTypeEnum Decode(byte[] buffer)
         {
             if (buffer == null || buffer.Length < PacketBase.HeaderLen)
                 throw new ArgumentOutOfRangeException("数据包格式不正确...");
@@ -122,7 +122,7 @@ namespace CPS.Communication.Service.DataPackets
             ++start;
             this._attr = header[start];
             ++start;
-            this._command = (PacketType)Enum.Parse(typeof(PacketType), BitConverter.ToInt16(header, start).ToString());
+            this._command = (PacketTypeEnum)Enum.Parse(typeof(PacketTypeEnum), BitConverter.ToInt16(header, start).ToString());
             start += 2;
             byte[] temp = new byte[4];
             Array.Copy(header, start, temp, 0, 4);

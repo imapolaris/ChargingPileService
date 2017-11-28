@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CPS.Communication.Service.Events;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,5 +12,7 @@ namespace CPS.Communication.Service
         bool startCharging(string sn);
         object getChargingStatus(string sn);
         bool stopCharging(string sn);
+
+        void ServiceFactory(object sender, ReceiveCompletedEventArgs args);
     }
 }

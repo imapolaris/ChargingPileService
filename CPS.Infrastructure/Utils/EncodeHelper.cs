@@ -10,27 +10,42 @@ namespace CPS.Infrastructure.Utils
     {
         public static string GetString(byte[] bytes)
         {
-            if (bytes == null)
-                return null;
-            if (bytes.Length == 0)
-                return "";
-            return Encoding.UTF8.GetString(bytes);
+            return GetString(bytes, Encoding.UTF8);
         }
 
         public static string GetString(byte[] bytes, int startIndex, int len)
         {
-            if (bytes == null)
-                return null;
-            if (bytes.Length == 0)
-                return "";
-            return Encoding.UTF8.GetString(bytes, startIndex, len);
+            return GetString(bytes, startIndex, len, Encoding.UTF8);
         }
 
         public static byte[] GetBytes(string content)
         {
+            return GetBytes(content, Encoding.UTF8);
+        }
+
+        public static string GetString(byte[] bytes, Encoding encoding)
+        {
+            if (bytes == null)
+                return null;
+            if (bytes.Length == 0)
+                return "";
+            return encoding.GetString(bytes);
+        }
+
+        public static string GetString(byte[] bytes, int startIndex, int len, Encoding encoding)
+        {
+            if (bytes == null)
+                return null;
+            if (bytes.Length == 0)
+                return "";
+            return encoding.GetString(bytes, startIndex, len);
+        }
+
+        public static byte[] GetBytes(string content, Encoding encoding)
+        {
             if (content == null)
                 return null;
-            return Encoding.UTF8.GetBytes(content);
+            return encoding.GetBytes(content);
         }
     }
 }

@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace CPS.Communication.Service.DataPackets
 {
-    public enum PacketType : short
+    public enum PacketTypeEnum : short
     {
         None,
         Login =1,
         LoginResult,
     }
 
-    public enum LoginResult : short
+    public enum LoginResultEnum : short
     {
         /// <summary>
         /// 登录成功
@@ -26,7 +26,7 @@ namespace CPS.Communication.Service.DataPackets
         /// <summary>
         /// 已经登录
         /// </summary>
-        HasLogon,
+        HasLogined,
         /// <summary>
         /// 密钥失效
         /// </summary>

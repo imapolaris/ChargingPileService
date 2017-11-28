@@ -1,4 +1,5 @@
-﻿using CPS.Communication.Service.DataPackets;
+﻿using CPS.Communication.Service;
+using CPS.Communication.Service.DataPackets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,7 +24,7 @@ namespace CPS.Communication.Client
     /// </summary>
     public partial class MainWindow : Window
     {
-        Socket client = null;
+        Server.Client client = null;
 
         public MainWindow()
         {
@@ -32,12 +33,27 @@ namespace CPS.Communication.Client
 
         private void btnConnect_Click(object sender, RoutedEventArgs e)
         {
-            client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            client = new Server.Client(socket);
             string txtip = this.txtIP.Text.Trim();
             string txtport = this.txtPort.Text.Trim();
             IPAddress ip = IPAddress.Parse(txtip);
             IPEndPoint ep = new IPEndPoint(ip, int.Parse(txtport));
-            client.Connect(ep);
+            client.ReceiveCompleted += Client_ReceiveCompleted;
+            client.SendCompleted += Client_SendCompleted;
+            client.WorkSocket.Connect(ep);
+        }
+
+        private void Client_SendCompleted(object sender, Service.Events.SendCompletedEventArgs args)
+        {
+            appendText("send", "已发送...");
+        }
+
+        private void Client_ReceiveCompleted(object sender, Service.Events.ReceiveCompletedEventArgs args)
+        {
+            LoginResultPacket packet = PacketAnalyzer.AnalysePacket(args.ReceivedBytes) as LoginResultPacket;
+
+            appendText("receive", $"sn:{packet.SerialNumber}, result:{packet.ResultEnum.ToString()}, timestamp:{packet.TimeStamp}");
         }
 
         private void btnDisConnect_Click(object sender, RoutedEventArgs e)
@@ -50,6 +66,7 @@ namespace CPS.Communication.Client
             Application.Current.Dispatcher.Invoke(new Action(() =>
             {
                 document.Document.Blocks.Add(new Paragraph(new Run(string.Format("{0}:{1}", msgType, txt))));
+                document.ScrollToEnd();
             }), null);
         }
 
@@ -66,6 +83,8 @@ namespace CPS.Communication.Client
                 Pwd = "123"
             };
             client.Send(PacketAnalyzer.GeneratePacket(packet));
+
+            client.Receive();
         }
 
         /// <summary>

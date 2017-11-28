@@ -13,17 +13,18 @@ namespace CPS.Communication.Service.DataPackets
             try
             {
                 PacketHeader header = new PacketHeader();
-                PacketType command = header.Decode(buffer);
+                PacketTypeEnum command = header.Decode(buffer);
                 if (!header.VerifyPacket())
                     throw new ArgumentException("报文异常...");
 
                 PacketBase packet = null;
                 switch (command)
                 {
-                    case PacketType.Login:
+                    case PacketTypeEnum.Login:
                         packet = new LoginPacket();
                         break;
-                    case PacketType.LoginResult:
+                    case PacketTypeEnum.LoginResult:
+                        packet = new LoginResultPacket();
                         break;
                     default:
                         break;

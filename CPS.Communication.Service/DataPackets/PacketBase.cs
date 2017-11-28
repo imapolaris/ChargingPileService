@@ -16,13 +16,13 @@ namespace CPS.Communication.Service.DataPackets
         /// 报文头中报文体长度的位置
         /// </summary>
         public const int BodyLenIndex = 8;
-        private PacketType _command;
+        private PacketTypeEnum _command;
 
-        public PacketBase() : this(PacketType.None)
+        public PacketBase() : this(PacketTypeEnum.None)
         {
         }
 
-        public PacketBase(PacketType command)
+        public PacketBase(PacketTypeEnum command)
         {
             _command = command;
             _header = new PacketHeader(_command);
@@ -48,7 +48,7 @@ namespace CPS.Communication.Service.DataPackets
             set { _serialNumber = value; }
         }
 
-        public PacketType Command { get { return this.Header == null ? PacketType.None : this.Header.Command; } }
+        public PacketTypeEnum Command { get { return this.Header == null ? PacketTypeEnum.None : this.Header.Command; } }
 
         /// <summary>
         /// 报文体长度

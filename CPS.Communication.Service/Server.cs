@@ -16,12 +16,24 @@ using System.Collections;
 
 namespace CPS.Communication.Service
 {
-    public class Server
+    public class Server : IDisposable
     {
         private Socket _listener;
         private bool _closing = false;
         private bool _closed = false;
         private ClientCollection _clients;
+        private IChargingPileService MyChargingService = ChargingService.Instance;
+
+        public bool IsRunning
+        {
+            get
+            {
+                return !_closing && !_closed;
+            }
+        }
+
+        public IPAddress IP { get; private set; }
+        public int Port { get; private set; }
 
         public Server()
         {
@@ -35,8 +47,23 @@ namespace CPS.Communication.Service
 
         public void Listen(string localIp, int port)
         {
-            IPAddress ip = IPAddress.Parse(localIp);
-            Listen(new IPEndPoint(ip, port));
+            try
+            {
+                IPAddress ip = IPAddress.Parse(localIp);
+
+                IP = ip;
+                Port = port;
+
+                Listen(new IPEndPoint(ip, port));
+            }
+            catch (ArgumentNullException ane)
+            {
+                Console.WriteLine($"无法启动服务器，IP地址不能为空...\n详细信息：{ane.Message}");
+            }
+            catch (FormatException fe)
+            {
+                Console.WriteLine($"无法启动服务器，非法的IP地址...\n详细信息：{fe.Message}");
+            }
         }
 
         private void Listen(IPEndPoint ep)
@@ -81,6 +108,15 @@ namespace CPS.Communication.Service
                     _listener.Close();
                 _listener = null;
 
+                foreach (var item in this._clients)
+                {
+                    if (item != null)
+                    {
+                        item.Close();
+                    }
+                }
+                this._clients.Clear();
+
                 OnServerStopped(new ServerStoppedEventArgs());
             }
             _closing = false;
@@ -90,7 +126,7 @@ namespace CPS.Communication.Service
         {
             try
             {
-                if (_closed || _closing)
+                if (!IsRunning)
                     return;
                 Socket s = ar.AsyncState as Socket;
                 Socket wSocket = s.EndAccept(ar);
@@ -99,9 +135,10 @@ namespace CPS.Communication.Service
                 client.ReceiveCompleted += Client_ReceiveCompleted;
                 client.SendCompleted += Client_SendCompleted;
                 client.ErrorOccurred += Client_ErrorOccurred;
+                client.ClientClosed += Client_ClientClosed;
                 client.Receive();
 
-                OnClientAccepted(new ClientAcceptedEventArgs());
+                OnClientAccepted(new ClientAcceptedEventArgs(client));
                 // 保存到客户端列表
                 _clients.AddClient(client);
 
@@ -109,9 +146,24 @@ namespace CPS.Communication.Service
             }
             catch (SocketException se)
             {
-                if (_closed || _closing)
+                if (!IsRunning)
                     return;
                 handleSocketException(se, ErrorTypes.SocketAccept);
+            }
+        }
+
+        public void SendAll(PacketBase packet)
+        {
+            if (packet == null) return;
+            byte[] buffer = PacketAnalyzer.GeneratePacket(packet);
+            SendAll(buffer);
+        }
+
+        public void SendAll(byte[] buffer)
+        {
+            foreach (var item in this._clients)
+            {
+                item.Send(buffer);
             }
         }
 
@@ -119,8 +171,8 @@ namespace CPS.Communication.Service
         {
             if (args != null)
             {
-                Logger.Instance.Error(args.ToString());
-                Console.WriteLine(args.ToString());
+                //Logger.Instance.Error(args.ToString());
+                Console.WriteLine($"####{args.ToString()}");
             }
         }
 
@@ -131,17 +183,23 @@ namespace CPS.Communication.Service
 
         private void Client_ReceiveCompleted(object sender, ReceiveCompletedEventArgs args)
         {
-            switch (args.ReceivedPacket.Command)
+            try
             {
-                case PacketType.None:
-                    break;
-                case PacketType.Login:
-                    break;
-                case PacketType.LoginResult:
-                    break;
-                default:
-                    break;
+                MyChargingService.ServiceFactory(sender, args);
             }
+            catch (SocketException se)
+            {
+                handleSocketException(se, ErrorTypes.Receive);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+        private void Client_ClientClosed(object sender, ClientClosedEventArgs args)
+        {
+
         }
 
         private void handleSocketException(SocketException se, ErrorTypes eType)
@@ -177,6 +235,33 @@ namespace CPS.Communication.Service
                 info += cInfo;
             }
             return info;
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private bool disposed = false;
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!this.disposed)
+            {
+                if (disposing)
+                {
+                    try
+                    {
+                        StopListen();
+                    }
+                    catch (SocketException se)
+                    {
+                        handleSocketException(se, ErrorTypes.ServerStop);
+                    }
+                }
+
+                disposed = true;
+            }
         }
 
         #region 【事件定义】
@@ -243,6 +328,40 @@ namespace CPS.Communication.Service
                 set { _serialNumber = value; }
             }
 
+            public EndPoint LocalEndPoint
+            {
+                get
+                {
+                    return _socket.LocalEndPoint;
+                }
+            }
+
+            public EndPoint RemoteEndPoint
+            {
+                get
+                {
+                    return _socket.RemoteEndPoint;
+                }
+            }
+
+            public string ID
+            {
+                get
+                {
+                    return $"{RemoteEndPoint}:{SerialNumber}";
+                }
+            }
+
+            private bool hasLogined;
+            /// <summary>
+            /// 是否已登陆
+            /// </summary>
+            public bool HasLogined
+            {
+                get { return hasLogined; }
+                set { hasLogined = value; }
+            }
+
             public int Handle
             {
                 get
@@ -284,6 +403,8 @@ namespace CPS.Communication.Service
                             _socket.Close();
                         }
                         _socket = null;
+
+                        OnClientClosed(new ClientClosedEventArgs(this));
                     }
                 })
                 { IsBackground = true }.Start();
@@ -405,9 +526,7 @@ namespace CPS.Communication.Service
                         ReceiveState rs = sQueue.Dequeue();
                         if (rs.Completed)
                         {
-                            // 解析数据包
-                            PacketBase packet = PacketAnalyzer.AnalysePacket(rs.Received);
-                            OnReceiveCompleted(new ReceiveCompletedEventArgs(packet));
+                            OnReceiveCompleted(new ReceiveCompletedEventArgs(rs.Received));
                         }
                         else
                         {
@@ -490,17 +609,17 @@ namespace CPS.Communication.Service
 
             public override string ToString()
             {
-                // 打印充电桩编号、充电桩机器 等信息
                 if (this.WorkSocket != null)
-                    return $"状态：{this.IsConnectedDesc}，地址：{this.WorkSocket.LocalEndPoint}\n";
+                    return $"状态：{this.IsConnectedDesc}，地址：{this.LocalEndPoint}，编号：{this.SerialNumber}\n";
                 else
-                    return $"状态：{this.IsConnectedDesc}\n";
+                    return "<空>";
             }
 
             #region 【事件定义】
             public event ErrorOccurredHandler ErrorOccurred;
             public event SendCompletedHandler SendCompleted;
             public event ReceiveCompletedHandler ReceiveCompleted;
+            public event ClientClosedHandler ClientClosed;
 
             private void OnErrorOccurred(ErrorEventArgs args)
             {
@@ -522,6 +641,13 @@ namespace CPS.Communication.Service
                 if (handler != null)
                     handler(this, args);
             }
+
+            private void OnClientClosed(ClientClosedEventArgs args)
+            {
+                ClientClosedHandler handler = ClientClosed;
+                if (handler != null)
+                    handler(this, args);
+            }
             #endregion 【事件定义】
         }
 
@@ -535,7 +661,7 @@ namespace CPS.Communication.Service
                 _clients = new List<Client>();
             }
 
-            public List<Client> Clients { get { return _clients; } }
+            protected List<Client> Clients { get { return _clients; } }
             public void CloseClient(Client client)
             {
                 client.Close();
@@ -547,6 +673,12 @@ namespace CPS.Communication.Service
                 {
                     return this._clients == null ? 0 : this._clients.Count;
                 }
+            }
+
+            public void Clear()
+            {
+                if (this._clients != null && this._clients.Count > 0)
+                    this._clients.Clear();
             }
 
             public void AddClient(Client client)

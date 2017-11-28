@@ -9,9 +9,9 @@ namespace CPS.Communication.Service.DataPackets
 {
     public class LoginPacket : PacketBase
     {
-        public LoginPacket() : base(PacketType.Login)
+        public LoginPacket() : base(PacketTypeEnum.Login)
         {
-            BodyLen = PacketBase.HeaderLen + PacketBase.SerialNumberLen + 24;
+            BodyLen = PacketBase.SerialNumberLen + 24;
         }
 
         private int _timeStamp;

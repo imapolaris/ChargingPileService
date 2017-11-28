@@ -36,22 +36,20 @@ namespace CPS.Communication.Service.Events
             if (this._inner != null)
             {
                 msg += $"堆栈信息：\n";
-                msg += PrintInnerException(this._inner);
+                msg += PrintInnerException(this._inner, "");
             }
             return msg;
         }
 
-        private string PrintInnerException(Exception ex, string msg="")
+        private string PrintInnerException(Exception ex, string msg)
         {
             if (ex != null)
             {
                 msg += ex.Message + "\n";
-                return PrintInnerException(ex.InnerException, msg);
+                PrintInnerException(ex.InnerException, msg);
             }
-            else
-            {
-                return msg;
-            }
+
+            return msg;
         }
     }
 }

@@ -53,5 +53,20 @@ namespace CPS.Infrastructure.Utils
         {
             _log.Fatal(message);
         }
+
+        public void LogInfoConsole(object message)
+        {
+            Console.WriteLine($"----{message}");
+        }
+
+        public void LogWarnConsole(object message)
+        {
+            Console.WriteLine($"++++{message}");
+        }
+
+        public void LogErrorConsole(object message)
+        {
+            Console.WriteLine($"####{message}");
+        }
     }
 }

@@ -9,22 +9,25 @@ namespace CPS.Communication.Service.Events
 {
     public class ReceiveCompletedEventArgs : EventArgs
     {
-        private PacketBase _packet;
-
-        public ReceiveCompletedEventArgs(PacketBase packet)
+        private byte[] _buffer;
+        public ReceiveCompletedEventArgs(byte[] bytes)
         {
-            _packet = packet;
+            _buffer = bytes;
         }
 
-        public ReceiveCompletedEventArgs(PacketBase packet, Server.Client client)
-            : this(packet)
+        public byte[] ReceivedBytes { get { return _buffer; } }
+
+        private string _rStr;
+        public string ReceivedAsString
         {
-            _client = client;
+            get
+            {
+                if (_rStr == null && ReceivedBytes != null)
+                    _rStr = Encoding.UTF8.GetString(ReceivedBytes);
+                return _rStr;
+            }
         }
 
-        public PacketBase ReceivedPacket { get { return _packet; } }
-
-        private Server.Client _client;
-        public Server.Client CurClient { get { return _client; } }
+        public int ByteLength { get { return _buffer == null ? 0 : _buffer.Length; } }
     }
 }
