@@ -32,6 +32,13 @@ namespace CPS.Communication.Service.Events
         }
     }
 
+    public class ClientDisconnectedEventArgs : ClientEventArgs
+    {
+        public ClientDisconnectedEventArgs(Server.Client client)
+            : base(client)
+        { }
+    }
+
     public class ClientClosedEventArgs : ClientEventArgs
     {
         public ClientClosedEventArgs(Server.Client client)

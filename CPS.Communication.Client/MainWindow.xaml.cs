@@ -25,10 +25,32 @@ namespace CPS.Communication.Client
     public partial class MainWindow : Window
     {
         Server.Client client = null;
+        IPEndPoint ep;
 
         public MainWindow()
         {
             InitializeComponent();
+
+            Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            client = new Server.Client(socket);
+            string txtip = this.txtIP.Text.Trim();
+            string txtport = this.txtPort.Text.Trim();
+            IPAddress ip = IPAddress.Parse(txtip);
+            ep = new IPEndPoint(ip, int.Parse(txtport));
+            client.ReceiveCompleted += Client_ReceiveCompleted;
+            client.SendCompleted += Client_SendCompleted;
+            client.ClientDisconnected += Client_ClientDisconnected;
+            client.ErrorOccurred += Client_ErrorOccurred;
+        }
+
+        private void Client_ErrorOccurred(object sender, Service.Events.ErrorEventArgs args)
+        {
+            appendText("error", $"####{args}");
+        }
+
+        private void Client_ClientDisconnected(object sender, Service.Events.ClientDisconnectedEventArgs args)
+        {
+            appendText("disconnect", $"----Client {args.CurClient.ID} has disconnected!");
         }
 
         private void btnConnect_Click(object sender, RoutedEventArgs e)
@@ -38,9 +60,11 @@ namespace CPS.Communication.Client
             string txtip = this.txtIP.Text.Trim();
             string txtport = this.txtPort.Text.Trim();
             IPAddress ip = IPAddress.Parse(txtip);
-            IPEndPoint ep = new IPEndPoint(ip, int.Parse(txtport));
+            ep = new IPEndPoint(ip, int.Parse(txtport));
             client.ReceiveCompleted += Client_ReceiveCompleted;
             client.SendCompleted += Client_SendCompleted;
+            client.ClientDisconnected += Client_ClientDisconnected;
+            client.ErrorOccurred += Client_ErrorOccurred;
             client.WorkSocket.Connect(ep);
         }
 

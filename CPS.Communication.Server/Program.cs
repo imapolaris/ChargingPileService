@@ -11,15 +11,14 @@ namespace CPS.Communication.Server
         static void Main(string[] args)
         {
             Init();
+            PrintStartInfo();
 
             Service.Server server = new Service.Server();
-            server.Listen(2222);
             server.ErrorOccurred += Server_ErrorOccurred;
             server.ClientAccepted += Server_ClientAccepted;
             server.ServerStarted += Server_ServerStarted;
             server.ServerStopped += Server_ServerStopped;
-
-            PrintStartInfo();
+            server.Listen(2222);
 
             while (true)
             {

@@ -104,20 +104,22 @@ namespace CPS.Communication.Service
             _closing = true;
             lock (_closeObj)
             {
-                if (_listener != null)
-                    _listener.Close();
-                _listener = null;
-
-                foreach (var item in this._clients)
+                if (_listener != null && IsRunning)
                 {
-                    if (item != null)
-                    {
-                        item.Close();
-                    }
-                }
-                this._clients.Clear();
+                    _listener.Close();
+                    _listener = null;
 
-                OnServerStopped(new ServerStoppedEventArgs());
+                    foreach (var item in this._clients)
+                    {
+                        if (item != null)
+                        {
+                            item.Close();
+                        }
+                    }
+                    this._clients.Clear();
+
+                    OnServerStopped(new ServerStoppedEventArgs());
+                }
             }
             _closing = false;
         }
@@ -136,6 +138,7 @@ namespace CPS.Communication.Service
                 client.SendCompleted += Client_SendCompleted;
                 client.ErrorOccurred += Client_ErrorOccurred;
                 client.ClientClosed += Client_ClientClosed;
+                client.ClientDisconnected += Client_ClientDisconnected;
                 client.Receive();
 
                 OnClientAccepted(new ClientAcceptedEventArgs(client));
@@ -199,7 +202,16 @@ namespace CPS.Communication.Service
 
         private void Client_ClientClosed(object sender, ClientClosedEventArgs args)
         {
+            
+        }
 
+
+        private void Client_ClientDisconnected(object sender, ClientDisconnectedEventArgs args)
+        {
+            if (args != null && args.CurClient != null)
+            {
+                Console.WriteLine($"----Client {args.CurClient.ID} has disconnected!");
+            }
         }
 
         private void handleSocketException(SocketException se, ErrorTypes eType)
@@ -389,23 +401,42 @@ namespace CPS.Communication.Service
             }
 
             private bool _closed = false;
-            private object _closeObj = new object();
             private int _emptyTimes;
+            private ManualResetEvent _mre = new ManualResetEvent(true);
+
+            public void Disconnect()
+            {
+                new Thread(() =>
+                {
+                    _mre.Reset();
+                    {
+                        OnClientDisconnected(new ClientDisconnectedEventArgs(this));
+
+                        if (_socket != null && IsConnected)
+                        {
+                            _socket.Disconnect(false);
+                        }
+                    }
+                    _mre.Set();
+                })
+                { IsBackground = true }.Start();
+            }
 
             public void Close()
             {
                 new Thread(() =>
                 {
-                    lock (_closeObj)
+                    _mre.Reset();
                     {
+                        OnClientClosed(new ClientClosedEventArgs(this));
+
                         if (_socket != null)
                         {
                             _socket.Close();
                         }
                         _socket = null;
-
-                        OnClientClosed(new ClientClosedEventArgs(this));
                     }
+                    _mre.Set();
                 })
                 { IsBackground = true }.Start();
                 _closed = true;
@@ -485,6 +516,10 @@ namespace CPS.Communication.Service
                 {
                     handleSocketException(se, ErrorTypes.Receive);
                 }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
             }
 
             private void receiveCallback(IAsyncResult ar)
@@ -499,7 +534,7 @@ namespace CPS.Communication.Service
                         _emptyTimes++;
                         if (_emptyTimes == 100)
                         {
-                            OnErrorOccurred(new ErrorEventArgs("连续接收到无效的空白信息，可能由于远端连接已异常关闭，连接自动退出！", ErrorTypes.SocketAccept));
+                            //OnErrorOccurred(new ErrorEventArgs("连续接收到无效的空白信息，可能由于远端连接已异常关闭，连接自动退出！", ErrorTypes.SocketAccept));
                             Close();
                             return;
                         }
@@ -620,6 +655,7 @@ namespace CPS.Communication.Service
             public event SendCompletedHandler SendCompleted;
             public event ReceiveCompletedHandler ReceiveCompleted;
             public event ClientClosedHandler ClientClosed;
+            public event ClientDisconnectedHandler ClientDisconnected;
 
             private void OnErrorOccurred(ErrorEventArgs args)
             {
@@ -645,6 +681,13 @@ namespace CPS.Communication.Service
             private void OnClientClosed(ClientClosedEventArgs args)
             {
                 ClientClosedHandler handler = ClientClosed;
+                if (handler != null)
+                    handler(this, args);
+            }
+
+            private void OnClientDisconnected(ClientDisconnectedEventArgs args)
+            {
+                ClientDisconnectedHandler handler = ClientDisconnected;
                 if (handler != null)
                     handler(this, args);
             }
