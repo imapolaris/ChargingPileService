@@ -70,5 +70,15 @@ namespace CPS.Communication.Server
         {
             Console.WriteLine("Error:" + args.ErrorMessage);
         }
+
+        /// <summary>
+        /// 启动redis
+        /// </summary>
+        /// <returns></returns>
+        private static bool LaunchRedis()
+        {
+
+            return true;
+        }
     }
 }

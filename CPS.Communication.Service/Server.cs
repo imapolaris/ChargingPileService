@@ -109,17 +109,17 @@ namespace CPS.Communication.Service
                     _listener.Close();
                     _listener = null;
 
-                    foreach (var item in this._clients)
-                    {
-                        if (item != null)
-                        {
-                            item.Close();
-                        }
-                    }
-                    this._clients.Clear();
-
                     OnServerStopped(new ServerStoppedEventArgs());
                 }
+
+                foreach (var item in this._clients)
+                {
+                    if (item != null)
+                    {
+                        item.Close();
+                    }
+                }
+                this._clients.Clear();
             }
             _closing = false;
         }
