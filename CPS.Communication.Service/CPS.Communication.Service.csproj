@@ -66,12 +66,12 @@
     <Compile Include="DataPackets\平台=充电桩\GetReportIntervalResultPacket.cs" />
     <Compile Include="DataPackets\平台=充电桩\GetServicePricePacket.cs" />
     <Compile Include="DataPackets\平台=充电桩\GetServicePriceResultPacket.cs" />
-    <Compile Include="DataPackets\HeartBeatPacket.cs" />
+    <Compile Include="DataPackets\公共\HeartBeatPacket.cs" />
     <Compile Include="DataPackets\充电桩=平台\LoginPacket.cs" />
     <Compile Include="DataPackets\平台=充电桩\LoginResultPacket.cs" />
     <Compile Include="DataPackets\PacketBase.cs" />
     <Compile Include="DataPackets\PacketHeader.cs" />
-    <Compile Include="DataPackets\OperBasePacket.cs" />
+    <Compile Include="DataPackets\公共\OperBasePacket.cs" />
     <Compile Include="DataPackets\平台=充电桩\RebootPacket.cs" />
     <Compile Include="DataPackets\充电桩=平台\RebootResultPacket.cs" />
     <Compile Include="DataPackets\充电桩=平台\SetElecPricePacket.cs" />
