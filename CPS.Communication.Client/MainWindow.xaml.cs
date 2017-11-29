@@ -78,9 +78,17 @@ namespace CPS.Communication.Client
 
         private void Client_ReceiveCompleted(object sender, Service.Events.ReceiveCompletedEventArgs args)
         {
-            LoginResultPacket packet = PacketAnalyzer.AnalysePacket(args.ReceivedBytes) as LoginResultPacket;
-
-            appendText("receive", $"sn:{packet.SerialNumber}, result:{packet.ResultEnum.ToString()}, timestamp:{packet.TimeStamp}");
+            PacketBase packet = PacketAnalyzer.AnalysePacket(args.ReceivedBytes);
+            if (packet.Command == PacketTypeEnum.HeartBeatServer)
+            {
+                HeartBeatPacket lrpacket = packet as HeartBeatPacket;
+                appendText("Heartbeat", $"sn:{packet.SerialNumber}, timestamp:{lrpacket.TimeStamp}");
+            }
+            else if (packet.Command == PacketTypeEnum.LoginResult)
+            {
+                LoginResultPacket lrpacket = packet as LoginResultPacket;
+                appendText("LoginResult", $"sn:{packet.SerialNumber}, result:{lrpacket.ResultEnum.ToString()}, timestamp:{lrpacket.TimeStamp}");
+            }
         }
 
         private void btnDisConnect_Click(object sender, RoutedEventArgs e)
@@ -252,6 +260,11 @@ namespace CPS.Communication.Client
         private void upgrade_Click(object sender, RoutedEventArgs e)
         {
 
+        }
+
+        private void heartBeatServer_Click(object sender, RoutedEventArgs e)
+        {
+            client.Receive();
         }
     }
 }

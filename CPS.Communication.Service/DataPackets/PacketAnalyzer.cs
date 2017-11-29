@@ -32,6 +32,7 @@ namespace CPS.Communication.Service.DataPackets
                         packet = new HeartBeatPacket(PacketTypeEnum.HeartBeatClient);
                         break;
                     case PacketTypeEnum.HeartBeatServer:
+                        packet = new HeartBeatPacket(PacketTypeEnum.HeartBeatServer);
                         break;
                     case PacketTypeEnum.Reboot:
                         break;

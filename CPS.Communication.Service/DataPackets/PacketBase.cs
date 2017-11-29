@@ -38,7 +38,7 @@ namespace CPS.Communication.Service.DataPackets
             set { _header = value; }
         }
 
-        private string _serialNumber;
+        private string _serialNumber = "";
         /// <summary>
         /// 电桩编号
         /// </summary>
@@ -60,7 +60,7 @@ namespace CPS.Communication.Service.DataPackets
             byte[] body = new byte[BodyLen];
 
             byte[] temp = EncodeHelper.GetBytes(this._serialNumber);
-            Array.Copy(temp, 0, body, 0, SerialNumberLen);
+            Array.Copy(temp, 0, body, 0, temp.Length);
             return body;
         }
 

@@ -23,14 +23,24 @@ namespace CPS.Communication.Service
         private bool _closed = false;
         private ClientCollection _clients;
         private IChargingPileService MyChargingService = ChargingService.Instance;
+
+        #region 心跳检测
         private const int HeartBeatInterval = 15; // 心跳间隔15秒
-        private const int HeartBeatCheckInterval = 30; // 心跳检测间隔60秒
-        private object heartbeatLocker = new object();
+        private const int HeartBeatCheckInterval = 60; // 心跳检测间隔60秒
+        private object heartbeatCheckLocker = new object();
         private bool stopHeartbeatCheck = false;
+        private object heartbeatServerLocker = new object();
+        private bool stopHeartbeatServer = false;
         /// <summary>
         /// 心跳检测线程
         /// </summary>
         Thread ThreadHeartbeatDetection;
+        /// <summary>
+        /// 服务端发送心跳包线程
+        /// </summary>
+        Thread ThreadHeartbeatFromServer;
+
+        #endregion 心跳检测
 
         public bool IsRunning
         {
@@ -48,6 +58,7 @@ namespace CPS.Communication.Service
             _clients = new ClientCollection();
 
             StartHeartbeatCheck();
+            StartHeartbeatFromServer();
         }
 
         public void Listen(int port)
@@ -109,7 +120,7 @@ namespace CPS.Communication.Service
                 while (true)
                 {
                     long time = DateTime.Now.Ticks;
-                    lock (heartbeatLocker)
+                    lock (heartbeatCheckLocker)
                     {
                         if (!ThreadHeartbeatDetection.IsAlive || stopHeartbeatCheck)
                             break;
@@ -145,6 +156,38 @@ namespace CPS.Communication.Service
             })
             { IsBackground = true };
             ThreadHeartbeatDetection.Start();
+        }
+
+        private void StartHeartbeatFromServer()
+        {
+            ThreadHeartbeatFromServer = new Thread(() =>
+            {
+                while (true)
+                {
+                    if (!ThreadHeartbeatFromServer.IsAlive || stopHeartbeatServer)
+                        break;
+
+                    lock (heartbeatServerLocker)
+                    {
+                        HeartBeatPacket packet = new HeartBeatPacket(PacketTypeEnum.HeartBeatServer);
+                        foreach (var item in this._clients)
+                        {
+                            if (item != null)
+                            {
+                                packet.TimeStamp = DateTime.Now.ConvertToTimeStampX();
+                                packet.SerialNumber = item.SerialNumber;
+
+                                if (item.IsConnected)
+                                    item.Send(packet);
+                            }
+                        }
+                    }
+
+                    Thread.Sleep(HeartBeatInterval * 1000);
+                }
+            })
+            { IsBackground = true };
+            ThreadHeartbeatFromServer.Start();
         }
 
         private object _closeObj = new object();
@@ -431,7 +474,7 @@ namespace CPS.Communication.Service
                 set { _socket = value; }
             }
 
-            private string _serialNumber;
+            private string _serialNumber="";
             /// <summary>
             /// 充电桩序列号
             /// </summary>
@@ -565,7 +608,6 @@ namespace CPS.Communication.Service
                 }
                 catch (SocketException se)
                 {
-                    OnSendDataException(new SendDataExceptionEventArgs());
                     handleSocketException(se, ErrorTypes.Send);
                 }
                 catch (ObjectDisposedException ode)
@@ -595,7 +637,7 @@ namespace CPS.Communication.Service
                 }
                 catch (SocketException se)
                 {
-                    OnSendDataException(new SendDataExceptionEventArgs());
+                    //OnSendDataException(new SendDataExceptionEventArgs());
                     handleSocketException(se, ErrorTypes.Send);
                 }
                 catch (ObjectDisposedException ode)
