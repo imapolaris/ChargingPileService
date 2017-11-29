@@ -47,11 +47,11 @@ namespace CPS.Communication.Service
             return true;
         }
 
-        public void ServiceFactory(object sender, ReceiveCompletedEventArgs args)
+        public void ServiceFactory(Server.Client client, PacketBase packet)
         {
-            // 解析数据包
-            PacketBase packet = PacketAnalyzer.AnalysePacket(args.ReceivedBytes);
-            Server.Client client = (Server.Client)sender;
+            if (client == null || packet == null)
+                return;
+
             switch (packet.Command)
             {
                 case PacketTypeEnum.None:

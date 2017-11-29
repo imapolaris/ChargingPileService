@@ -1,11 +1,13 @@
 ﻿using CPS.Communication.Service;
 using CPS.Communication.Service.DataPackets;
+using CPS.Infrastructure.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -26,6 +28,7 @@ namespace CPS.Communication.Client
     {
         Server.Client client = null;
         IPEndPoint ep;
+        private bool stopHeartbeat = false;
 
         public MainWindow()
         {
@@ -102,7 +105,7 @@ namespace CPS.Communication.Client
             LoginPacket packet = new LoginPacket()
             {
                 SerialNumber = "1234567890AbcBCa",
-                TimeStamp = int.Parse(DateTime.Now.ToString("yyyyMMdd")),
+                TimeStamp = DateTime.Now.ConvertToTimeStampX(),
                 Username = "alex",
                 Pwd = "123"
             };
@@ -116,7 +119,35 @@ namespace CPS.Communication.Client
         /// </summary>
         private void heartBeat_Click(object sender, RoutedEventArgs e)
         {
+            if (this.heartBeat.Content.ToString() == "开启心跳")
+            {
+                this.heartBeat.Content = "结束心跳";
 
+                HeartBeatPacket packet = new HeartBeatPacket(PacketTypeEnum.HeartBeatClient)
+                {
+                    SerialNumber = "1234567890AbcBCa",
+                    TimeStamp = DateTime.Now.ConvertToTimeStampX(),
+                };
+
+                new Thread(() =>
+                {
+                    while (true)
+                    {
+                        if (stopHeartbeat)
+                            break;
+
+                        client.Send(packet);
+                        Thread.Sleep(15 * 1000);
+                    }
+                })
+                { IsBackground = true }
+                .Start();
+            }
+            else
+            {
+                stopHeartbeat = true;
+                this.heartBeat.Content = "开启心跳";
+            }
         }
 
         /// <summary>

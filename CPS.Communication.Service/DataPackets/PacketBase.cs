@@ -57,15 +57,15 @@ namespace CPS.Communication.Service.DataPackets
 
         public virtual byte[] Encode()
         {
-            byte[] body = new byte[SerialNumberLen];
+            byte[] body = new byte[BodyLen];
 
             byte[] temp = EncodeHelper.GetBytes(this._serialNumber);
             Array.Copy(temp, 0, body, 0, SerialNumberLen);
             return body;
         }
 
-        public virtual PacketBase Decode(byte[] buffer) {
-
+        public virtual PacketBase Decode(byte[] buffer)
+        {
             byte[] body = new byte[SerialNumberLen];
            
             Array.Copy(buffer, 0, body, 0, SerialNumberLen);

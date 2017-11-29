@@ -100,6 +100,10 @@
       <Project>{1C05B477-5DE7-41FA-BA73-0CD90E74DC56}</Project>
       <Name>CPS.Communication.Service</Name>
     </ProjectReference>
+    <ProjectReference Include="..\CPS.Infrastructure\CPS.Infrastructure.csproj">
+      <Project>{099D33EE-0E51-41B8-BED7-0C6272B38327}</Project>
+      <Name>CPS.Infrastructure</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

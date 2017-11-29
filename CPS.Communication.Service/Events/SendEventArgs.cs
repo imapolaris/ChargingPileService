@@ -25,4 +25,31 @@ namespace CPS.Communication.Service.Events
             this._len = len;
         }
     }
+
+    public class SendDataExceptionEventArgs : EventArgs
+    {
+        private Exception _innerException;
+
+        public Exception InnerException
+        {
+            get { return _innerException; }
+            set { _innerException = value; }
+        }
+
+        private string _msg;
+
+        public string Msg
+        {
+            get { return _msg; }
+            set { _msg = value; }
+        }
+
+        private Server.Client _client;
+
+        public Server.Client CurClient
+        {
+            get { return _client; }
+            set { _client = value; }
+        }
+    }
 }

@@ -25,6 +25,13 @@ namespace CPS.Communication.Server
                 string input = Console.ReadLine();
                 if (input.ToLower().Equals("exit"))
                     break;
+                else if (input.ToLower().Equals("detail"))
+                    Console.WriteLine(server);
+                else if (input.ToLower().Equals("clear"))
+                {
+                    Console.Clear();
+                    PrintStartInfo();
+                }
             }
 
             PrintStopInfo();
@@ -43,7 +50,7 @@ namespace CPS.Communication.Server
             Console.WriteLine($"启动时间：{DateTime.Now.ToString("yyyy年MM月dd日 HH:mm:ss")}");
             Console.WriteLine($"版本：{"Ver 1.0"}");
             Console.WriteLine("----------------------------------------------------------------");
-            Console.WriteLine("服务启动成功 ......(输入exit停止服务)\n");
+            Console.WriteLine("服务正在运行 ......(输入exit停止服务)\n");
         }
 
         static void PrintStopInfo()

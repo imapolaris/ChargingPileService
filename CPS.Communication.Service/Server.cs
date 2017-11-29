@@ -23,6 +23,14 @@ namespace CPS.Communication.Service
         private bool _closed = false;
         private ClientCollection _clients;
         private IChargingPileService MyChargingService = ChargingService.Instance;
+        private const int HeartBeatInterval = 15; // 心跳间隔15秒
+        private const int HeartBeatCheckInterval = 30; // 心跳检测间隔60秒
+        private object heartbeatLocker = new object();
+        private bool stopHeartbeatCheck = false;
+        /// <summary>
+        /// 心跳检测线程
+        /// </summary>
+        Thread ThreadHeartbeatDetection;
 
         public bool IsRunning
         {
@@ -38,6 +46,8 @@ namespace CPS.Communication.Service
         public Server()
         {
             _clients = new ClientCollection();
+
+            StartHeartbeatCheck();
         }
 
         public void Listen(int port)
@@ -89,6 +99,54 @@ namespace CPS.Communication.Service
             }
         }
 
+        /// <summary>
+        /// 启动心跳检测
+        /// </summary>
+        private void StartHeartbeatCheck()
+        {
+            ThreadHeartbeatDetection = new Thread(() =>
+            {
+                while (true)
+                {
+                    long time = DateTime.Now.Ticks;
+                    lock (heartbeatLocker)
+                    {
+                        if (!ThreadHeartbeatDetection.IsAlive || stopHeartbeatCheck)
+                            break;
+                        try
+                        {
+                            DateTime now = DateTime.Now;
+                            List<Client> outdated = new List<Client>();
+                            foreach (var item in this._clients)
+                            {
+                                if (item != null)
+                                {
+                                    DateTime t1 = item.ActiveDate;
+
+                                    if ((now - t1).TotalSeconds > HeartBeatCheckInterval)
+                                    {
+                                        outdated.Add(item);
+                                    }
+                                }
+                            }
+
+                            foreach (var item in outdated)
+                            {
+                                this._clients.RemoveClient(item);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.Message);
+                        }
+                    }
+                    Thread.Sleep(HeartBeatCheckInterval * 1000);
+                }
+            })
+            { IsBackground = true };
+            ThreadHeartbeatDetection.Start();
+        }
+
         private object _closeObj = new object();
         public void Close()
         {
@@ -136,6 +194,7 @@ namespace CPS.Communication.Service
                 Client client = new Client(wSocket);
                 client.ReceiveCompleted += Client_ReceiveCompleted;
                 client.SendCompleted += Client_SendCompleted;
+                client.SendDataException += Client_SendDataException;
                 client.ErrorOccurred += Client_ErrorOccurred;
                 client.ClientClosed += Client_ClientClosed;
                 client.ClientDisconnected += Client_ClientDisconnected;
@@ -184,11 +243,44 @@ namespace CPS.Communication.Service
 
         }
 
+        private void Client_SendDataException(object sender, SendDataExceptionEventArgs args)
+        {
+            try
+            {
+                Server.Client client = sender as Client;
+                if (this._clients != null)
+                {
+                    this._clients.RemoveClient(client);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
         private void Client_ReceiveCompleted(object sender, ReceiveCompletedEventArgs args)
         {
             try
             {
-                MyChargingService.ServiceFactory(sender, args);
+                Server.Client client = sender as Client;
+                if (client == null)
+                    throw new ArgumentNullException("client is null...");
+                // 解析数据包
+                PacketBase packet = PacketAnalyzer.AnalysePacket(args.ReceivedBytes);
+
+                DateTime now = DateTime.Now;
+                if (packet.Command == PacketTypeEnum.HeartBeatClient)
+                {
+                    if (client != null)
+                    {
+                        client.ActiveDate = now;
+                    }
+                }
+                else
+                {
+                    MyChargingService.ServiceFactory(client, packet);
+                }
             }
             catch (SocketException se)
             {
@@ -205,7 +297,6 @@ namespace CPS.Communication.Service
             
         }
 
-
         private void Client_ClientDisconnected(object sender, ClientDisconnectedEventArgs args)
         {
             if (args != null && args.CurClient != null)
@@ -221,7 +312,7 @@ namespace CPS.Communication.Service
 
         public override string ToString()
         {
-            string info = $"本地端点：{this._listener.LocalEndPoint}";
+            string info = $"本地端点：{this._listener.LocalEndPoint}\n";
             if (this._clients != null)
             {
                 info += $"当前客户端数：{this._clients.Count} 个\n";
@@ -242,9 +333,12 @@ namespace CPS.Communication.Service
                     }
                 }
 
-                info += $"正常客户端数：{normal}，非正常客户端数：{unnormal}\n";
-                info += $"客户端列表：\n";
-                info += cInfo;
+                info += $"正常客户端数：{normal} / 非正常客户端数：{unnormal}\n";
+                if (!string.IsNullOrEmpty(cInfo))
+                {
+                    info += $"客户端列表：\n";
+                    info += cInfo;
+                }
             }
             return info;
         }
@@ -265,10 +359,17 @@ namespace CPS.Communication.Service
                     try
                     {
                         StopListen();
+
+                        stopHeartbeatCheck = true;
+                        ThreadHeartbeatDetection = null;
                     }
                     catch (SocketException se)
                     {
                         handleSocketException(se, ErrorTypes.ServerStop);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
                     }
                 }
 
@@ -313,7 +414,7 @@ namespace CPS.Communication.Service
 
 
         #region 【客户端】
-        public class Client
+        public class Client : IDisposable
         {
             public Client(){}
 
@@ -355,6 +456,8 @@ namespace CPS.Communication.Service
                     return _socket.RemoteEndPoint;
                 }
             }
+
+            public DateTime ActiveDate { get; set; }
 
             public string ID
             {
@@ -457,10 +560,12 @@ namespace CPS.Communication.Service
                 };
                 try
                 {
-                    WorkSocket.BeginSend(buffer, 0, buffer.Length, SocketFlags.None, sendCallback, state);
+                    if (IsConnected)
+                        WorkSocket.BeginSend(buffer, 0, buffer.Length, SocketFlags.None, sendCallback, state);
                 }
                 catch (SocketException se)
                 {
+                    OnSendDataException(new SendDataExceptionEventArgs());
                     handleSocketException(se, ErrorTypes.Send);
                 }
                 catch (ObjectDisposedException ode)
@@ -490,6 +595,7 @@ namespace CPS.Communication.Service
                 }
                 catch (SocketException se)
                 {
+                    OnSendDataException(new SendDataExceptionEventArgs());
                     handleSocketException(se, ErrorTypes.Send);
                 }
                 catch (ObjectDisposedException ode)
@@ -510,7 +616,10 @@ namespace CPS.Communication.Service
                 };
                 try
                 {
-                    WorkSocket.BeginReceive(state.Buffer, 0, ReceiveState.BufferSize, SocketFlags.None, receiveCallback, state);
+                    if (IsConnected)
+                    {
+                        WorkSocket.BeginReceive(state.Buffer, 0, ReceiveState.BufferSize, SocketFlags.None, receiveCallback, state);
+                    }
                 }
                 catch (SocketException se)
                 {
@@ -524,75 +633,78 @@ namespace CPS.Communication.Service
 
             private void receiveCallback(IAsyncResult ar)
             {
-                ReceiveState state = ar.AsyncState as ReceiveState;
-                Socket s = state.WorkSocket;
-                try
+                if (IsConnected)
                 {
-                    int byteLen = s.EndReceive(ar);
-                    if (byteLen == 0)
+                    ReceiveState state = ar.AsyncState as ReceiveState;
+                    Socket s = state.WorkSocket;
+                    try
                     {
-                        _emptyTimes++;
-                        if (_emptyTimes == 100)
+                        int byteLen = s.EndReceive(ar);
+                        if (byteLen == 0)
                         {
-                            //OnErrorOccurred(new ErrorEventArgs("连续接收到无效的空白信息，可能由于远端连接已异常关闭，连接自动退出！", ErrorTypes.SocketAccept));
-                            Close();
-                            return;
-                        }
-                    }
-                    else
-                    {
-                        _emptyTimes = 0;
-                    }
-
-                    byte[] buffer = state.Buffer;
-                    if (state.UnhandledBytes != null)
-                    {
-                        buffer = BytesHelper.Combine(state.UnhandledBytes, buffer);
-                        byteLen += state.UnhandledBytes.Length;
-                        state.UnhandledBytes = null;
-                    }
-
-                    Queue<ReceiveState> sQueue = new Queue<ReceiveState>();
-                    processReceived(sQueue, state, buffer, 0, byteLen);
-
-                    ReceiveState workingRS = null;
-                    while (sQueue.Count > 0)
-                    {
-                        ReceiveState rs = sQueue.Dequeue();
-                        if (rs.Completed)
-                        {
-                            OnReceiveCompleted(new ReceiveCompletedEventArgs(rs.Received));
+                            _emptyTimes++;
+                            if (_emptyTimes == 100)
+                            {
+                                //OnErrorOccurred(new ErrorEventArgs("连续接收到无效的空白信息，可能由于远端连接已异常关闭，连接自动退出！", ErrorTypes.SocketAccept));
+                                Close();
+                                return;
+                            }
                         }
                         else
                         {
-                            workingRS = rs;
-                            break;
+                            _emptyTimes = 0;
                         }
-                    }
 
-                    if (sQueue.Count > 0)
+                        byte[] buffer = state.Buffer;
+                        if (state.UnhandledBytes != null)
+                        {
+                            buffer = BytesHelper.Combine(state.UnhandledBytes, buffer);
+                            byteLen += state.UnhandledBytes.Length;
+                            state.UnhandledBytes = null;
+                        }
+
+                        Queue<ReceiveState> sQueue = new Queue<ReceiveState>();
+                        processReceived(sQueue, state, buffer, 0, byteLen);
+
+                        ReceiveState workingRS = null;
+                        while (sQueue.Count > 0)
+                        {
+                            ReceiveState rs = sQueue.Dequeue();
+                            if (rs.Completed)
+                            {
+                                OnReceiveCompleted(new ReceiveCompletedEventArgs(rs.Received));
+                            }
+                            else
+                            {
+                                workingRS = rs;
+                                break;
+                            }
+                        }
+
+                        if (sQueue.Count > 0)
+                        {
+                            //Close();
+                            OnErrorOccurred(new ErrorEventArgs("由于数据包丢失，导致接收数据不完整，连接已关闭！", ErrorTypes.Receive));
+                            return;
+                        }
+
+                        if (workingRS != null)
+                            s.BeginReceive(workingRS.Buffer, 0, ReceiveState.BufferSize, SocketFlags.None, receiveCallback, workingRS);
+                        else
+                            Receive();
+                    }
+                    catch (SocketException se)
                     {
-                        //Close();
-                        OnErrorOccurred(new ErrorEventArgs("由于数据包丢失，导致接收数据不完整，连接已关闭！", ErrorTypes.Receive));
-                        return;
+                        handleSocketException(se, ErrorTypes.Receive);
                     }
-
-                    if (workingRS != null)
-                        s.BeginReceive(workingRS.Buffer, 0, ReceiveState.BufferSize, SocketFlags.None, receiveCallback, workingRS);
-                    else
-                        Receive();
-                }
-                catch (SocketException se)
-                {
-                    handleSocketException(se, ErrorTypes.Receive);
-                }
-                catch (ObjectDisposedException ode)
-                {
-                    Console.WriteLine(ode.Message);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
+                    catch (ObjectDisposedException ode)
+                    {
+                        Console.WriteLine(ode.Message);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
                 }
             }
 
@@ -645,14 +757,20 @@ namespace CPS.Communication.Service
             public override string ToString()
             {
                 if (this.WorkSocket != null)
-                    return $"状态：{this.IsConnectedDesc}，地址：{this.LocalEndPoint}，编号：{this.SerialNumber}\n";
+                    return $"状态：{this.IsConnectedDesc}，ID：{this.ID}\n";
                 else
-                    return "<空>";
+                    return $"状态：{this.IsConnectedDesc}，ID：<空>\n";
+            }
+
+            public void Dispose()
+            {
+                
             }
 
             #region 【事件定义】
             public event ErrorOccurredHandler ErrorOccurred;
             public event SendCompletedHandler SendCompleted;
+            public event SendDataExceptionHandler SendDataException;
             public event ReceiveCompletedHandler ReceiveCompleted;
             public event ClientClosedHandler ClientClosed;
             public event ClientDisconnectedHandler ClientDisconnected;
@@ -667,6 +785,13 @@ namespace CPS.Communication.Service
             private void OnSendCompleted(SendCompletedEventArgs args)
             {
                 SendCompletedHandler handler = SendCompleted;
+                if (handler != null)
+                    handler(this, args);
+            }
+
+            private void OnSendDataException(SendDataExceptionEventArgs args)
+            {
+                SendDataExceptionHandler handler = SendDataException;
                 if (handler != null)
                     handler(this, args);
             }
@@ -694,7 +819,7 @@ namespace CPS.Communication.Service
             #endregion 【事件定义】
         }
 
-        public class ClientCollection : IEnumerable<Client>
+        public class ClientCollection : IEnumerable<Client>, IDisposable
         {
             private List<Client> _clients = null;
             private ManualResetEvent _mEventClients = new ManualResetEvent(true);
@@ -736,6 +861,7 @@ namespace CPS.Communication.Service
                     {
                         if (item.Handle == handle)
                         {
+                            item.Close();
                             _clients.Remove(item);
                         }
                     }
@@ -749,14 +875,9 @@ namespace CPS.Communication.Service
             {
                 _mEventClients.Reset();
 
-                var handle = client.Handle;
-                foreach (var item in _clients)
-                {
-                    if (item.Handle == handle)
-                    {
-                        _clients.Remove(item);
-                    }
-                }
+                if (client == null) return;
+                client.Close();
+                _clients.Remove(client);
 
                 _mEventClients.Set();
             }
@@ -769,6 +890,11 @@ namespace CPS.Communication.Service
             IEnumerator IEnumerable.GetEnumerator()
             {
                 return this._clients.GetEnumerator();
+            }
+
+            public void Dispose()
+            {
+
             }
         }
         #endregion 【客户端】

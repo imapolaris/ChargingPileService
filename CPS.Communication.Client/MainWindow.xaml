@@ -34,7 +34,7 @@
                 </Style>
             </WrapPanel.Resources>
             <Button Name="login" Click="login_Click">登录</Button>
-            <Button Name="heartBeat" Click="heartBeat_Click">心跳</Button>
+            <Button Name="heartBeat" Click="heartBeat_Click">开启心跳</Button>
             <Button Name="rebootResult" Click="rebootResult_Click">重启结果</Button>
             <Button Name="elecPrice" Click="elecPrice_Click">电费</Button>
             <Button Name="servicePrice" Click="servicePrice_Click">服务费</Button>

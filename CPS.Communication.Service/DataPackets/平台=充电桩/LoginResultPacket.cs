@@ -62,16 +62,11 @@ namespace CPS.Communication.Service.DataPackets
 
         public override byte[] Encode()
         {
-            byte[] body = new byte[BodyLen];
-
-            int start = 0;
-
-            byte[] temp = base.Encode();
-            Array.Copy(temp, 0, body, start, SerialNumberLen);
-            start += SerialNumberLen;
+            byte[] body = base.Encode();
+            int start = SerialNumberLen;
             body[start] = this.Result;
             start += 1;
-            temp = BitConverter.GetBytes(this._timestamp);
+            byte[] temp = BitConverter.GetBytes(this._timestamp);
             Array.Copy(temp, 0, body, start, temp.Length);
 
             return body;
@@ -79,9 +74,8 @@ namespace CPS.Communication.Service.DataPackets
 
         public override PacketBase Decode(byte[] buffer)
         {
-            int start = 0;
             base.Decode(buffer);
-            start += SerialNumberLen;
+            int start = SerialNumberLen;
             this._result = (LoginResultEnum)buffer[start];
             start += 1;
             this._timestamp = BitConverter.ToInt32(buffer, start);
