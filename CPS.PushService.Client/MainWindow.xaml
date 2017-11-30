@@ -5,8 +5,16 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CPS.PushService.Client"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
+        Title="推送消息" Height="200" Width="500">
     <Grid>
-        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <Button Name="pushNofication">推送通知</Button>
+        <Button Name="pushCustomMessage" Grid.Column="1">推送自定义消息</Button>
+        <Button Name="pushRichMedia" Grid.Column="2">推送富媒体</Button>
     </Grid>
 </Window>

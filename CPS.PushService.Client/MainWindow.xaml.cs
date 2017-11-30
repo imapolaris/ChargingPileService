@@ -23,6 +23,30 @@ namespace CPS.PushService.Client
         public MainWindow()
         {
             InitializeComponent();
+
+            Init();
+        }
+
+        private void Init()
+        {
+            this.pushNofication.Click += PushNofication_Click;
+            this.pushCustomMessage.Click += PushCustomMessage_Click;
+            this.pushRichMedia.Click += PushRichMedia_Click;
+        }
+
+        private void PushRichMedia_Click(object sender, RoutedEventArgs e)
+        {
+            PushMessage.Instance.PushRichMedia();
+        }
+
+        private void PushCustomMessage_Click(object sender, RoutedEventArgs e)
+        {
+            PushMessage.Instance.PushCustomMessage();
+        }
+
+        private void PushNofication_Click(object sender, RoutedEventArgs e)
+        {
+            PushMessage.Instance.PushNotification();
         }
     }
 }

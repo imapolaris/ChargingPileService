@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -71,6 +73,23 @@ namespace CPS.Infrastructure.Utils
             {
                 return double.Parse(ConfigurationManager.AppSettings["NearbyDistance"]);
             }
+        }
+
+        public static string GetValue(Assembly assembly, string key)
+        {
+            var fileName = assembly.ManifestModule.FullyQualifiedName + ".config";
+            if (!File.Exists(fileName))
+                throw new ArgumentNullException("没有找到程序集配置文件");
+
+            var configFile = new ExeConfigurationFileMap();
+            configFile.ExeConfigFilename = fileName;
+            var configuration = ConfigurationManager.OpenMappedExeConfiguration(configFile, ConfigurationUserLevel.None);
+
+            var val = configuration.AppSettings.Settings[key];
+            if (val == null)
+                throw new KeyNotFoundException("没有找到key对应的值");
+
+            return val.Value;
         }
     }
 }
