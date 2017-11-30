@@ -23,5 +23,17 @@ namespace CPS.Entities
             get { return id; }
             set { id = value; }
         }
+
+        private byte del;
+        /// <summary>
+        /// 删除标识
+        /// </summary>
+        [NotMapped]
+        public byte Del
+        {
+            get { return del; }
+            set { del = value; }
+        }
+
     }
 }
