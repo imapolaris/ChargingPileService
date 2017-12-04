@@ -6,15 +6,11 @@ using System.Threading.Tasks;
 
 namespace CPS.Communication.Service.DataPackets
 {
-    class GetReportIntervalResultPacket : SetReportIntervalPacket
+    public class SetServicePricePacket : SetElecPricePacket
     {
-        private byte[] _oper;
-
-        public byte[] Oper
+        public SetServicePricePacket() : base(PacketTypeEnum.SetServicePrice)
         {
-            get { return _oper; }
-            set { _oper = value; }
+            BodyLen = SerialNumberLen + 4 + 4 + 4 + 4 + 4;
         }
-
     }
 }

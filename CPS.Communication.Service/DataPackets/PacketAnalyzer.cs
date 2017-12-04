@@ -45,14 +45,18 @@ namespace CPS.Communication.Service.DataPackets
                     case PacketTypeEnum.Deny:
                         break;
                     case PacketTypeEnum.SetElecPrice:
+                        packet = new SetElecPricePacket();
                         break;
                     case PacketTypeEnum.SetServicePrice:
+                        packet = new SetServicePricePacket();
                         break;
                     case PacketTypeEnum.SetReportInterval:
+                        packet = new SetReportIntervalPacket();
                         break;
                     case PacketTypeEnum.SetTimePeriod:
                         break;
                     case PacketTypeEnum.ChangeSecretKey:
+                        packet = new ChangeSecretKeyPacket();
                         break;
                     case PacketTypeEnum.GetElecPrice:
                         break;

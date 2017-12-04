@@ -55,6 +55,11 @@ namespace CPS.Communication.Service.DataPackets
         /// </summary>
         protected int BodyLen { get; set; }
 
+        /// <summary>
+        /// 报文名称
+        /// </summary>
+        public string Name { get; set; }
+
         public virtual byte[] Encode()
         {
             byte[] body = new byte[BodyLen];

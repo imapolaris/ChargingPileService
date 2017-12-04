@@ -122,7 +122,7 @@ namespace Aliyun.Acs.Core.Regions
                     stringContent = System.Text.Encoding.GetEncoding(httpResponse.Encoding).GetString(httpResponse.Content);
                 }
             }
-            catch (Exception exp)
+            catch (Exception)
             {
                 throw new ClientException("SDK.UnsupportedEncoding", "Can not parse response due to un supported encoding.");
             }

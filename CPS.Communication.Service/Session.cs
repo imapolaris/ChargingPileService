@@ -13,16 +13,10 @@ namespace CPS.Communication.Service
     {
         public Guid SessionId { get; private set; }
         public Client MyClient { get; set; }
-        public PacketBase Packet { get; set; }
+        public OperPacketBase MyPacket { get; set; }
         public bool IsCompleted { get; set; }
         public object Result { get; set; }
-        public string ID
-        {
-            get
-            {
-                return "";
-            }
-        }
+
 
         /// <summary>
         /// 消息重发次数
@@ -35,14 +29,14 @@ namespace CPS.Communication.Service
             StartDate = DateTime.Now;
         }
 
-        public Session(Client client, PacketBase packet)
+        public Session(Client client, OperPacketBase packet)
             : this()
         {
             MyClient = client;
-            Packet = packet;
+            MyPacket = packet;
         }
 
-        public bool IsMatch(Client client, PacketBase packet)
+        public bool IsMatch(Client client, OperPacketBase packet)
         {
             if (client == null || packet == null)
                 return false;
@@ -50,31 +44,30 @@ namespace CPS.Communication.Service
             if (!MyClient.Equals(client))
                 return false;
 
-            switch (Packet.Command)
+            switch (MyPacket.Command)
             {
                 case PacketTypeEnum.Login:
                     break;
                 case PacketTypeEnum.LoginResult:
                     break;
                 case PacketTypeEnum.Reboot:
-                    if (packet.Command == PacketTypeEnum.RebootResult)
+                    if (packet.Command == PacketTypeEnum.RebootResult && packet.OperType == MyPacket.OperType)
                         return true;
-                    break;
-                case PacketTypeEnum.RebootResult:
                     break;
                 case PacketTypeEnum.Confirm:
                     break;
                 case PacketTypeEnum.Deny:
                     break;
                 case PacketTypeEnum.SetElecPrice:
-                    break;
                 case PacketTypeEnum.SetServicePrice:
-                    break;
                 case PacketTypeEnum.SetReportInterval:
-                    break;
                 case PacketTypeEnum.SetTimePeriod:
-                    break;
                 case PacketTypeEnum.ChangeSecretKey:
+                    {
+                        if (packet.Command == PacketTypeEnum.Confirm || packet.Command == PacketTypeEnum.Deny)
+                            if (packet.OperType == MyPacket.OperType)
+                                return true;
+                    }
                     break;
                 case PacketTypeEnum.GetElecPrice:
                     break;
@@ -200,7 +193,7 @@ namespace CPS.Communication.Service
                     return false;
                 else
                 {
-                    MyClient.Send(Packet);
+                    MyClient.Send(MyPacket);
                     StartDate = DateTime.Now;
                     RetryTimes--;
                     return await WaitSessionCompleted();
@@ -265,7 +258,7 @@ namespace CPS.Communication.Service
             _arEvent.Set();
         }
 
-        public Session MatchSession(Client client, PacketBase packet)
+        public Session MatchSession(Client client, OperPacketBase packet)
         {
             for (int i = 0; i < _sessions.Count; i++)
             {

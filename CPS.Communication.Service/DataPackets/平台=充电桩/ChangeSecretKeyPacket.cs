@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CPS.Infrastructure.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,8 +7,13 @@ using System.Threading.Tasks;
 
 namespace CPS.Communication.Service.DataPackets
 {
-    class ChangeSecretKeyPacket : OperBasePacket
+    public class ChangeSecretKeyPacket : OperPacketBase
     {
+        public ChangeSecretKeyPacket() : base(PacketTypeEnum.ChangeSecretKey)
+        {
+            BodyLen = OperPacketBodyLen + 16 + 4;
+        }
+
         private string _secretKey;
 
         public string SecretKey
@@ -24,6 +30,26 @@ namespace CPS.Communication.Service.DataPackets
             set { _timestamp = value; }
         }
 
+        public override byte[] Encode()
+        {
+            byte[] body = base.Encode();
+            int start = OperPacketBodyLen;
+            byte[] temp = EncodeHelper.GetBytes(this._secretKey);
+            Array.Copy(temp, 0, body, start, temp.Length);
+            start += 16;
+            temp = BitConverter.GetBytes(this._timestamp);
+            Array.Copy(temp, 0, body, start, temp.Length);
+            return body;
+        }
 
+        public override PacketBase Decode(byte[] buffer)
+        {
+            base.Decode(buffer);
+            int start = OperPacketBodyLen;
+            this._secretKey = EncodeHelper.GetString(buffer, start, 16);
+            start += 16;
+            this._timestamp = BitConverter.ToInt32(buffer, start);
+            return this;
+        }
     }
 }

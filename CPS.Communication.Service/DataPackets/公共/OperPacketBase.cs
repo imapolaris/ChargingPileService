@@ -6,11 +6,13 @@ using System.Threading.Tasks;
 
 namespace CPS.Communication.Service.DataPackets
 {
-    public class OperBasePacket : PacketBase
+    public class OperPacketBase : PacketBase
     {
-        public OperBasePacket() { }
+        public const int OperPacketBodyLen = SerialNumberLen + 4;
 
-        public OperBasePacket(PacketTypeEnum pte) : base(pte)
+        public OperPacketBase() { }
+
+        public OperPacketBase(PacketTypeEnum pte) : base(pte)
         {
 
         }
@@ -19,7 +21,7 @@ namespace CPS.Communication.Service.DataPackets
         /// <summary>
         /// 操作序列号
         /// </summary>
-        public int Oper
+        protected int Oper
         {
             get { return _oper; }
             set { _oper = value; }

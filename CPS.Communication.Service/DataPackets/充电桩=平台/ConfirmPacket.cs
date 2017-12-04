@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 
 namespace CPS.Communication.Service.DataPackets
 {
-    class ConfirmPacket : OperBasePacket
+    public class ConfirmPacket : OperPacketBase
     {
-        
+        public ConfirmPacket() : base(PacketTypeEnum.Confirm)
+        {
 
+        }
     }
 }

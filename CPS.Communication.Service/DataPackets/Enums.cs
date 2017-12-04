@@ -164,5 +164,6 @@ namespace CPS.Communication.Service.DataPackets
     public enum OperTypeEnum : int
     {
         Reboot=0x01,
+        SetElecPrice=0x02,
     }
 }

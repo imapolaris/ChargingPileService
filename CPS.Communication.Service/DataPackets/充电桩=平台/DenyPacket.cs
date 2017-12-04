@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CPS.Communication.Service.DataPackets
 {
-    class DenyPacket : OperBasePacket
+    class DenyPacket : OperPacketBase
     {
     }
 }

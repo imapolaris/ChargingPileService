@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace CPS.Communication.Service.DataPackets
 {
-    public class GetReportIntervalPacket : OperPacketBase
+    public class GetReportIntervalResultPacket : SetReportIntervalPacket
     {
-        public GetReportIntervalPacket() : base(PacketTypeEnum.GetReportInterval)
+        public GetReportIntervalResultPacket() : base(PacketTypeEnum.GetReportIntervalResult)
         {
             BodyLen = OperPacketBodyLen;
         }

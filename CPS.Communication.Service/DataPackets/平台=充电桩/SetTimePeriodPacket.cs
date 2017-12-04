@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CPS.Communication.Service.DataPackets
 {
-    class SetTimePeriodPacket : OperBasePacket
+    class SetTimePeriodPacket : OperPacketBase
     {
         private byte _numberOfSharpPeriod;
 

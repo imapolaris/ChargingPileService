@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CPS.Communication.Service.DataPackets
 {
-    public class RebootPacket : OperBasePacket
+    public class RebootPacket : OperPacketBase
     {
         public RebootPacket() : base(PacketTypeEnum.Reboot)
         {

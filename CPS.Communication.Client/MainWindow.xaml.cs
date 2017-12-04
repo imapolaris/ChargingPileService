@@ -100,9 +100,15 @@ namespace CPS.Communication.Client
                 client.Send(new RebootResultPacket()
                 {
                     SerialNumber = rpacket.SerialNumber,
-                    Oper = rpacket.Oper,
+                    OperType = rpacket.OperType,
                     Result = number
                 });
+            }
+
+            if (packet.Command == PacketTypeEnum.SetElecPrice)
+            {
+                SetElecPricePacket seppacket = packet as SetElecPricePacket;
+                appendText("设置电价：", $"尖：{seppacket.SharpRate}峰：{seppacket.PeakRate}平：{seppacket.FlatRate}谷：{seppacket.Valleyrate}");
             }
         }
 

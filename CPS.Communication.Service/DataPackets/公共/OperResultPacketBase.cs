@@ -6,34 +6,13 @@ using System.Threading.Tasks;
 
 namespace CPS.Communication.Service.DataPackets
 {
-    public class OperResultBasePacket : PacketBase
+    public class OperResultPacketBase : OperPacketBase
     {
-        private OperResultBasePacket() { }
+        private OperResultPacketBase() { }
 
-        public OperResultBasePacket(PacketTypeEnum pte) : base(pte)
+        public OperResultPacketBase(PacketTypeEnum pte) : base(pte)
         {
 
-        }
-
-        private int _oper;
-        /// <summary>
-        /// 操作序列号
-        /// </summary>
-        public int Oper
-        {
-            get { return _oper; }
-            set { _oper = value; }
-        }
-
-        public OperTypeEnum OperType
-        {
-            get
-            {
-                return (OperTypeEnum)this._oper;
-            }
-            set {
-                this._oper = (int)value;
-            }
         }
 
         private byte _result;
@@ -74,10 +53,7 @@ namespace CPS.Communication.Service.DataPackets
         public override byte[] Encode()
         {
             byte[] body = base.Encode();
-            var start = SerialNumberLen;
-            byte[] temp = BitConverter.GetBytes(this._oper);
-            Array.Copy(temp, 0, body, start, temp.Length);
-            start += 4;
+            var start = SerialNumberLen + 4;
             body[start] = this._result;
             return body;
         }
@@ -85,9 +61,7 @@ namespace CPS.Communication.Service.DataPackets
         public override PacketBase Decode(byte[] buffer)
         {
             base.Decode(buffer);
-            var start = SerialNumberLen;
-            this._oper = BitConverter.ToInt32(buffer, start);
-            start += 4;
+            var start = SerialNumberLen + 4;
             this._result = buffer[start];
             return this;
         }

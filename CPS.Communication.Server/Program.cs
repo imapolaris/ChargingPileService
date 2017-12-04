@@ -40,10 +40,15 @@ namespace CPS.Communication.Server
                 {
                     Reboot();
                 }
+                else if (input.ToLower().Equals("setep_c"))
+                {
+                    SetElecPrice();
+                }
             }
 
             PrintStopInfo();
         }
+
 
         static void Init()
         {
@@ -106,6 +111,12 @@ namespace CPS.Communication.Server
                 Console.WriteLine("充电桩重启成功！");
             else
                 Console.WriteLine("充电桩重启失败！");
+        }
+
+
+        private static void SetElecPrice()
+        {
+            MyService.SetPriceRate("1234567890AbcBCa", 10000, 8000, 6000, 4000);
         }
         #endregion ====测试====
     }

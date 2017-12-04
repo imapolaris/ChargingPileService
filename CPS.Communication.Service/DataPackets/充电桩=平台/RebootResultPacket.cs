@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CPS.Communication.Service.DataPackets
 {
-    public class RebootResultPacket : OperResultBasePacket
+    public class RebootResultPacket : OperResultPacketBase
     {
         public RebootResultPacket() : base(PacketTypeEnum.RebootResult)
         {

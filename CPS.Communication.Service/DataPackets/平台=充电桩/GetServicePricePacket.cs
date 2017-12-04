@@ -6,7 +6,11 @@ using System.Threading.Tasks;
 
 namespace CPS.Communication.Service.DataPackets
 {
-    class GetServicePricePacket : OperBasePacket
+    public class GetServicePricePacket : OperPacketBase
     {
+        public GetServicePricePacket() : base(PacketTypeEnum.GetServicePrice)
+        {
+            BodyLen = OperPacketBodyLen;
+        }
     }
 }
