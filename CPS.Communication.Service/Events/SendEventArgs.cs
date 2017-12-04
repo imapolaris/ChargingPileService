@@ -28,6 +28,11 @@ namespace CPS.Communication.Service.Events
 
     public class SendDataExceptionEventArgs : EventArgs
     {
+        public SendDataExceptionEventArgs(Client client)
+        {
+            _client = client;
+        }
+
         private Exception _innerException;
 
         public Exception InnerException
@@ -44,9 +49,9 @@ namespace CPS.Communication.Service.Events
             set { _msg = value; }
         }
 
-        private Server.Client _client;
+        private Client _client;
 
-        public Server.Client CurClient
+        public Client CurClient
         {
             get { return _client; }
             set { _client = value; }

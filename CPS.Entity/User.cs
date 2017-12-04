@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using CPS.Infrastructure.Utils;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -27,6 +28,9 @@ namespace CPS.Entities
         private string memberLevel;
         private string carLicense;
         private string carType;
+        private string registrationId;
+
+        private byte userCategory;
 
         private int subscribeTimesToday;
 
@@ -175,7 +179,42 @@ namespace CPS.Entities
         {
             get
             {
-                return this.subscribeTimesToday <= 5;
+                int times = 3;
+                try
+                {
+                    times = int.Parse(ConfigHelper.GetValue(typeof(User).Assembly, "reservationTimes"));
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+
+                return this.subscribeTimesToday <= times;
+            }
+        }
+
+
+        [NotMapped]
+        public string RegistrationId
+        {
+            get { return registrationId; }
+            set { registrationId = value; }
+        }
+
+        /// <summary>
+        /// 用户类别
+        /// </summary>
+        public byte UserCategory
+        {
+            get { return userCategory; }
+            set { userCategory = value; }
+        }
+
+        public UserTypeEnum UserCategoryEmum
+        {
+            get
+            {
+                return (UserTypeEnum)this.userCategory;
             }
         }
     }

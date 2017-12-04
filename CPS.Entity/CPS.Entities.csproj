@@ -52,6 +52,7 @@
     <Compile Include="LngLat.cs" />
     <Compile Include="LogRecord.cs" />
     <Compile Include="Message.cs" />
+    <Compile Include="MyCollection.cs" />
     <Compile Include="MyMessage.cs" />
     <Compile Include="PayRecord.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -62,6 +63,7 @@
     <Compile Include="Wallet.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

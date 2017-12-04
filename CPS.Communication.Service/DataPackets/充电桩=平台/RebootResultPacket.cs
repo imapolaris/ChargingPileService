@@ -6,17 +6,16 @@ using System.Threading.Tasks;
 
 namespace CPS.Communication.Service.DataPackets
 {
-    class RebootResultPacket : OperBasePacket
+    public class RebootResultPacket : OperResultBasePacket
     {
-        private byte _result;
-        /// <summary>
-        /// 结果信息
-        /// 1：成功；2：失败
-        /// </summary>
-        public byte Result
+        public RebootResultPacket() : base(PacketTypeEnum.RebootResult)
         {
-            get { return _result; }
-            set { _result = value; }
+            BodyLen = SerialNumberLen + 4 + 1;
+        }
+
+        public override string ToString()
+        {
+            return $"{nameof(RebootResultPacket)}: sn:{SerialNumber}, oper:{Oper}, result:{ResultString}";
         }
     }
 }

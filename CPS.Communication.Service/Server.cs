@@ -52,13 +52,21 @@ namespace CPS.Communication.Service
 
         public IPAddress IP { get; private set; }
         public int Port { get; private set; }
+        public ClientCollection Clients
+        {
+            get
+            {
+                return _clients;
+            }
+        }
 
         public Server()
         {
             _clients = new ClientCollection();
+            MyChargingService.MyServer = this;
 
-            StartHeartbeatCheck();
-            StartHeartbeatFromServer();
+            //StartHeartbeatCheck();
+            //StartHeartbeatFromServer();
         }
 
         public void Listen(int port)
@@ -257,6 +265,33 @@ namespace CPS.Communication.Service
             }
         }
 
+        public bool Send(Client client, PacketBase packet)
+        {
+            try
+            {
+                if (this._clients == null || this._clients.Count <= 0)
+                    throw new ArgumentNullException("尚未有充电桩连接到服务器...");
+                if (client == null)
+                    throw new ArgumentNullException("充电桩不能为空...");
+
+                return client.Send(packet);
+            }
+            catch (ArgumentNullException ane)
+            {
+                Console.WriteLine(ane.Message);
+            }
+            catch (UnConnectException uce)
+            {
+                Console.WriteLine(uce.Message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            return false;
+        }
+
         public void SendAll(PacketBase packet)
         {
             if (packet == null) return;
@@ -290,9 +325,10 @@ namespace CPS.Communication.Service
         {
             try
             {
-                Server.Client client = sender as Client;
+                Client client = sender as Client;
                 if (this._clients != null)
                 {
+                    Console.WriteLine($"发送数据异常，关闭远程客户端：{client.ID}");
                     this._clients.RemoveClient(client);
                 }
             }
@@ -306,7 +342,7 @@ namespace CPS.Communication.Service
         {
             try
             {
-                Server.Client client = sender as Client;
+                Client client = sender as Client;
                 if (client == null)
                     throw new ArgumentNullException("client is null...");
                 // 解析数据包
@@ -337,20 +373,43 @@ namespace CPS.Communication.Service
 
         private void Client_ClientClosed(object sender, ClientClosedEventArgs args)
         {
-            
+            if (args != null && args.CurClient != null)
+            {
+                Console.WriteLine($"----客户端关闭：{args.CurClient.ID}!");
+                this._clients.RemoveClient(args.CurClient);
+            }
         }
 
         private void Client_ClientDisconnected(object sender, ClientDisconnectedEventArgs args)
         {
             if (args != null && args.CurClient != null)
             {
-                Console.WriteLine($"----Client {args.CurClient.ID} has disconnected!");
+                Console.WriteLine($"----客户端断开连接：{args.CurClient.ID}!");
+                this._clients.RemoveClient(args.CurClient);
             }
         }
 
         private void handleSocketException(SocketException se, ErrorTypes eType)
         {
             OnErrorOccurred(new ErrorEventArgs(se.Message, eType, se.ErrorCode, se));
+        }
+
+        public Client FindClientBySerialNumber(string serialNumber)
+        {
+            try
+            {
+                return this._clients.Where(_ => _.SerialNumber == serialNumber).First();
+            }
+            catch (ArgumentNullException ane)
+            {
+                Console.WriteLine($"该充电桩不存在:{ane.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            return null;
         }
 
         public override string ToString()
@@ -454,491 +513,5 @@ namespace CPS.Communication.Service
                 handler(this, args);
         }
         #endregion 【事件定义】
-
-
-        #region 【客户端】
-        public class Client : IDisposable
-        {
-            public Client(){}
-
-            public Client(Socket socket)
-            {
-                _socket = socket;
-            }
-
-            private Socket _socket;
-
-            public Socket WorkSocket
-            {
-                get { return _socket; }
-                set { _socket = value; }
-            }
-
-            private string _serialNumber="";
-            /// <summary>
-            /// 充电桩序列号
-            /// </summary>
-            public string SerialNumber
-            {
-                get { return _serialNumber; }
-                set { _serialNumber = value; }
-            }
-
-            public EndPoint LocalEndPoint
-            {
-                get
-                {
-                    return _socket.LocalEndPoint;
-                }
-            }
-
-            public EndPoint RemoteEndPoint
-            {
-                get
-                {
-                    return _socket.RemoteEndPoint;
-                }
-            }
-
-            public DateTime ActiveDate { get; set; }
-
-            public string ID
-            {
-                get
-                {
-                    return $"{RemoteEndPoint}:{SerialNumber}";
-                }
-            }
-
-            private bool hasLogined;
-            /// <summary>
-            /// 是否已登陆
-            /// </summary>
-            public bool HasLogined
-            {
-                get { return hasLogined; }
-                set { hasLogined = value; }
-            }
-
-            public int Handle
-            {
-                get
-                {
-                    if (_socket == null)
-                        return int.MinValue;
-                    return _socket.Handle.ToInt32();
-                }
-            }
-
-            public bool IsConnected
-            {
-                get
-                {
-                    return _socket != null && _socket.Connected && !_closed;
-                }
-            }
-
-            public string IsConnectedDesc
-            {
-                get
-                {
-                    return this.IsConnected ? "已连接" : "未连接";
-                }
-            }
-
-            private bool _closed = false;
-            private int _emptyTimes;
-            private ManualResetEvent _mre = new ManualResetEvent(true);
-
-            public void Disconnect()
-            {
-                new Thread(() =>
-                {
-                    _mre.Reset();
-                    {
-                        OnClientDisconnected(new ClientDisconnectedEventArgs(this));
-
-                        if (_socket != null && IsConnected)
-                        {
-                            _socket.Disconnect(false);
-                        }
-                    }
-                    _mre.Set();
-                })
-                { IsBackground = true }.Start();
-            }
-
-            public void Close()
-            {
-                new Thread(() =>
-                {
-                    _mre.Reset();
-                    {
-                        OnClientClosed(new ClientClosedEventArgs(this));
-
-                        if (_socket != null)
-                        {
-                            _socket.Close();
-                        }
-                        _socket = null;
-                    }
-                    _mre.Set();
-                })
-                { IsBackground = true }.Start();
-                _closed = true;
-            }
-
-            public void Send(PacketBase packet)
-            {
-                if (packet == null) return;
-                byte[] buffer = PacketAnalyzer.GeneratePacket(packet);
-                Send(buffer);
-            }
-
-            public void Send(byte[] buffer)
-            {
-                SendState state = new SendState()
-                {
-                    WorkSocket = _socket
-                };
-                try
-                {
-                    if (IsConnected)
-                        WorkSocket.BeginSend(buffer, 0, buffer.Length, SocketFlags.None, sendCallback, state);
-                }
-                catch (SocketException se)
-                {
-                    handleSocketException(se, ErrorTypes.Send);
-                }
-                catch (ObjectDisposedException ode)
-                {
-                    Console.WriteLine(ode.Message);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-            }
-
-            private void sendCallback(IAsyncResult ar)
-            {
-                SendState state = ar.AsyncState as SendState;
-                try
-                {
-                    if (!state.WorkSocket.Connected)
-                        throw new UnConnectException("客户端未连接...");
-
-                    int len = state.WorkSocket.EndSend(ar);
-                    OnSendCompleted(new SendCompletedEventArgs(len));
-                }
-                catch (UnConnectException uce)
-                {
-                    Console.WriteLine(uce.Message);
-                }
-                catch (SocketException se)
-                {
-                    //OnSendDataException(new SendDataExceptionEventArgs());
-                    handleSocketException(se, ErrorTypes.Send);
-                }
-                catch (ObjectDisposedException ode)
-                {
-                    Console.WriteLine(ode.Message);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-            }
-
-            public void Receive()
-            {
-                ReceiveState state = new ReceiveState()
-                {
-                    WorkSocket = _socket
-                };
-                try
-                {
-                    if (IsConnected)
-                    {
-                        WorkSocket.BeginReceive(state.Buffer, 0, ReceiveState.BufferSize, SocketFlags.None, receiveCallback, state);
-                    }
-                }
-                catch (SocketException se)
-                {
-                    handleSocketException(se, ErrorTypes.Receive);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-            }
-
-            private void receiveCallback(IAsyncResult ar)
-            {
-                if (IsConnected)
-                {
-                    ReceiveState state = ar.AsyncState as ReceiveState;
-                    Socket s = state.WorkSocket;
-                    try
-                    {
-                        int byteLen = s.EndReceive(ar);
-                        if (byteLen == 0)
-                        {
-                            _emptyTimes++;
-                            if (_emptyTimes == 100)
-                            {
-                                //OnErrorOccurred(new ErrorEventArgs("连续接收到无效的空白信息，可能由于远端连接已异常关闭，连接自动退出！", ErrorTypes.SocketAccept));
-                                Close();
-                                return;
-                            }
-                        }
-                        else
-                        {
-                            _emptyTimes = 0;
-                        }
-
-                        byte[] buffer = state.Buffer;
-                        if (state.UnhandledBytes != null)
-                        {
-                            buffer = BytesHelper.Combine(state.UnhandledBytes, buffer);
-                            byteLen += state.UnhandledBytes.Length;
-                            state.UnhandledBytes = null;
-                        }
-
-                        Queue<ReceiveState> sQueue = new Queue<ReceiveState>();
-                        processReceived(sQueue, state, buffer, 0, byteLen);
-
-                        ReceiveState workingRS = null;
-                        while (sQueue.Count > 0)
-                        {
-                            ReceiveState rs = sQueue.Dequeue();
-                            if (rs.Completed)
-                            {
-                                OnReceiveCompleted(new ReceiveCompletedEventArgs(rs.Received));
-                            }
-                            else
-                            {
-                                workingRS = rs;
-                                break;
-                            }
-                        }
-
-                        if (sQueue.Count > 0)
-                        {
-                            //Close();
-                            OnErrorOccurred(new ErrorEventArgs("由于数据包丢失，导致接收数据不完整，连接已关闭！", ErrorTypes.Receive));
-                            return;
-                        }
-
-                        if (workingRS != null)
-                            s.BeginReceive(workingRS.Buffer, 0, ReceiveState.BufferSize, SocketFlags.None, receiveCallback, workingRS);
-                        else
-                            Receive();
-                    }
-                    catch (SocketException se)
-                    {
-                        handleSocketException(se, ErrorTypes.Receive);
-                    }
-                    catch (ObjectDisposedException ode)
-                    {
-                        Console.WriteLine(ode.Message);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex.Message);
-                    }
-                }
-            }
-
-            private void processReceived(Queue<ReceiveState> stateQueue, ReceiveState state, byte[] buffer, int start, int byteLen)
-            {
-                if (state.IsNew)
-                {
-                    if (byteLen >= PacketBase.HeaderLen)
-                    {
-                        int len = BitConverter.ToInt32(buffer, PacketBase.BodyLenIndex);
-                        state.TotalBytes = len + PacketBase.HeaderLen;
-                    }
-                    else
-                    {
-                        // 当发送端多次发送的字节流拥堵时，接收端会接收到连续的字节数据。
-                        // 所以单次接收的数据有可能不完整。
-                        byte[] sub = BytesHelper.SubArray(buffer, start, byteLen);
-                        state.UnhandledBytes = sub;
-                        stateQueue.Enqueue(state);
-                        return;
-                    }
-                }
-
-                int missing = state.TotalBytes - state.ReceivedBytes;
-                if (missing >= byteLen)
-                {
-                    state.AppendBytes(buffer, start, byteLen);
-                    stateQueue.Enqueue(state);
-                }
-                else
-                {
-                    state.AppendBytes(buffer, start, missing);
-                    stateQueue.Enqueue(state);
-
-                    start += missing;
-                    byteLen -= missing;
-                    ReceiveState newState = new ReceiveState()
-                    {
-                        WorkSocket = state.WorkSocket
-                    };
-                    processReceived(stateQueue, newState, buffer, start, byteLen);
-                }
-            }
-
-            private void handleSocketException(SocketException se, ErrorTypes eType)
-            {
-                OnErrorOccurred(new ErrorEventArgs(se.Message, eType, se.ErrorCode, se));
-            }
-
-            public override string ToString()
-            {
-                if (this.WorkSocket != null)
-                    return $"状态：{this.IsConnectedDesc}，ID：{this.ID}\n";
-                else
-                    return $"状态：{this.IsConnectedDesc}，ID：<空>\n";
-            }
-
-            public void Dispose()
-            {
-                
-            }
-
-            #region 【事件定义】
-            public event ErrorOccurredHandler ErrorOccurred;
-            public event SendCompletedHandler SendCompleted;
-            public event SendDataExceptionHandler SendDataException;
-            public event ReceiveCompletedHandler ReceiveCompleted;
-            public event ClientClosedHandler ClientClosed;
-            public event ClientDisconnectedHandler ClientDisconnected;
-
-            private void OnErrorOccurred(ErrorEventArgs args)
-            {
-                ErrorOccurredHandler handler = ErrorOccurred;
-                if (handler != null)
-                    handler(this, args);
-            }
-
-            private void OnSendCompleted(SendCompletedEventArgs args)
-            {
-                SendCompletedHandler handler = SendCompleted;
-                if (handler != null)
-                    handler(this, args);
-            }
-
-            private void OnSendDataException(SendDataExceptionEventArgs args)
-            {
-                SendDataExceptionHandler handler = SendDataException;
-                if (handler != null)
-                    handler(this, args);
-            }
-
-            private void OnReceiveCompleted(ReceiveCompletedEventArgs args)
-            {
-                ReceiveCompletedHandler handler = ReceiveCompleted;
-                if (handler != null)
-                    handler(this, args);
-            }
-
-            private void OnClientClosed(ClientClosedEventArgs args)
-            {
-                ClientClosedHandler handler = ClientClosed;
-                if (handler != null)
-                    handler(this, args);
-            }
-
-            private void OnClientDisconnected(ClientDisconnectedEventArgs args)
-            {
-                ClientDisconnectedHandler handler = ClientDisconnected;
-                if (handler != null)
-                    handler(this, args);
-            }
-            #endregion 【事件定义】
-        }
-
-        public class ClientCollection : IEnumerable<Client>, IDisposable
-        {
-            private List<Client> _clients = null;
-            private ManualResetEvent _mEventClients = new ManualResetEvent(true);
-            
-            public ClientCollection()
-            {
-                _clients = new List<Client>();
-            }
-
-            protected List<Client> Clients { get { return _clients; } }
-            public void CloseClient(Client client)
-            {
-                client.Close();
-            }
-
-            public int Count
-            {
-                get
-                {
-                    return this._clients == null ? 0 : this._clients.Count;
-                }
-            }
-
-            public void Clear()
-            {
-                if (this._clients != null && this._clients.Count > 0)
-                    this._clients.Clear();
-            }
-
-            public void AddClient(Client client)
-            {
-                _mEventClients.Reset();
-
-                var handle = client.Handle;
-                var result = _clients.Exists(_ => _.Handle == handle);
-                if (result)
-                {
-                    foreach (var item in _clients)
-                    {
-                        if (item.Handle == handle)
-                        {
-                            item.Close();
-                            _clients.Remove(item);
-                        }
-                    }
-                }
-                _clients.Add(client);
-
-                _mEventClients.Set();
-            }
-
-            public void RemoveClient(Client client)
-            {
-                _mEventClients.Reset();
-
-                if (client == null) return;
-                client.Close();
-                _clients.Remove(client);
-
-                _mEventClients.Set();
-            }
-
-            public IEnumerator<Client> GetEnumerator()
-            {
-                return this._clients.GetEnumerator();
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return this._clients.GetEnumerator();
-            }
-
-            public void Dispose()
-            {
-
-            }
-        }
-        #endregion 【客户端】
     }
 }

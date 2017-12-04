@@ -35,8 +35,10 @@ namespace CPS.Communication.Service.DataPackets
                         packet = new HeartBeatPacket(PacketTypeEnum.HeartBeatServer);
                         break;
                     case PacketTypeEnum.Reboot:
+                        packet = new RebootPacket();
                         break;
                     case PacketTypeEnum.RebootResult:
+                        packet = new RebootResultPacket();
                         break;
                     case PacketTypeEnum.Confirm:
                         break;

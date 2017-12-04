@@ -160,4 +160,9 @@ namespace CPS.Communication.Service.DataPackets
         Client=0x01,
         Server
     }
+
+    public enum OperTypeEnum : int
+    {
+        Reboot=0x01,
+    }
 }

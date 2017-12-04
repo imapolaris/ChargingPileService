@@ -8,9 +8,9 @@ namespace CPS.Communication.Service.Events
 {
     public abstract class ClientEventArgs : EventArgs
     {
-        private Server.Client _client;
+        private Client _client;
 
-        public Server.Client CurClient
+        public Client CurClient
         {
             get
             {
@@ -18,7 +18,7 @@ namespace CPS.Communication.Service.Events
             }
         }
 
-        public ClientEventArgs(Server.Client client)
+        public ClientEventArgs(Client client)
         {
             this._client = client;
         }
@@ -26,7 +26,7 @@ namespace CPS.Communication.Service.Events
 
     public class ClientAcceptedEventArgs : ClientEventArgs
     {
-        public ClientAcceptedEventArgs(Server.Client client)
+        public ClientAcceptedEventArgs(Client client)
             : base(client)
         {
         }
@@ -34,14 +34,14 @@ namespace CPS.Communication.Service.Events
 
     public class ClientDisconnectedEventArgs : ClientEventArgs
     {
-        public ClientDisconnectedEventArgs(Server.Client client)
+        public ClientDisconnectedEventArgs(Client client)
             : base(client)
         { }
     }
 
     public class ClientClosedEventArgs : ClientEventArgs
     {
-        public ClientClosedEventArgs(Server.Client client)
+        public ClientClosedEventArgs(Client client)
             : base(client)
         {
             

@@ -10,10 +10,12 @@ namespace CPS.Communication.Service
 {
     public interface IChargingPileService
     {
+        Server MyServer { get; set; }
+
         bool startCharging(string sn);
         object getChargingStatus(string sn);
         bool stopCharging(string sn);
 
-        void ServiceFactory(Server.Client client, PacketBase packet);
+        void ServiceFactory(Client client, PacketBase packet);
     }
 }

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using CPS.Communication.Service;
+using CPS.Communication.Service.DataPackets;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +10,8 @@ namespace CPS.Communication.Server
 {
     class Program
     {
+        static ChargingService MyService = ChargingService.Instance;
+
         static void Main(string[] args)
         {
             Init();
@@ -32,6 +36,10 @@ namespace CPS.Communication.Server
                     Console.Clear();
                     PrintStartInfo();
                 }
+                else if (input.ToLower().Equals("reboot_c"))
+                {
+                    Reboot();
+                }
             }
 
             PrintStopInfo();
@@ -42,6 +50,8 @@ namespace CPS.Communication.Server
             Console.Title = "充电桩通信服务控制台";
             Console.BackgroundColor = ConsoleColor.Black;
             Console.ForegroundColor = ConsoleColor.Green;
+            Console.WindowWidth = Console.LargestWindowWidth / 2;
+            Console.BufferWidth = Console.LargestWindowWidth / 2;
         }
 
         static void PrintStartInfo()
@@ -87,5 +97,16 @@ namespace CPS.Communication.Server
 
             return true;
         }
+
+        #region ====测试====
+        private async static void Reboot()
+        {
+            var state = await MyService.Reboot("1234567890AbcBCa");
+            if (state)
+                Console.WriteLine("充电桩重启成功！");
+            else
+                Console.WriteLine("充电桩重启失败！");
+        }
+        #endregion ====测试====
     }
 }

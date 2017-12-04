@@ -26,7 +26,7 @@ namespace CPS.Communication.Client
     /// </summary>
     public partial class MainWindow : Window
     {
-        Server.Client client = null;
+        Service.Client client = null;
         IPEndPoint ep;
         private bool stopHeartbeat = false;
 
@@ -35,7 +35,7 @@ namespace CPS.Communication.Client
             InitializeComponent();
 
             Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            client = new Server.Client(socket);
+            client = new Service.Client(socket);
             string txtip = this.txtIP.Text.Trim();
             string txtport = this.txtPort.Text.Trim();
             IPAddress ip = IPAddress.Parse(txtip);
@@ -59,7 +59,7 @@ namespace CPS.Communication.Client
         private void btnConnect_Click(object sender, RoutedEventArgs e)
         {
             Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            client = new Server.Client(socket);
+            client = new Service.Client(socket);
             string txtip = this.txtIP.Text.Trim();
             string txtport = this.txtPort.Text.Trim();
             IPAddress ip = IPAddress.Parse(txtip);
@@ -76,6 +76,7 @@ namespace CPS.Communication.Client
             appendText("send", "已发送...");
         }
 
+        Random random = new Random();
         private void Client_ReceiveCompleted(object sender, Service.Events.ReceiveCompletedEventArgs args)
         {
             PacketBase packet = PacketAnalyzer.AnalysePacket(args.ReceivedBytes);
@@ -88,6 +89,20 @@ namespace CPS.Communication.Client
             {
                 LoginResultPacket lrpacket = packet as LoginResultPacket;
                 appendText("LoginResult", $"sn:{packet.SerialNumber}, result:{lrpacket.ResultEnum.ToString()}, timestamp:{lrpacket.TimeStamp}");
+            }
+            else if (packet.Command == PacketTypeEnum.Reboot)
+            {
+                RebootPacket rpacket = packet as RebootPacket;
+                appendText("reboot", $"正在重启充电桩...");
+                
+                byte number = (byte)(random.Next() % 2 + 1);
+                appendText("rebootResult", $"重启结果：" + number);
+                client.Send(new RebootResultPacket()
+                {
+                    SerialNumber = rpacket.SerialNumber,
+                    Oper = rpacket.Oper,
+                    Result = number
+                });
             }
         }
 

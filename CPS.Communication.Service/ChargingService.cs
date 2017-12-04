@@ -12,13 +12,25 @@ using System.Threading.Tasks;
 
 namespace CPS.Communication.Service
 {
-    public class ChargingService : IChargingPileService
+    public class ChargingService : IChargingPileService, IDisposable
     {
         //CPS_Entities EntityContext = new CPS_Entities();
+        public SessionCollection Sessions { get; private set; }
+
+        #region ====会话====
+        Thread ThreadSessionStateDetection;
+        private bool stopSessionStateDetection = false;
+        private int SessionStateDetectionInterval = 60 * 1000;
+
+        #endregion ====会话====
+
 
         private ChargingService()
         {
             ThreadPool.SetMaxThreads(200, 500);
+
+            Sessions = new SessionCollection();
+            //StartSessionStateDetection();
         }
 
         private static ChargingService _instance;
@@ -28,6 +40,38 @@ namespace CPS.Communication.Service
                 _instance = new ChargingService();
         }
         public static ChargingService Instance { get { return _instance; } }
+
+        public Server MyServer { get; set; }
+
+        public void StartSessionStateDetection()
+        {
+            ThreadSessionStateDetection = new Thread(() =>
+            {
+                while (true)
+                {
+                    if (ThreadSessionStateDetection == null
+                        || !ThreadSessionStateDetection.IsAlive
+                        || stopSessionStateDetection)
+                        break;
+
+                    List<Session> outdatedList = new List<Session>();
+                    foreach (var item in Sessions)
+                    {
+                        if (item.Outdated || item.IsCompleted)
+                            outdatedList.Add(item);
+                    }
+
+                    foreach (var item in outdatedList)
+                    {
+                        Sessions.RemoveSession(item);
+                    }
+
+                    Thread.Sleep(SessionStateDetectionInterval);
+                }
+            })
+            { IsBackground = true };
+            ThreadSessionStateDetection.Start();
+        }
 
         public object getChargingStatus(string sn)
         {
@@ -47,7 +91,7 @@ namespace CPS.Communication.Service
             return true;
         }
 
-        public void ServiceFactory(Server.Client client, PacketBase packet)
+        public void ServiceFactory(Client client, PacketBase packet)
         {
             if (client == null || packet == null)
                 return;
@@ -61,12 +105,15 @@ namespace CPS.Communication.Service
                     break;
                 case PacketTypeEnum.LoginResult:
                     break;
+                case PacketTypeEnum.RebootResult:
+                    SessionCompleted(client, packet as OperResultBasePacket);
+                    break;
                 default:
                     break;
             }
         }
 
-        public void LoginIn(Server.Client client, LoginPacket args)
+        public void LoginIn(Client client, LoginPacket args)
         {
             ThreadPool.QueueUserWorkItem(new WaitCallback((state) =>
             {
@@ -109,7 +156,71 @@ namespace CPS.Communication.Service
                 {
                     Console.WriteLine(ex.Message);
                 }
-            }), null);
+            }));
+        }
+
+        public async Task<bool> Reboot(string serialNumber)
+        {
+            RebootPacket packet = new RebootPacket()
+            {
+                SerialNumber = serialNumber,
+                OperType = OperTypeEnum.Reboot,
+            };
+
+            var client = MyServer.FindClientBySerialNumber(serialNumber);
+            if (client == null)
+                throw new ArgumentNullException("客户端尚未连接...");
+
+            Session session = new Session(client, packet);
+            Sessions.AddSession(session);
+
+            var result = MyServer.Send(client, packet);
+            if (!result)
+                return false;
+
+            var completed = await session.WaitSessionCompleted();
+            if (completed)
+            {
+                var data = session.Result as RebootResultPacket;
+                Sessions.RemoveSession(session);
+                return data.ResultBoolean;
+            }
+            else
+                return false;
+        }
+
+        public void SessionCompleted(Client client, OperResultBasePacket packet)
+        {
+            ThreadPool.QueueUserWorkItem(new WaitCallback((state) =>
+            {
+                var matched = Sessions.MatchSession(client, packet);
+                if (matched != null)
+                {
+                    matched.IsCompleted = true;
+                    matched.Result = packet;
+                }
+            }));
+        }
+
+        private bool disposed = false;
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                if (disposing)
+                {
+                    stopSessionStateDetection = true;
+                    ThreadSessionStateDetection = null;
+                }
+
+                disposed = true;
+            }
         }
     }
 }

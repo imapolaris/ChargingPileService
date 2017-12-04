@@ -55,8 +55,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ChargingService.cs" />
+    <Compile Include="Client.cs" />
     <Compile Include="DataPackets\PacketAnalyzer.cs" />
     <Compile Include="DataPackets\Enums.cs" />
+    <Compile Include="DataPackets\公共\OperResultBasePacket.cs" />
     <Compile Include="DataPackets\平台=充电桩\ChangeSecretKeyPacket.cs" />
     <Compile Include="DataPackets\充电桩=平台\ConfirmPacket.cs" />
     <Compile Include="DataPackets\充电桩=平台\DenyPacket.cs" />
@@ -89,6 +91,7 @@
     <Compile Include="IChargingPileService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Server.cs" />
+    <Compile Include="Session.cs" />
     <Compile Include="State\ReceiveState.cs" />
     <Compile Include="State\SendState.cs" />
   </ItemGroup>
