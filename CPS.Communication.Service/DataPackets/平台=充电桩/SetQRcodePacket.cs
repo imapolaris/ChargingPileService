@@ -58,10 +58,10 @@ namespace CPS.Communication.Service.DataPackets
             set { _qrcode = value; }
         }
 
-        public override byte[] Encode()
+        public override byte[] EncodeBody()
         {
             BodyLen = OperPacketBodyLen + 1 + 1 + 1 + this._qrcodeLen;
-            byte[] body = base.Encode();
+            byte[] body = base.EncodeBody();
             int start = OperPacketBodyLen;
             body[start] = this._qnumbers;
             start += 1;
@@ -74,9 +74,9 @@ namespace CPS.Communication.Service.DataPackets
             return body;
         }
 
-        public override PacketBase Decode(byte[] buffer)
+        public override PacketBase DecodeBody(byte[] buffer)
         {
-            base.Decode(buffer);
+            base.DecodeBody(buffer);
             int start = OperPacketBodyLen;
             this._qnumbers = buffer[start];
             start += 1;

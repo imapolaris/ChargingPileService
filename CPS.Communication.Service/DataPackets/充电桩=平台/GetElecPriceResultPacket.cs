@@ -68,9 +68,9 @@ namespace CPS.Communication.Service.DataPackets
             set { _timestamp = value; }
         }
 
-        public override byte[] Encode()
+        public override byte[] EncodeBody()
         {
-            byte[] body = base.Encode();
+            byte[] body = new byte[BodyLen];
             int start = OperPacketBodyLen;
             byte[] temp = BitConverter.GetBytes(this._timestamp);
             Array.Copy(temp, 0, body, start, temp.Length);
@@ -89,9 +89,9 @@ namespace CPS.Communication.Service.DataPackets
             return body;
         }
 
-        public override PacketBase Decode(byte[] buffer)
+        public override PacketBase DecodeBody(byte[] buffer)
         {
-            base.Decode(buffer);
+            base.DecodeBody(buffer);
             int start = OperPacketBodyLen;
             this._timestamp = BitConverter.ToInt32(buffer, start);
             start += 4;

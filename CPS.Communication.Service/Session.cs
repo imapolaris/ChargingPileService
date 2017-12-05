@@ -185,7 +185,7 @@ namespace CPS.Communication.Service
                 }
             });
 
-            if (IsCompleted && !Outdated)
+            if (IsCompleted)
                 return true;
             else
             {

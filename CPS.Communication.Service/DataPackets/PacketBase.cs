@@ -60,21 +60,40 @@ namespace CPS.Communication.Service.DataPackets
         /// </summary>
         public string Name { get; set; }
 
-        public virtual byte[] Encode()
+        public byte[] Encode()
         {
-            byte[] body = new byte[BodyLen];
+            byte[] sn = new byte[SerialNumberLen];
 
             byte[] temp = EncodeHelper.GetBytes(this._serialNumber);
-            Array.Copy(temp, 0, body, 0, temp.Length);
-            return body;
+            Array.Copy(temp, 0, sn, 0, temp.Length);
+
+            byte[] body = EncodeBody();
+            // 对消息内容进行加密
+            body = EncryptHelper.Encrypt(body);
+
+            return BytesHelper.Combine(sn, body);
         }
 
-        public virtual PacketBase Decode(byte[] buffer)
+        public PacketBase Decode(byte[] buffer)
         {
-            byte[] body = new byte[SerialNumberLen];
-           
-            Array.Copy(buffer, 0, body, 0, SerialNumberLen);
-            this._serialNumber = EncodeHelper.GetString(body, 0, SerialNumberLen);
+            byte[] sn = new byte[SerialNumberLen];
+
+            Array.Copy(buffer, 0, sn, 0, SerialNumberLen);
+            this._serialNumber = EncodeHelper.GetString(sn, 0, SerialNumberLen);
+
+            byte[] body = BytesHelper.SubArray(buffer, SerialNumberLen, buffer.Length - SerialNumberLen);
+            // 对消息内容进行解密
+            body = EncryptHelper.Decrypt(body);
+            return DecodeBody(body);
+        }
+
+        public virtual byte[] EncodeBody()
+        {
+            return null;
+        }
+
+        public virtual PacketBase DecodeBody(byte[] buffer)
+        {
             return this;
         }
     }

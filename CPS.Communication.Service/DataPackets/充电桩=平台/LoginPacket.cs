@@ -11,7 +11,7 @@ namespace CPS.Communication.Service.DataPackets
     {
         public LoginPacket() : base(PacketTypeEnum.Login)
         {
-            BodyLen = PacketBase.SerialNumberLen + 24;
+            BodyLen = 24;
         }
 
         private int _timeStamp;
@@ -44,10 +44,10 @@ namespace CPS.Communication.Service.DataPackets
             set { _pwd = value; }
         }
 
-        public override byte[] Encode()
+        public override byte[] EncodeBody()
         {
-            byte[] body = base.Encode();
-            int start = SerialNumberLen;
+            byte[] body = new byte[BodyLen];
+            int start = 0;
             byte[] temp = BitConverter.GetBytes(this._timeStamp);
             Array.Copy(temp, 0, body, start, temp.Length);
             start += 4;
@@ -60,10 +60,10 @@ namespace CPS.Communication.Service.DataPackets
             return body;
         }
 
-        public override PacketBase Decode(byte[] buffer)
+        public override PacketBase DecodeBody(byte[] buffer)
         {
-            base.Decode(buffer);
-            int start = SerialNumberLen;
+            base.DecodeBody(buffer);
+            int start = 0;
             this._timeStamp = BitConverter.ToInt32(buffer, start);
             start += 4;
             byte[] un = new byte[8];

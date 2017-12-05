@@ -22,18 +22,18 @@ namespace CPS.Communication.Service.DataPackets
             set { _ver = value; }
         }
 
-        public override byte[] Encode()
+        public override byte[] EncodeBody()
         {
-            byte[] body = base.Encode();
+            byte[] body = new byte[BodyLen];
             int start = OperPacketBodyLen;
             byte[] temp = EncodeHelper.GetBytes(this._ver);
             Array.Copy(temp, 0, body, start, temp.Length);
             return body;
         }
 
-        public override PacketBase Decode(byte[] buffer)
+        public override PacketBase DecodeBody(byte[] buffer)
         {
-            base.Decode(buffer);
+            base.DecodeBody(buffer);
             int start = OperPacketBodyLen;
             this._ver = EncodeHelper.GetString(buffer, start, 10);
             return this;

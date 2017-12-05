@@ -24,17 +24,17 @@ namespace CPS.Communication.Service.DataPackets
             set { _timestamp = value; }
         }
 
-        public override PacketBase Decode(byte[] buffer)
+        public override PacketBase DecodeBody(byte[] buffer)
         {
-            base.Decode(buffer);
+            base.DecodeBody(buffer);
             int start = SerialNumberLen;
             this._timestamp = BitConverter.ToInt32(buffer, start);
             return this;
         }
 
-        public override byte[] Encode()
+        public override byte[] EncodeBody()
         {
-            byte[] body = base.Encode();
+            byte[] body = base.EncodeBody();
             int start = SerialNumberLen;
             byte[] temp = BitConverter.GetBytes(this._timestamp);
             Array.Copy(temp, 0, body, start, 4);

@@ -176,6 +176,10 @@ namespace CPS.Communication.Service.DataPackets
             {
                 Console.WriteLine(ex.Message);
             }
+            catch (ArgumentException ae)
+            {
+                Console.WriteLine(ae.Message);
+            }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);

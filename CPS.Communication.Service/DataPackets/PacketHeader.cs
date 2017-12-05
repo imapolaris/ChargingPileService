@@ -18,7 +18,7 @@ namespace CPS.Communication.Service.DataPackets
             this._command = command;
         }
 
-        private byte _ver = 0x01;
+        private byte _ver = 0x68;
         /// <summary>
         /// 协议版本号
         /// </summary>
@@ -36,6 +36,28 @@ namespace CPS.Communication.Service.DataPackets
         {
             get { return _attr; }
             set { _attr = value; }
+        }
+
+        /// <summary>
+        /// 是否为系统消息
+        /// </summary>
+        public bool IsSysMessage
+        {
+            get
+            {
+                return this._attr == 0x01 || this._attr == 0x03;
+            }
+        }
+
+        /// <summary>
+        /// 数据是否压缩
+        /// </summary>
+        public bool Compressed
+        {
+            get
+            {
+                return this._attr == 0x02 || this._attr == 0x03;
+            }
         }
 
         private PacketTypeEnum _command;
@@ -80,9 +102,14 @@ namespace CPS.Communication.Service.DataPackets
 
         public bool VerifyPacket()
         {
-            if (this._verifyCode == (short)(this._ver+this._attr+(int)this._command+this._reserveP+this._bodyLen))
+            if (this._verifyCode == GetVerifyCode())
                 return true;
             return false;
+        }
+
+        private short GetVerifyCode()
+        {
+            return (short)(this._ver + this._attr + (int)this._command + this._reserveP + this._bodyLen);
         }
 
         public byte[] Encode()
@@ -94,17 +121,17 @@ namespace CPS.Communication.Service.DataPackets
             header[start] = this._attr;
             ++start;
             byte[] temp = BitConverter.GetBytes((short)this._command);
-            Array.Copy(temp, 0, header, start, 2);
+            Array.Copy(temp, 0, header, start, temp.Length);
             start += 2;
             temp = BitConverter.GetBytes(this._reserveP);
             Array.Copy(temp, 0, header, start, temp.Length);
             start += 4;
             temp = BitConverter.GetBytes(this._bodyLen);
-            Array.Copy(temp, 0, header, start, 4);
+            Array.Copy(temp, 0, header, start, temp.Length);
             start += 4;
-            this._verifyCode = (short)(this._ver + this._attr + (int)this._command + this._reserveP + this._bodyLen);
+            this._verifyCode = GetVerifyCode();
             temp = BitConverter.GetBytes(this._verifyCode);
-            Array.Copy(temp, 0, header, start, 2);
+            Array.Copy(temp, 0, header, start, temp.Length);
 
             return header;
         }

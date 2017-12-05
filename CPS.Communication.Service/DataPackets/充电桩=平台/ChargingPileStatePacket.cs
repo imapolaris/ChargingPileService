@@ -10,7 +10,7 @@ namespace CPS.Communication.Service.DataPackets
     {
         public ChargingPileStatePacket() : base(PacketTypeEnum.ChargingPileState)
         {
-            BodyLen = SerialNumberLen + 1 + 1 + 1 + 1 + 1 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 1 + 1 + 4 + 4 + 4 + 4 + 4 + 1 + 1 + 4;
+            BodyLen = 1 + 1 + 1 + 1 + 1 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 1 + 1 + 4 + 4 + 4 + 4 + 4 + 1 + 1 + 4;
         }
 
         private byte _qport;
@@ -251,10 +251,10 @@ namespace CPS.Communication.Service.DataPackets
             set { _timestamp = value; }
         }
 
-        public override byte[] Encode()
+        public override byte[] EncodeBody()
         {
-            byte[] body = base.Encode();
-            int start = SerialNumberLen;
+            byte[] body = new byte[BodyLen];
+            int start = 0;
             body[start] = this._qport;
             start += 1;
             body[start] = this._subscribeState;
@@ -317,10 +317,10 @@ namespace CPS.Communication.Service.DataPackets
             return body;
         }
 
-        public override PacketBase Decode(byte[] buffer)
+        public override PacketBase DecodeBody(byte[] buffer)
         {
-            base.Decode(buffer);
-            int start = SerialNumberLen;
+            base.DecodeBody(buffer);
+            int start = 0;
             this._qport = buffer[start];
             start += 1;
             this._subscribeState = buffer[start];

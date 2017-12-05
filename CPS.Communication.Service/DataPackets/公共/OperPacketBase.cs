@@ -8,7 +8,7 @@ namespace CPS.Communication.Service.DataPackets
 {
     public class OperPacketBase : PacketBase
     {
-        public const int OperPacketBodyLen = SerialNumberLen + 4;
+        public const int OperPacketBodyLen = 4;
 
         public OperPacketBase() { }
 
@@ -38,19 +38,19 @@ namespace CPS.Communication.Service.DataPackets
             }
         }
 
-        public override byte[] Encode()
+        public override byte[] EncodeBody()
         {
-            byte[] body = base.Encode();
-            var start = SerialNumberLen;
+            byte[] body = new byte[BodyLen];
+            var start = 0;
             byte[] temp = BitConverter.GetBytes(this._oper);
             Array.Copy(temp, 0, body, start, temp.Length);
             return body;
         }
 
-        public override PacketBase Decode(byte[] buffer)
+        public override PacketBase DecodeBody(byte[] buffer)
         {
-            base.Decode(buffer);
-            var start = SerialNumberLen;
+            base.DecodeBody(buffer);
+            var start = 0;
             this._oper = BitConverter.ToInt32(buffer, start);
             return this;
         }

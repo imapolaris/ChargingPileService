@@ -49,7 +49,7 @@ namespace CPS.Communication.Service.DataPackets
 
         public LoginResultPacket() : base(PacketTypeEnum.LoginResult)
         {
-            BodyLen = PacketBase.SerialNumberLen + 5;
+            BodyLen = 5;
         }
 
         public bool HasLogined
@@ -60,10 +60,10 @@ namespace CPS.Communication.Service.DataPackets
             }
         }
 
-        public override byte[] Encode()
+        public override byte[] EncodeBody()
         {
-            byte[] body = base.Encode();
-            int start = SerialNumberLen;
+            byte[] body = new byte[BodyLen];
+            int start = 0;
             body[start] = this.Result;
             start += 1;
             byte[] temp = BitConverter.GetBytes(this._timestamp);
@@ -72,10 +72,10 @@ namespace CPS.Communication.Service.DataPackets
             return body;
         }
 
-        public override PacketBase Decode(byte[] buffer)
+        public override PacketBase DecodeBody(byte[] buffer)
         {
-            base.Decode(buffer);
-            int start = SerialNumberLen;
+            base.DecodeBody(buffer);
+            int start = 0;
             this._result = (LoginResultEnum)buffer[start];
             start += 1;
             this._timestamp = BitConverter.ToInt32(buffer, start);

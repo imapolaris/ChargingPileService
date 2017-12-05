@@ -38,9 +38,9 @@ namespace CPS.Communication.Service.DataPackets
             set { _realDataReportInterval = value; }
         }
 
-        public override byte[] Encode()
+        public override byte[] EncodeBody()
         {
-            byte[] body = base.Encode();
+            byte[] body = base.EncodeBody();
             int start = OperPacketBodyLen;
             body[start] = this._stateReportInterval;
             start += 1;
@@ -48,9 +48,9 @@ namespace CPS.Communication.Service.DataPackets
             return body;
         }
 
-        public override PacketBase Decode(byte[] buffer)
+        public override PacketBase DecodeBody(byte[] buffer)
         {
-            base.Decode(buffer);
+            base.DecodeBody(buffer);
             int start = OperPacketBodyLen;
             this._stateReportInterval = buffer[start];
             start += 1;

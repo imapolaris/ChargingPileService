@@ -10,17 +10,17 @@ namespace CPS.Communication.Service.DataPackets
     {
         public RebootPacket() : base(PacketTypeEnum.Reboot)
         {
-            BodyLen = SerialNumberLen + 4;
+            BodyLen = OperPacketBodyLen;
         }
 
-        public override byte[] Encode()
+        public override byte[] EncodeBody()
         {
-            return base.Encode();
+            return base.EncodeBody();
         }
 
-        public override PacketBase Decode(byte[] buffer)
+        public override PacketBase DecodeBody(byte[] buffer)
         {
-            return base.Decode(buffer);
+            return base.DecodeBody(buffer);
         }
 
         public override string ToString()

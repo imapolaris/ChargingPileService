@@ -21,18 +21,18 @@ namespace CPS.Communication.Service.DataPackets
             set { _transactionSN = value; }
         }
 
-        public override byte[] Encode()
+        public override byte[] EncodeBody()
         {
-            byte[] body = base.Encode();
+            byte[] body = base.EncodeBody();
             int start = SerialNumberLen;
             byte[] temp = BitConverter.GetBytes(this._transactionSN);
             Array.Copy(temp, 0, body, start, temp.Length);
             return body;
         }
 
-        public override PacketBase Decode(byte[] buffer)
+        public override PacketBase DecodeBody(byte[] buffer)
         {
-            base.Decode(buffer);
+            base.DecodeBody(buffer);
             int start = SerialNumberLen;
             this._transactionSN = BitConverter.ToInt64(buffer, start);
             return this;

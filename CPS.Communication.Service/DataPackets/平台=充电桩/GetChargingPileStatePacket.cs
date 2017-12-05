@@ -22,17 +22,17 @@ namespace CPS.Communication.Service.DataPackets
         }
 
 
-        public override byte[] Encode()
+        public override byte[] EncodeBody()
         {
-            byte[] body = base.Encode();
+            byte[] body = base.EncodeBody();
             int start = OperPacketBodyLen;
             body[start] = this._qport;
             return body;
         }
 
-        public override PacketBase Decode(byte[] buffer)
+        public override PacketBase DecodeBody(byte[] buffer)
         {
-            base.Decode(buffer);
+            base.DecodeBody(buffer);
             int start = OperPacketBodyLen;
             this._qport = buffer[start];
             return this;

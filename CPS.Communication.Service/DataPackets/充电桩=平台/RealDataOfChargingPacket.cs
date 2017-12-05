@@ -11,7 +11,7 @@ namespace CPS.Communication.Service.DataPackets
     {
         public RealDataOfChargingPacket() : base(PacketTypeEnum.RealDataOfCharging)
         {
-            BodyLen = SerialNumberLen + 8 + 1 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 2 + 1 + 1 + 1 + 2 + 4 + 4 + 4 + 4 + 4 + 17;
+            BodyLen = 8 + 1 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 2 + 1 + 1 + 1 + 2 + 4 + 4 + 4 + 4 + 4 + 17;
         }
 
         private long _transactionSN;
@@ -176,10 +176,10 @@ namespace CPS.Communication.Service.DataPackets
             set { _vin = value; }
         }
 
-        public override byte[] Encode()
+        public override byte[] EncodeBody()
         {
-            byte[] body = base.Encode();
-            int start = SerialNumberLen;
+            byte[] body = new byte[BodyLen];
+            int start = 0;
             byte[] temp = BitConverter.GetBytes(this._transactionSN);
             Array.Copy(temp, 0, body, start, temp.Length);
             start += 8;
@@ -238,10 +238,10 @@ namespace CPS.Communication.Service.DataPackets
             return body;
         }
 
-        public override PacketBase Decode(byte[] buffer)
+        public override PacketBase DecodeBody(byte[] buffer)
         {
-            base.Decode(buffer);
-            int start = SerialNumberLen;
+            base.DecodeBody(buffer);
+            int start = 0;
             this._transactionSN = BitConverter.ToInt64(buffer, start);
             start += 8;
             this._qport = buffer[start];
