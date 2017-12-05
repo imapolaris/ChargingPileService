@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace CPS.Communication.Service.DataPackets
 {
-    public class GetSecretKeyPacket : OperPacketBase
+    public class GetSoftwareVerPacket : OperPacketBase
     {
-        public GetSecretKeyPacket() : base(PacketTypeEnum.GetSecretKey)
+        public GetSoftwareVerPacket() : base(PacketTypeEnum.GetSoftwareVer)
         {
             BodyLen = OperPacketBodyLen;
         }

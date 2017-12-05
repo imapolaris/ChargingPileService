@@ -109,6 +109,7 @@ namespace CPS.Communication.Client
             {
                 SetElecPricePacket seppacket = packet as SetElecPricePacket;
                 appendText("设置电价：", $"尖：{seppacket.SharpRate}峰：{seppacket.PeakRate}平：{seppacket.FlatRate}谷：{seppacket.Valleyrate}");
+                client.Send(new byte[4]);
             }
         }
 

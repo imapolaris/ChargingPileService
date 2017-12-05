@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace CPS.Communication.Service.DataPackets
 {
-    public class GetSecretKeyPacket : OperPacketBase
+    public class GetQRcodeResultPacket : SetQRcodePacket
     {
-        public GetSecretKeyPacket() : base(PacketTypeEnum.GetSecretKey)
+        public GetQRcodeResultPacket() : base(PacketTypeEnum.GetQRcodeResult)
         {
-            BodyLen = OperPacketBodyLen;
+            //BodyLen = OperPacketBodyLen + 1 + 1 + 1 + x;
         }
     }
 }

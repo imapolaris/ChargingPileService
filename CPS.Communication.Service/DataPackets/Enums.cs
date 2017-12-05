@@ -27,7 +27,7 @@ namespace CPS.Communication.Service.DataPackets
         SetServicePrice=0x0C,
         SetReportInterval=0x0D,
         SetTimePeriod=0x0E,
-        ChangeSecretKey=0x0F,
+        SetSecretKey=0x0F,
         /// <summary>
         /// 查询充电桩当前电费
         /// </summary>
@@ -67,7 +67,7 @@ namespace CPS.Communication.Service.DataPackets
         /// <summary>
         /// 启停结果（无卡）
         /// </summary>
-        GetChargingResult=0x2C,
+        SetChargingResult=0x2C,
         /// <summary>
         /// 充电实时数据
         /// </summary>
@@ -79,7 +79,7 @@ namespace CPS.Communication.Service.DataPackets
         /// <summary>
         /// 确认交易记录
         /// </summary>
-        ConfirmOfCharging=0x2F,
+        ConfirmRecordOfCharging=0x2F,
         /// <summary>
         /// 查询充电消费记录
         /// </summary>
@@ -165,5 +165,40 @@ namespace CPS.Communication.Service.DataPackets
     {
         Reboot=0x01,
         SetElecPrice=0x02,
+    }
+
+    public enum SubscribeStateEnum : byte
+    {
+        NotSubscribe=0x01,
+        Subscribe=0x02,
+    }
+
+    public enum CarPortStateEnum : byte
+    {
+        Unused=0x01,
+        Used=0x02,
+        None=0x03,
+    }
+
+    public enum ConnectStateEnum : byte
+    {
+        Unconnect=0x01,
+        Connect=0x02,
+        None=0x03,
+    }
+
+    public enum WorkingStateEnum : byte
+    {
+        Charging=0x01,
+        Waiting=0x02,
+        Fault=0x03,
+        ChargingEnd=0x04,
+        None=0x05,
+    }
+
+    public enum RelayStateEnum : byte
+    {
+        Startup=0x01,
+        Shutdown=0x02
     }
 }

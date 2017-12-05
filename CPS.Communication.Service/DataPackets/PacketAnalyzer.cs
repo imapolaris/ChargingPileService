@@ -55,8 +55,8 @@ namespace CPS.Communication.Service.DataPackets
                         break;
                     case PacketTypeEnum.SetTimePeriod:
                         break;
-                    case PacketTypeEnum.ChangeSecretKey:
-                        packet = new ChangeSecretKeyPacket();
+                    case PacketTypeEnum.SetSecretKey:
+                        packet = new SetSecretKeyPacket();
                         break;
                     case PacketTypeEnum.GetElecPrice:
                         break;
@@ -94,13 +94,13 @@ namespace CPS.Communication.Service.DataPackets
                         break;
                     case PacketTypeEnum.SetCharging:
                         break;
-                    case PacketTypeEnum.GetChargingResult:
+                    case PacketTypeEnum.SetChargingResult:
                         break;
                     case PacketTypeEnum.RealDataOfCharging:
                         break;
                     case PacketTypeEnum.RecordOfCharging:
                         break;
-                    case PacketTypeEnum.ConfirmOfCharging:
+                    case PacketTypeEnum.ConfirmRecordOfCharging:
                         break;
                     case PacketTypeEnum.GetRecordOfCharging:
                         break;

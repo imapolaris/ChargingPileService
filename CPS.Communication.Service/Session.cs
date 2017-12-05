@@ -62,7 +62,7 @@ namespace CPS.Communication.Service
                 case PacketTypeEnum.SetServicePrice:
                 case PacketTypeEnum.SetReportInterval:
                 case PacketTypeEnum.SetTimePeriod:
-                case PacketTypeEnum.ChangeSecretKey:
+                case PacketTypeEnum.SetSecretKey:
                     {
                         if (packet.Command == PacketTypeEnum.Confirm || packet.Command == PacketTypeEnum.Deny)
                             if (packet.OperType == MyPacket.OperType)
@@ -105,13 +105,13 @@ namespace CPS.Communication.Service
                     break;
                 case PacketTypeEnum.SetCharging:
                     break;
-                case PacketTypeEnum.GetChargingResult:
+                case PacketTypeEnum.SetChargingResult:
                     break;
                 case PacketTypeEnum.RealDataOfCharging:
                     break;
                 case PacketTypeEnum.RecordOfCharging:
                     break;
-                case PacketTypeEnum.ConfirmOfCharging:
+                case PacketTypeEnum.ConfirmRecordOfCharging:
                     break;
                 case PacketTypeEnum.GetRecordOfCharging:
                     break;

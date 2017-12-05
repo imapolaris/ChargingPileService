@@ -7,12 +7,14 @@ using System.Threading.Tasks;
 
 namespace CPS.Communication.Service.DataPackets
 {
-    public class ChangeSecretKeyPacket : OperPacketBase
+    public class SetSecretKeyPacket : OperPacketBase
     {
-        public ChangeSecretKeyPacket() : base(PacketTypeEnum.ChangeSecretKey)
+        public SetSecretKeyPacket() : base(PacketTypeEnum.SetSecretKey)
         {
             BodyLen = OperPacketBodyLen + 16 + 4;
         }
+
+        public SetSecretKeyPacket(PacketTypeEnum pte) : base(pte) { }
 
         private string _secretKey;
 

@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace CPS.Communication.Service.DataPackets
 {
-    public class GetSecretKeyPacket : OperPacketBase
+    public class GetSecretKeyResultPacket : SetSecretKeyPacket
     {
-        public GetSecretKeyPacket() : base(PacketTypeEnum.GetSecretKey)
+        public GetSecretKeyResultPacket() : base(PacketTypeEnum.GetSecretKeyResult)
         {
-            BodyLen = OperPacketBodyLen;
+            BodyLen = OperPacketBodyLen + 16 + 4;
         }
     }
 }

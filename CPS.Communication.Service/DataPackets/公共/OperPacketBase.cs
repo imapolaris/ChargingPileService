@@ -14,7 +14,7 @@ namespace CPS.Communication.Service.DataPackets
 
         public OperPacketBase(PacketTypeEnum pte) : base(pte)
         {
-
+            
         }
 
         private int _oper;
