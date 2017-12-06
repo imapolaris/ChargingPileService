@@ -14,7 +14,7 @@ namespace CPS.Communication.Service
 {
     public class ChargingService : IChargingPileService, IDisposable
     {
-        //CPS_Entities EntityContext = new CPS_Entities();
+        CPS_Entities EntityContext = new CPS_Entities();
         public SessionCollection Sessions { get; private set; }
 
         #region ====会话====
@@ -117,45 +117,66 @@ namespace CPS.Communication.Service
         {
             ThreadPool.QueueUserWorkItem(new WaitCallback((state) =>
             {
+                if (client == null || args == null) return;
+
+                string sn = args.SerialNumber;
+                string username = args.Username;
+                string pwd = args.Pwd;
+
+                if (string.IsNullOrEmpty(sn)
+                    || string.IsNullOrEmpty(username)
+                    || string.IsNullOrEmpty(pwd))
+                    throw new ArgumentNullException("参数不正确");
+
+                LoginResultPacket packet = new LoginResultPacket()
+                {
+                    SerialNumber = sn,
+                };
+
                 try
                 {
-                    if (client == null || args == null) return;
-
-                    string sn = args.SerialNumber;
-                    string username = args.Username;
-                    string pwd = args.Pwd;
-                    var result = true;//EntityContext.CPS_ChargingPile.Any(_ => _.SerialNumber == sn && _.Username == username && _.Pwd == pwd);
-
-                    client.SerialNumber = sn;
-
-                    LoginResultPacket packet = new LoginResultPacket();
-                    packet.SerialNumber = sn;
-                    packet.ResultEnum = LoginResultEnum.Succeed;
-                    packet.TimeStamp = DateTime.Now.ConvertToTimeStampX();
-                    // 登录成功
-                    if (result)
+                    // 已经登录
+                    if (client.HasLogined)
                     {
-                        packet.ResultEnum = LoginResultEnum.Succeed;
+                        packet.ResultEnum = LoginResultEnum.HasLogined;
                     }
                     else
                     {
-                        packet.ResultEnum = LoginResultEnum.SecretKeyFailed;
-                    }
+                        try
+                        {
+                            var cp = EntityContext.CPS_ChargingPile.Where(_ => _.SerialNumber == sn).First();
 
-                    client.HasLogined = packet.HasLogined;
+                            // 登录成功
+                            if (cp.Username == username && cp.Pwd == pwd)
+                            {
+                                packet.ResultEnum = LoginResultEnum.Succeed;
 
-                    if (client.IsConnected)
-                    {
-                        client.Send(packet);
-                    }
-
-                    string loginState = result ? "成功" : "失败";
-                    Console.WriteLine($"----客户端：{client.ID} 登录{loginState}!");
+                                client.SerialNumber = sn;
+                                client.HasLogined = packet.HasLogined;
+                            }
+                            else // 用户名或密码不正确
+                                packet.ResultEnum = LoginResultEnum.SecretKeyFailed;
+                        }
+                        catch (Exception ex)
+                        {
+                            // 设备不存在
+                            packet.ResultEnum = LoginResultEnum.NotExists;
+                        }
+                    }                    
                 }
                 catch (Exception ex)
                 {
+                    // 其他
+                    packet.ResultEnum = LoginResultEnum.Others;
                     Console.WriteLine(ex.Message);
                 }
+
+                var now = DateTime.Now;
+                packet.TimeStamp = now.ConvertToTimeStampX();
+                client.Send(packet);
+
+                string loginState = packet.ResultString;
+                Console.WriteLine($"----客户端 {client.ID} 于{now} 登录： {loginState}!");
             }));
         }
 
@@ -169,7 +190,10 @@ namespace CPS.Communication.Service
 
             var client = MyServer.FindClientBySerialNumber(serialNumber);
             if (client == null)
-                throw new ArgumentNullException("客户端尚未连接...");
+            {
+                return false;
+                //throw new ArgumentNullException("客户端尚未连接...");
+            }
 
             Session session = new Session(client, packet);
             Sessions.AddSession(session);

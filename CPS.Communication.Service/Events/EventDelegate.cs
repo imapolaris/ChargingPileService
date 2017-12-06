@@ -11,7 +11,6 @@ namespace CPS.Communication.Service.Events
     public delegate void SendDataExceptionHandler(object sender, SendDataExceptionEventArgs args);
     public delegate void ErrorOccurredHandler(object sender, ErrorEventArgs args);
     public delegate void ClientAcceptedHandler(object sender, ClientAcceptedEventArgs args);
-    public delegate void ClientDisconnectedHandler(object sender, ClientDisconnectedEventArgs args);
     public delegate void ClientClosedHandler(object sender, ClientClosedEventArgs args);
 
     public delegate void ServerStartedHandler(object sender, ServerStartedEventArgs args);

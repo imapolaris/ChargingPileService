@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CPS.Communication.Service.Events
 {
-    public abstract class ClientEventArgs : EventArgs
+    public class ClientAcceptedEventArgs : EventArgs
     {
         private Client _client;
 
@@ -18,33 +18,19 @@ namespace CPS.Communication.Service.Events
             }
         }
 
-        public ClientEventArgs(Client client)
+        public ClientAcceptedEventArgs(Client client)
         {
             this._client = client;
         }
     }
 
-    public class ClientAcceptedEventArgs : ClientEventArgs
+    public class ClientClosedEventArgs : EventArgs
     {
-        public ClientAcceptedEventArgs(Client client)
-            : base(client)
-        {
-        }
-    }
+        public string Id { get; set; }
 
-    public class ClientDisconnectedEventArgs : ClientEventArgs
-    {
-        public ClientDisconnectedEventArgs(Client client)
-            : base(client)
-        { }
-    }
-
-    public class ClientClosedEventArgs : ClientEventArgs
-    {
-        public ClientClosedEventArgs(Client client)
-            : base(client)
+        public ClientClosedEventArgs(string id)
         {
-            
+            Id = id;
         }
     }
 }

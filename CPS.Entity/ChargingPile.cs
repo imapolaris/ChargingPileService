@@ -25,6 +25,9 @@ namespace CPS.Entities
         private string username;
         private string pwd;
 
+        private string ip;
+        private string mac;
+
         /// <summary>
         /// 电站Id
         /// </summary>
@@ -108,6 +111,26 @@ namespace CPS.Entities
         {
             get { return pwd; }
             set { pwd = value; }
+        }
+
+        /// <summary>
+        /// IP地址
+        /// </summary>
+        [NotMapped]
+        public string IP
+        {
+            get { return ip; }
+            set { ip = value; }
+        }
+
+        /// <summary>
+        /// MAC地址
+        /// </summary>
+        [NotMapped]
+        public string MAC
+        {
+            get { return mac; }
+            set { mac = value; }
         }
     }
 }

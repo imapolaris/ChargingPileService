@@ -33,17 +33,6 @@ namespace CPS.Communication.Client
         public MainWindow()
         {
             InitializeComponent();
-
-            Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            client = new Service.Client(socket);
-            string txtip = this.txtIP.Text.Trim();
-            string txtport = this.txtPort.Text.Trim();
-            IPAddress ip = IPAddress.Parse(txtip);
-            ep = new IPEndPoint(ip, int.Parse(txtport));
-            client.ReceiveCompleted += Client_ReceiveCompleted;
-            client.SendCompleted += Client_SendCompleted;
-            client.ClientDisconnected += Client_ClientDisconnected;
-            client.ErrorOccurred += Client_ErrorOccurred;
         }
 
         private void Client_ErrorOccurred(object sender, Service.Events.ErrorEventArgs args)
@@ -51,12 +40,12 @@ namespace CPS.Communication.Client
             appendText("error", $"####{args}");
         }
 
-        private void Client_ClientDisconnected(object sender, Service.Events.ClientDisconnectedEventArgs args)
+        private void btnConnect_Click(object sender, RoutedEventArgs e)
         {
-            appendText("disconnect", $"----Client {args.CurClient.ID} has disconnected!");
+            Connect();
         }
 
-        private void btnConnect_Click(object sender, RoutedEventArgs e)
+        private void Connect()
         {
             Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             client = new Service.Client(socket);
@@ -66,9 +55,14 @@ namespace CPS.Communication.Client
             ep = new IPEndPoint(ip, int.Parse(txtport));
             client.ReceiveCompleted += Client_ReceiveCompleted;
             client.SendCompleted += Client_SendCompleted;
-            client.ClientDisconnected += Client_ClientDisconnected;
             client.ErrorOccurred += Client_ErrorOccurred;
+            client.ClientClosed += Client_ClientClosed;
             client.WorkSocket.Connect(ep);
+        }
+
+        private void Client_ClientClosed(object sender, Service.Events.ClientClosedEventArgs args)
+        {
+            appendText("close", "客户端关闭连接...");
         }
 
         private void Client_SendCompleted(object sender, Service.Events.SendCompletedEventArgs args)

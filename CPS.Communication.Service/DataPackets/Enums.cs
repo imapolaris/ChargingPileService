@@ -136,7 +136,7 @@ namespace CPS.Communication.Service.DataPackets
         /// <summary>
         /// 登录成功
         /// </summary>
-        Succeed,
+        Succeed=0x01,
         /// <summary>
         /// 设备不存在
         /// </summary>

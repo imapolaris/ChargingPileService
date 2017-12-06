@@ -9,19 +9,27 @@ namespace CPS.Communication.Service.Events
     public class SendCompletedEventArgs : EventArgs
     {
         private int _len;
-
         public int Len
         {
             get { return _len; }
             set { _len = value; }
         }
 
-        public SendCompletedEventArgs()
+        private Client _client;
+        public Client CurClient
         {
+            get { return _client; }
+            set { _client = value; }
         }
 
         public SendCompletedEventArgs(int len)
         {
+            this._len = len;
+        }
+
+        public SendCompletedEventArgs(Client client, int len)
+        {
+            this._client = client;
             this._len = len;
         }
     }

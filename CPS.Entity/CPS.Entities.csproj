@@ -54,6 +54,7 @@
     <Compile Include="Message.cs" />
     <Compile Include="MyCollection.cs" />
     <Compile Include="MyMessage.cs" />
+    <Compile Include="Operator.cs" />
     <Compile Include="PayRecord.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Station.cs" />

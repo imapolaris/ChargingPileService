@@ -65,8 +65,8 @@ namespace CPS.Communication.Service
             _clients = new ClientCollection();
             MyChargingService.MyServer = this;
 
-            //StartHeartbeatCheck();
-            //StartHeartbeatFromServer();
+            StartHeartbeatCheck();
+            SendHeartbeatFromServer();
         }
 
         public void Listen(int port)
@@ -166,7 +166,7 @@ namespace CPS.Communication.Service
             ThreadHeartbeatDetection.Start();
         }
 
-        private void StartHeartbeatFromServer()
+        private void SendHeartbeatFromServer()
         {
             ThreadHeartbeatFromServer = new Thread(() =>
             {
@@ -220,15 +220,8 @@ namespace CPS.Communication.Service
 
                     OnServerStopped(new ServerStoppedEventArgs());
                 }
-
-                foreach (var item in this._clients)
-                {
-                    if (item != null)
-                    {
-                        item.Close();
-                    }
-                }
-                this._clients.Clear();
+                
+                this._clients.ClearClient();
             }
             _closing = false;
         }
@@ -248,7 +241,7 @@ namespace CPS.Communication.Service
                 client.SendDataException += Client_SendDataException;
                 client.ErrorOccurred += Client_ErrorOccurred;
                 client.ClientClosed += Client_ClientClosed;
-                client.ClientDisconnected += Client_ClientDisconnected;
+
                 client.Receive();
 
                 OnClientAccepted(new ClientAcceptedEventArgs(client));
@@ -259,8 +252,6 @@ namespace CPS.Communication.Service
             }
             catch (SocketException se)
             {
-                if (!IsRunning)
-                    return;
                 handleSocketException(se, ErrorTypes.SocketAccept);
             }
         }
@@ -318,7 +309,10 @@ namespace CPS.Communication.Service
 
         private void Client_SendCompleted(object sender, SendCompletedEventArgs args)
         {
-
+            //if (args != null)
+            //{
+            //    Console.WriteLine($"此次发送的数据长度：{args.Len}");
+            //}
         }
 
         private void Client_SendDataException(object sender, SendDataExceptionEventArgs args)
@@ -373,20 +367,7 @@ namespace CPS.Communication.Service
 
         private void Client_ClientClosed(object sender, ClientClosedEventArgs args)
         {
-            if (args != null && args.CurClient != null)
-            {
-                Console.WriteLine($"----客户端关闭：{args.CurClient.ID}!");
-                this._clients.RemoveClient(args.CurClient);
-            }
-        }
-
-        private void Client_ClientDisconnected(object sender, ClientDisconnectedEventArgs args)
-        {
-            if (args != null && args.CurClient != null)
-            {
-                Console.WriteLine($"----客户端断开连接：{args.CurClient.ID}!");
-                this._clients.RemoveClient(args.CurClient);
-            }
+            Console.WriteLine($"----客户端 {args.Id} 断开连接!");
         }
 
         private void handleSocketException(SocketException se, ErrorTypes eType)
@@ -402,7 +383,11 @@ namespace CPS.Communication.Service
             }
             catch (ArgumentNullException ane)
             {
-                Console.WriteLine($"该充电桩不存在:{ane.Message}");
+                Console.WriteLine($"该充电桩不存在：{ane.Message}");
+            }
+            catch (InvalidOperationException ioe)
+            {
+                Console.WriteLine(ioe.Message);
             }
             catch (Exception ex)
             {
@@ -419,6 +404,7 @@ namespace CPS.Communication.Service
             {
                 info += $"当前客户端数：{this._clients.Count} 个\n";
                 int normal = 0, unnormal = 0;
+                int logined = 0, unlogined = 0;
                 string cInfo = "";
                 int index = 1;
                 foreach (var item in this._clients)
@@ -430,12 +416,18 @@ namespace CPS.Communication.Service
                         else
                             unnormal++;
 
+                        if (item.HasLogined)
+                            logined++;
+                        else
+                            unlogined++;
+
                         cInfo += $"客户端{index++}：\n";
                         cInfo += item.ToString();
                     }
                 }
 
-                info += $"正常客户端数：{normal} / 非正常客户端数：{unnormal}\n";
+                info += $"已连接客户端数：{normal} / 未连接客户端数：{unnormal}\n";
+                info += $"已登录客户端数：{logined} / 未登录客户端数：{unlogined}\n";
                 if (!string.IsNullOrEmpty(cInfo))
                 {
                     info += $"客户端列表：\n";

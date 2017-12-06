@@ -77,4 +77,20 @@ namespace CPS.Entities
         /// </summary>
         PersonalUser,
     }
+
+    public enum CharingPileTypeEnum
+    {
+        /// <summary>
+        /// 直流
+        /// </summary>
+        DC=0x01,
+        /// <summary>
+        /// 交流
+        /// </summary>
+        AC=0x02,
+        /// <summary>
+        /// 交直流一体
+        /// </summary>
+        DCAC=0x03,
+    }
 }

@@ -89,7 +89,7 @@ namespace CPS.Communication.Service.DataPackets
 
         public virtual byte[] EncodeBody()
         {
-            return null;
+            return new byte[BodyLen];
         }
 
         public virtual PacketBase DecodeBody(byte[] buffer)

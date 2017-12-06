@@ -28,6 +28,27 @@ namespace CPS.Communication.Service.DataPackets
             }
         }
 
+        public string ResultString
+        {
+            get
+            {
+                switch (this.ResultEnum)
+                {
+                    case LoginResultEnum.Succeed:
+                        return "登录成功";
+                    case LoginResultEnum.NotExists:
+                        return "设备不存在";
+                    case LoginResultEnum.HasLogined:
+                        return "已经登录";
+                    case LoginResultEnum.SecretKeyFailed:
+                        return "密钥失效";
+                    case LoginResultEnum.Others:
+                    default:
+                        return "其他错误";
+                }
+            }
+        }
+
         private int _timestamp;
 
         /// <summary>
@@ -62,7 +83,7 @@ namespace CPS.Communication.Service.DataPackets
 
         public override byte[] EncodeBody()
         {
-            byte[] body = new byte[BodyLen];
+            byte[] body = base.EncodeBody();
             int start = 0;
             body[start] = this.Result;
             start += 1;

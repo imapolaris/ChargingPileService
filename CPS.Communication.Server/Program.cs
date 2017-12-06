@@ -85,7 +85,7 @@ namespace CPS.Communication.Server
 
         private static void Server_ClientAccepted(object sender, Service.Events.ClientAcceptedEventArgs args)
         {
-            Console.WriteLine($"----Client {args.CurClient.ID} Connected！");
+            Console.WriteLine($"----客户端 {args.CurClient.ID} 已连接！");
         }
 
         private static void Server_ErrorOccurred(object sender, Service.Events.ErrorEventArgs args)

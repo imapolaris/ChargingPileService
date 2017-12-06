@@ -106,41 +106,21 @@ namespace CPS.Communication.Service
 
         private bool _closed = false;
         private int _emptyTimes;
-        private ManualResetEvent _mre = new ManualResetEvent(true);
-
-        public void Disconnect()
-        {
-            new Thread(() =>
-            {
-                _mre.Reset();
-                {
-                    OnClientDisconnected(new ClientDisconnectedEventArgs(this));
-
-                    if (_socket != null && IsConnected)
-                    {
-                        _socket.Disconnect(false);
-                    }
-                }
-                _mre.Set();
-            })
-            { IsBackground = true }.Start();
-        }
-
+        private object closeLocker = new object();
         public void Close()
         {
             new Thread(() =>
             {
-                _mre.Reset();
+                lock (closeLocker)
                 {
-                    OnClientClosed(new ClientClosedEventArgs(this));
-
                     if (_socket != null)
                     {
+                        var id = this.ID;
                         _socket.Close();
+                        OnClientClosed(new ClientClosedEventArgs(id));
                     }
                     _socket = null;
                 }
-                _mre.Set();
             })
             { IsBackground = true }.Start();
             _closed = true;
@@ -178,7 +158,7 @@ namespace CPS.Communication.Service
             }
             catch (UnConnectException)
             {
-                OnClientDisconnected(new ClientDisconnectedEventArgs(this));
+                //OnClientClosed(new ClientClosedEventArgs(""));
             }
             catch (Exception ex)
             {
@@ -204,7 +184,7 @@ namespace CPS.Communication.Service
             }
             catch (SocketException se)
             {
-                //OnSendDataException(new SendDataExceptionEventArgs());
+                OnSendDataException(new SendDataExceptionEventArgs(this));
                 handleSocketException(se, ErrorTypes.Send);
             }
             catch (ObjectDisposedException ode)
@@ -383,7 +363,23 @@ namespace CPS.Communication.Service
 
         public void Dispose()
         {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
+        private bool disposed = false;
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!this.disposed)
+            {
+                if (disposing)
+                {
+                    if (_socket != null)
+                        _socket.Close();
+                    _socket = null;
+                }
+                disposed = true;
+            }
         }
 
         #region 【事件定义】
@@ -392,7 +388,6 @@ namespace CPS.Communication.Service
         public event SendDataExceptionHandler SendDataException;
         public event ReceiveCompletedHandler ReceiveCompleted;
         public event ClientClosedHandler ClientClosed;
-        public event ClientDisconnectedHandler ClientDisconnected;
 
         private void OnErrorOccurred(ErrorEventArgs args)
         {
@@ -428,13 +423,6 @@ namespace CPS.Communication.Service
             if (handler != null)
                 handler(this, args);
         }
-
-        private void OnClientDisconnected(ClientDisconnectedEventArgs args)
-        {
-            ClientDisconnectedHandler handler = ClientDisconnected;
-            if (handler != null)
-                handler(this, args);
-        }
         #endregion 【事件定义】
     }
 
@@ -462,10 +450,18 @@ namespace CPS.Communication.Service
             }
         }
 
-        public void Clear()
+        public void ClearClient()
         {
             if (this._clients != null && this._clients.Count > 0)
+            {
+                foreach (var item in this._clients)
+                {
+                    if (item != null)
+                        item.Close();
+                }
+
                 this._clients.Clear();
+            }
         }
 
         public void AddClient(Client client)
@@ -492,10 +488,11 @@ namespace CPS.Communication.Service
 
         public void RemoveClient(Client client)
         {
+            if (client == null) return;
+
             _mEventClients.Reset();
 
-            //if (client == null) return;
-            //client.Close();
+            client.Close();
             _clients.Remove(client);
 
             _mEventClients.Set();
@@ -513,7 +510,22 @@ namespace CPS.Communication.Service
 
         public void Dispose()
         {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
+        private bool disposed = false;
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                if (disposing)
+                {
+                    ClearClient();
+                    this._clients = null;
+                }
+                disposed = true;
+            }
         }
     }
 }

@@ -11,7 +11,7 @@ namespace CPS.Communication.Service.DataPackets
         public HeartBeatPacket(PacketTypeEnum pt)
              : base(pt)
         {
-            BodyLen = PacketBase.SerialNumberLen + 4;
+            BodyLen = 4;
         }
 
         private int _timestamp;
@@ -27,7 +27,7 @@ namespace CPS.Communication.Service.DataPackets
         public override PacketBase DecodeBody(byte[] buffer)
         {
             base.DecodeBody(buffer);
-            int start = SerialNumberLen;
+            int start = 0;
             this._timestamp = BitConverter.ToInt32(buffer, start);
             return this;
         }
@@ -35,9 +35,9 @@ namespace CPS.Communication.Service.DataPackets
         public override byte[] EncodeBody()
         {
             byte[] body = base.EncodeBody();
-            int start = SerialNumberLen;
+            int start = 0;
             byte[] temp = BitConverter.GetBytes(this._timestamp);
-            Array.Copy(temp, 0, body, start, 4);
+            Array.Copy(temp, 0, body, start, temp.Length);
 
             return body;
         }
