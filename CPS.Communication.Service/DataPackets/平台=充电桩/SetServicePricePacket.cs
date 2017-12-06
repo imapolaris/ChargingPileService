@@ -10,7 +10,7 @@ namespace CPS.Communication.Service.DataPackets
     {
         public SetServicePricePacket() : base(PacketTypeEnum.SetServicePrice)
         {
-            BodyLen = SerialNumberLen + 4 + 4 + 4 + 4 + 4;
+            BodyLen = OperPacketBodyLen + 4 + 4 + 4 + 4;
         }
     }
 }

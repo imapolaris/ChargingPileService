@@ -6,7 +6,11 @@ using System.Threading.Tasks;
 
 namespace CPS.Communication.Service.DataPackets
 {
-    class DenyPacket : OperPacketBase
+    public class DenyPacket : OperPacketBase
     {
+        public DenyPacket() : base(PacketTypeEnum.Deny)
+        {
+            BodyLen = OperPacketBodyLen;
+        }
     }
 }

@@ -9,6 +9,8 @@ using CPS.Communication.Service.DataPackets;
 
 namespace CPS.Communication.Service
 {
+    public delegate bool SessionCompletedCallback(Client client, object result, bool state);
+
     public class Session
     {
         public Guid SessionId { get; private set; }
@@ -63,6 +65,7 @@ namespace CPS.Communication.Service
                 case PacketTypeEnum.SetReportInterval:
                 case PacketTypeEnum.SetTimePeriod:
                 case PacketTypeEnum.SetSecretKey:
+                case PacketTypeEnum.SetQRcode:
                     {
                         if (packet.Command == PacketTypeEnum.Confirm || packet.Command == PacketTypeEnum.Deny)
                             if (packet.OperType == MyPacket.OperType)
@@ -70,34 +73,53 @@ namespace CPS.Communication.Service
                     }
                     break;
                 case PacketTypeEnum.GetElecPrice:
-                    break;
-                case PacketTypeEnum.GetElecPriceResult:
+                    {
+                        if (packet.Command == PacketTypeEnum.GetElecPriceResult)
+                            if (packet.OperType == MyPacket.OperType)
+                                return true;
+                    }
                     break;
                 case PacketTypeEnum.GetServicePrice:
-                    break;
-                case PacketTypeEnum.GetServicePriceResult:
+                    {
+                        if (packet.Command == PacketTypeEnum.GetServicePriceResult)
+                            if (packet.OperType == MyPacket.OperType)
+                                return true;
+                    }
                     break;
                 case PacketTypeEnum.GetReportInterval:
-                    break;
-                case PacketTypeEnum.GetReportIntervalResult:
+                    {
+                        if (packet.Command == PacketTypeEnum.GetReportIntervalResult)
+                            if (packet.OperType == MyPacket.OperType)
+                                return true;
+                    }
                     break;
                 case PacketTypeEnum.GetTimePeriod:
-                    break;
-                case PacketTypeEnum.GetTimePeriodResult:
+                    {
+                        if (packet.Command == PacketTypeEnum.GetTimePeriodResult)
+                            if (packet.OperType == MyPacket.OperType)
+                                return true;
+                    }
                     break;
                 case PacketTypeEnum.GetSecretKey:
-                    break;
-                case PacketTypeEnum.GetSecretKeyResult:
+                    {
+                        if (packet.Command == PacketTypeEnum.GetSecretKeyResult)
+                            if (packet.OperType == MyPacket.OperType)
+                                return true;
+                    }
                     break;
                 case PacketTypeEnum.GetSoftwareVer:
-                    break;
-                case PacketTypeEnum.GetSoftwareVerResult:
-                    break;
-                case PacketTypeEnum.SetQRcode:
+                    {
+                        if (packet.Command == PacketTypeEnum.GetSoftwareVerResult)
+                            if (packet.OperType == MyPacket.OperType)
+                                return true;
+                    }
                     break;
                 case PacketTypeEnum.GetQRcode:
-                    break;
-                case PacketTypeEnum.GetQRcodeResult:
+                    {
+                        if (packet.Command == PacketTypeEnum.GetQRcodeResult)
+                            if (packet.OperType == MyPacket.OperType)
+                                return true;
+                    }
                     break;
                 case PacketTypeEnum.ChargingPileState:
                     break;

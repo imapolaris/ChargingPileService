@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace CPS.Communication.Service
 {
-    public class ChargingService : IChargingPileService, IDisposable
+    public partial class ChargingService : IChargingPileService, IDisposable
     {
         CPS_Entities EntityContext = new CPS_Entities();
         public SessionCollection Sessions { get; private set; }
@@ -106,6 +106,14 @@ namespace CPS.Communication.Service
                 case PacketTypeEnum.LoginResult:
                     break;
                 case PacketTypeEnum.RebootResult:
+                case PacketTypeEnum.Confirm:
+                case PacketTypeEnum.Deny:
+                case PacketTypeEnum.GetElecPriceResult:
+                case PacketTypeEnum.GetServicePriceResult:
+                case PacketTypeEnum.GetReportIntervalResult:
+                case PacketTypeEnum.GetTimePeriodResult:
+                case PacketTypeEnum.GetSecretKeyResult:
+                case PacketTypeEnum.GetQRcodeResult:
                     SessionCompleted(client, packet as OperPacketBase);
                     break;
                 default:
@@ -171,6 +179,10 @@ namespace CPS.Communication.Service
                     Console.WriteLine(ex.Message);
                 }
 
+                // for test.
+                client.SerialNumber = sn;
+                client.HasLogined = packet.HasLogined;
+
                 var now = DateTime.Now;
                 packet.TimeStamp = now.ConvertToTimeStampX();
                 client.Send(packet);
@@ -185,7 +197,7 @@ namespace CPS.Communication.Service
             RebootPacket packet = new RebootPacket()
             {
                 SerialNumber = serialNumber,
-                OperType = OperTypeEnum.Reboot,
+                OperType = OperTypeEnum.RebootOper,
             };
 
             var client = MyServer.FindClientBySerialNumber(serialNumber);
@@ -195,27 +207,34 @@ namespace CPS.Communication.Service
                 //throw new ArgumentNullException("客户端尚未连接...");
             }
 
+            var result = await StartSession(client, packet);
+            if (result == null)
+                return false;
+            else
+            {
+                var data = result as RebootResultPacket;
+                return data.ResultBoolean;
+            }
+        }
+
+        public async Task<object> StartSession(Client client, OperPacketBase packet)
+        {
             Session session = new Session(client, packet);
             Sessions.AddSession(session);
 
             var result = MyServer.Send(client, packet);
             if (!result)
-                return false;
+                return null;
 
             var completed = await session.WaitSessionCompleted();
             if (completed)
             {
-                var data = session.Result as RebootResultPacket;
+                object obj = session.Result;
                 Sessions.RemoveSession(session);
-                return data.ResultBoolean;
+                return obj;
             }
             else
-                return false;
-        }
-
-        public void StartSession()
-        {
-
+                return null;
         }
 
         public void SessionCompleted(Client client, OperPacketBase packet)
@@ -230,64 +249,6 @@ namespace CPS.Communication.Service
                 }
             }));
         }
-
-
-        public void SetPriceRateForAll(List<string> sns, int sharpRate, int peakRate, int flatRate, int valleyRate)
-        {
-            if (sns == null || sns.Count <= 0)
-                throw new ArgumentNullException("充电桩列表为空...");
-
-            foreach (var item in sns)
-            {
-                try
-                {
-                    SetPriceRate(item, sharpRate, peakRate, flatRate, valleyRate);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-            }
-        }
-
-        public void SetElecPrice()
-        {
-
-        }
-
-        public void SetServicePrice()
-        {
-
-        }
-
-        /// <summary>
-        /// 设置费率（包括电价和服务费）
-        /// </summary>
-        /// <param name="serialNumber"></param>
-        /// <param name="sharpRate"></param>
-        /// <param name="peakRate"></param>
-        /// <param name="flatRate"></param>
-        /// <param name="valleyRate"></param>
-        public void SetPriceRate(string serialNumber, int sharpRate, int peakRate, int flatRate, int valleyRate)
-        {
-            SetElecPricePacket packet = new SetElecPricePacket()
-            {
-                SerialNumber = serialNumber,
-                OperType = OperTypeEnum.SetElecPrice,
-                SharpRate = sharpRate,
-                PeakRate = peakRate,
-                FlatRate = flatRate,
-                Valleyrate = valleyRate,
-            };
-
-            var client = MyServer.FindClientBySerialNumber(serialNumber);
-            if (client == null)
-                throw new ArgumentNullException("客户端尚未连接...");
-
-            client.Send(packet);
-        }
-
-
 
         private bool disposed = false;
         public void Dispose()

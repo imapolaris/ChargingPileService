@@ -8,6 +8,8 @@ namespace CPS.Communication.Service.DataPackets
 {
     public class SetElecPricePacket : OperPacketBase
     {
+        private const double RateCoefficient = 0.0001;
+
         public SetElecPricePacket() : base(PacketTypeEnum.SetElecPrice)
         {
             BodyLen = OperPacketBodyLen + 4 + 4 + 4 + 4;
@@ -25,6 +27,17 @@ namespace CPS.Communication.Service.DataPackets
             set { _sharpRate = value; }
         }
 
+        /// <summary>
+        /// 单位：厘
+        /// </summary>
+        public double SharpRateVal
+        {
+            get
+            {
+                return this._sharpRate * RateCoefficient;
+            }
+        }
+
         private int _peakRate;
         /// <summary>
         /// 峰费率
@@ -33,6 +46,14 @@ namespace CPS.Communication.Service.DataPackets
         {
             get { return _peakRate; }
             set { _peakRate = value; }
+        }
+
+        public double PeakRateVal
+        {
+            get
+            {
+                return this._peakRate * RateCoefficient;
+            }
         }
 
         private int _flatRate;
@@ -45,14 +66,30 @@ namespace CPS.Communication.Service.DataPackets
             set { _flatRate = value; }
         }
 
+        public double FlatRateVal
+        {
+            get
+            {
+                return this._flatRate * RateCoefficient;
+            }
+        }
+
         private int _valleyRate;
         /// <summary>
         /// 谷费率
         /// </summary>
-        public int Valleyrate
+        public int ValleyRate
         {
             get { return _valleyRate; }
             set { _valleyRate = value; }
+        }
+
+        public double ValleyRateVal
+        {
+            get
+            {
+                return this._valleyRate * RateCoefficient;
+            }
         }
 
         public override byte[] EncodeBody()

@@ -40,7 +40,7 @@ namespace CPS.Communication.Service.DataPackets
 
         public override byte[] EncodeBody()
         {
-            byte[] body = new byte[BodyLen];
+            byte[] body = base.EncodeBody();
             var start = 0;
             byte[] temp = BitConverter.GetBytes(this._oper);
             Array.Copy(temp, 0, body, start, temp.Length);

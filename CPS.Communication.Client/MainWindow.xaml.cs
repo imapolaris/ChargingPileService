@@ -99,11 +99,27 @@ namespace CPS.Communication.Client
                 });
             }
 
-            if (packet.Command == PacketTypeEnum.SetElecPrice)
+            if (packet.Command == PacketTypeEnum.SetElecPrice || packet.Command == PacketTypeEnum.SetServicePrice)
             {
                 SetElecPricePacket seppacket = packet as SetElecPricePacket;
-                appendText("设置电价：", $"尖：{seppacket.SharpRate}峰：{seppacket.PeakRate}平：{seppacket.FlatRate}谷：{seppacket.Valleyrate}");
-                client.Send(new byte[4]);
+                var title = packet.Command == PacketTypeEnum.SetElecPrice ? "电价" : "服务费";
+                appendText($"设置{title}：", $"尖：{seppacket.SharpRate}峰：{seppacket.PeakRate}平：{seppacket.FlatRate}谷：{seppacket.ValleyRate}");
+                byte number = (byte)(random.Next() % 2 + 1);
+                appendText("setelec", $"设置电价结果：" + number);
+                if (number == 1)
+                {
+                    client.Send(new ConfirmPacket()
+                    {
+                         SerialNumber = seppacket.SerialNumber,
+                         OperType = seppacket.OperType,
+                    });
+                }
+                else
+                    client.Send(new DenyPacket()
+                    {
+                        SerialNumber = seppacket.SerialNumber,
+                        OperType = seppacket.OperType,
+                    });
             }
         }
 

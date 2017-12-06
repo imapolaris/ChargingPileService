@@ -6,11 +6,8 @@ using System.Threading.Tasks;
 
 namespace CPS.Communication.Service.DataPackets
 {
-    public class ConfirmPacket : OperPacketBase
+    public class GetTimePeriodPacket : OperPacketBase
     {
-        public ConfirmPacket() : base(PacketTypeEnum.Confirm)
-        {
-            BodyLen = OperPacketBodyLen;
-        }
+
     }
 }

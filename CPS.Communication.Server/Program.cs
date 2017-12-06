@@ -44,6 +44,14 @@ namespace CPS.Communication.Server
                 {
                     SetElecPrice();
                 }
+                else if (input.ToLower().Equals("setsp_c"))
+                {
+                    SetServicePrice();
+                }
+                else if (input.ToLower().Equals("setrI_c"))
+                {
+
+                }
             }
 
             PrintStopInfo();
@@ -113,10 +121,31 @@ namespace CPS.Communication.Server
                 Console.WriteLine("充电桩重启失败！");
         }
 
-
-        private static void SetElecPrice()
+        private async static void SetElecPrice()
         {
-            MyService.SetPriceRate("1234567890AbcBCa", 10000, 8000, 6000, 4000);
+            var state = await MyService.SetElecPrice("1234567890AbcBCa", 10000, 8000, 6000, 4000);
+            if (state)
+                Console.WriteLine("设置电价成功！");
+            else
+                Console.WriteLine("设置电价失败！");
+        }
+
+        private async static void SetServicePrice()
+        {
+            var state = await MyService.SetServicePrice("1234567890AbcBCa", 10000, 8000, 6000, 4000);
+            if (state)
+                Console.WriteLine("设置服务费成功！");
+            else
+                Console.WriteLine("设置服务费失败！");
+        }
+
+        private async static void SetReportInterval()
+        {
+            var state = await MyService.SetServicePrice("1234567890AbcBCa", 10000, 8000, 6000, 4000);
+            if (state)
+                Console.WriteLine("设置服务费成功！");
+            else
+                Console.WriteLine("设置服务费失败！");
         }
         #endregion ====测试====
     }

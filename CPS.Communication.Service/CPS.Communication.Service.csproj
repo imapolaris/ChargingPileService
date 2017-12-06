@@ -55,7 +55,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ChargingService.cs" />
+    <Compile Include="ChargingService_GetSet.cs" />
+    <Compile Include="ChargingService_Maintenance.cs" />
+    <Compile Include="ChargingService_有卡.cs" />
+    <Compile Include="ChargingService_无卡.cs" />
     <Compile Include="Client.cs" />
+    <Compile Include="DataPackets\充电桩=平台\GetTimePeriodResultPacket.cs" />
+    <Compile Include="DataPackets\平台=充电桩\GetTimePeriodPacket.cs" />
     <Compile Include="DataPackets\平台=充电桩\ConfirmRecordOfChargingPacket.cs" />
     <Compile Include="DataPackets\平台=充电桩\GetRecordOfChargingPacket.cs" />
     <Compile Include="DataPackets\充电桩=平台\RecordOfChargingPacket.cs" />

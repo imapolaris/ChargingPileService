@@ -163,8 +163,21 @@ namespace CPS.Communication.Service.DataPackets
 
     public enum OperTypeEnum : int
     {
-        Reboot=0x01,
-        SetElecPrice=0x02,
+        RebootOper=0x01,
+
+        SetElecPriceOper,
+        SetServicePriceOper,
+        SetReportIntervalOper,
+        SetTimePeriodOper,
+        SetSecretKeyOper,
+
+        GetElecPriceOper,
+        GetServicePriceOper,
+        GetReportIntervalOper,
+        GetTimePeriodOper,
+        GetSecretKeyOper,
+
+        GetSoftwareVerOper,
     }
 
     public enum SubscribeStateEnum : byte

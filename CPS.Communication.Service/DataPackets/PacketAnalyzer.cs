@@ -41,8 +41,10 @@ namespace CPS.Communication.Service.DataPackets
                         packet = new RebootResultPacket();
                         break;
                     case PacketTypeEnum.Confirm:
+                        packet = new ConfirmPacket();
                         break;
                     case PacketTypeEnum.Deny:
+                        packet = new DenyPacket();
                         break;
                     case PacketTypeEnum.SetElecPrice:
                         packet = new SetElecPricePacket();

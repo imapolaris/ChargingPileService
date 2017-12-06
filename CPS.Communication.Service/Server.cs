@@ -66,7 +66,7 @@ namespace CPS.Communication.Service
             MyChargingService.MyServer = this;
 
             StartHeartbeatCheck();
-            SendHeartbeatFromServer();
+            //SendHeartbeatFromServer();
         }
 
         public void Listen(int port)
@@ -185,8 +185,7 @@ namespace CPS.Communication.Service
                                 packet.TimeStamp = DateTime.Now.ConvertToTimeStampX();
                                 packet.SerialNumber = item.SerialNumber;
 
-                                if (item.IsConnected)
-                                    item.Send(packet);
+                                item.Send(packet);
                             }
                         }
                     }
