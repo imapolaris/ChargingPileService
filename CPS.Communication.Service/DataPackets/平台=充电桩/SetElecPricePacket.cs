@@ -8,8 +8,6 @@ namespace CPS.Communication.Service.DataPackets
 {
     public class SetElecPricePacket : OperPacketBase
     {
-        private const double RateCoefficient = 0.0001;
-
         public SetElecPricePacket() : base(PacketTypeEnum.SetElecPrice)
         {
             BodyLen = OperPacketBodyLen + 4 + 4 + 4 + 4;

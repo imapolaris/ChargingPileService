@@ -131,7 +131,7 @@ namespace CPS.Communication.Service.DataPackets
         UpgradeResultReply=0x75,
     }
 
-    public enum LoginResultEnum : short
+    public enum LoginResultTypeEnum : short
     {
         /// <summary>
         /// 登录成功
@@ -178,29 +178,31 @@ namespace CPS.Communication.Service.DataPackets
         GetSecretKeyOper,
 
         GetSoftwareVerOper,
+
+        SetChargingOper,
     }
 
-    public enum SubscribeStateEnum : byte
+    public enum SubscribeStateTypeEnum : byte
     {
         NotSubscribe=0x01,
         Subscribe=0x02,
     }
 
-    public enum CarPortStateEnum : byte
+    public enum CarPortStateTypeEnum : byte
     {
         Unused=0x01,
         Used=0x02,
         None=0x03,
     }
 
-    public enum ConnectStateEnum : byte
+    public enum ConnectStateTypeEnum : byte
     {
         Unconnect=0x01,
         Connect=0x02,
         None=0x03,
     }
 
-    public enum WorkingStateEnum : byte
+    public enum WorkingStateTypeEnum : byte
     {
         Charging=0x01,
         Waiting=0x02,
@@ -209,9 +211,86 @@ namespace CPS.Communication.Service.DataPackets
         None=0x05,
     }
 
-    public enum RelayStateEnum : byte
+    public enum RelayStateTypeEnum : byte
     {
         Startup=0x01,
         Shutdown=0x02
+    }
+
+    /// <summary>
+    /// 充电桩接口
+    /// </summary>
+    public enum ChargingPilePortTypeEnum : byte
+    {
+        Default=0x00,
+        A,
+        B,
+    }
+
+    public enum ActionTypeEnum : byte
+    {
+        Startup=0x01,
+        Shutdown,
+    }
+
+    public enum ResultTypeEnum : byte
+    {
+        Succeed=0x01,
+        Failed,
+    }
+
+    /// <summary>
+    /// 失败原因
+    /// </summary>
+    public enum FailReasonTypeEnum : byte
+    {
+        /// <summary>
+        /// 正常
+        /// </summary>
+        Normal=0x00,
+        /// <summary>
+        /// 已经开机
+        /// </summary>
+        TurnedOn,
+        /// <summary>
+        /// 不是待机状态
+        /// </summary>
+        NotStandby,
+        /// <summary>
+        /// 枪未连接
+        /// </summary>
+        NotConnected,
+        /// <summary>
+        /// 其他错误
+        /// </summary>
+        Others,
+    }
+
+    public enum StopChargingReasonTypeEnum : byte
+    {
+        /// <summary>
+        /// 未知
+        /// </summary>
+        None=0x00,
+        /// <summary>
+        /// 手动停止
+        /// </summary>
+        Manual,
+        /// <summary>
+        /// 金额透支（有卡）
+        /// </summary>
+        Overdraft,
+        /// <summary>
+        /// 达到预定充电金额
+        /// </summary>
+        FullAmount,
+        /// <summary>
+        /// 异常停止
+        /// </summary>
+        Abnormal,
+        /// <summary>
+        /// 其他原因
+        /// </summary>
+        Others,
     }
 }

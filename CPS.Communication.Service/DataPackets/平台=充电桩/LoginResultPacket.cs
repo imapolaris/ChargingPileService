@@ -9,12 +9,12 @@ namespace CPS.Communication.Service.DataPackets
 {
     public class LoginResultPacket : PacketBase
     {
-        private LoginResultEnum _result;
+        private LoginResultTypeEnum _result;
         /// <summary>
         /// 登录结果
         /// 1、登录成功；2、设备不存在；3、已经登录；4、密钥失效；5、其他错误
         /// </summary>
-        public LoginResultEnum ResultEnum
+        public LoginResultTypeEnum ResultEnum
         {
             get { return _result; }
             set { _result = value; }
@@ -34,15 +34,15 @@ namespace CPS.Communication.Service.DataPackets
             {
                 switch (this.ResultEnum)
                 {
-                    case LoginResultEnum.Succeed:
+                    case LoginResultTypeEnum.Succeed:
                         return "登录成功";
-                    case LoginResultEnum.NotExists:
+                    case LoginResultTypeEnum.NotExists:
                         return "设备不存在";
-                    case LoginResultEnum.HasLogined:
+                    case LoginResultTypeEnum.HasLogined:
                         return "已经登录";
-                    case LoginResultEnum.SecretKeyFailed:
+                    case LoginResultTypeEnum.SecretKeyFailed:
                         return "密钥失效";
-                    case LoginResultEnum.Others:
+                    case LoginResultTypeEnum.Others:
                     default:
                         return "其他错误";
                 }
@@ -77,7 +77,7 @@ namespace CPS.Communication.Service.DataPackets
         {
             get
             {
-                return ResultEnum == LoginResultEnum.Succeed || ResultEnum == LoginResultEnum.HasLogined;
+                return ResultEnum == LoginResultTypeEnum.Succeed || ResultEnum == LoginResultTypeEnum.HasLogined;
             }
         }
 
@@ -97,7 +97,7 @@ namespace CPS.Communication.Service.DataPackets
         {
             base.DecodeBody(buffer);
             int start = 0;
-            this._result = (LoginResultEnum)buffer[start];
+            this._result = (LoginResultTypeEnum)buffer[start];
             start += 1;
             this._timestamp = BitConverter.ToInt32(buffer, start);
 

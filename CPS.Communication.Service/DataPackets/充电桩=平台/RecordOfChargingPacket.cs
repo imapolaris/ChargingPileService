@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace CPS.Communication.Service.DataPackets
 {
-    public class RecordOfChargingPacket : PacketBase
+    public class RecordOfChargingPacket : OperPacketBase
     {
         public RecordOfChargingPacket() : base(PacketTypeEnum.RecordOfCharging)
         {
@@ -41,11 +41,21 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private string _cardNo;
-
+        /// <summary>
+        /// 卡号
+        /// </summary>
         public string CardNo
         {
             get { return _cardNo; }
             set { _cardNo = value; }
+        }
+
+        public string CardNoVal
+        {
+            get
+            {
+                return this._cardNo.PadLeft(CardNoLen, '0');
+            }
         }
 
         private int _beforeElec;
@@ -322,8 +332,8 @@ namespace CPS.Communication.Service.DataPackets
 
         public override byte[] EncodeBody()
         {
-            byte[] body = base.EncodeBody();
-            int start = SerialNumberLen;
+            byte[] body = new byte[BodyLen];
+            int start = 0;
             body[start] = this._hasCard;
             start += 1;
             byte[] temp = BitConverter.GetBytes(this._transactionSN);
@@ -437,8 +447,7 @@ namespace CPS.Communication.Service.DataPackets
 
         public override PacketBase DecodeBody(byte[] buffer)
         {
-            base.DecodeBody(buffer);
-            int start = SerialNumberLen;
+            int start = 0;
             this._hasCard = buffer[start];
             start += 1;
             this._transactionSN = BitConverter.ToInt64(buffer, start);

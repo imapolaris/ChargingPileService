@@ -41,7 +41,19 @@ namespace CPS.Communication.Service.DataPackets
             set { _action = value; }
         }
 
-        private int _money;
+        public ActionTypeEnum ActionEnum
+        {
+            get
+            {
+                return (ActionTypeEnum)this._action;
+            }
+            set
+            {
+                this._action = (byte)value;
+            }
+        }
+
+        private int _money=0;
         /// <summary>
         /// 充电金额（单位：分）
         /// 0：表示充满为止，非0：表示充到此金额停止充电
@@ -50,6 +62,17 @@ namespace CPS.Communication.Service.DataPackets
         {
             get { return _money; }
             set { _money = value; }
+        }
+
+        /// <summary>
+        /// 单位：元
+        /// </summary>
+        public double MoneyVal
+        {
+            get
+            {
+                return this._money * 0.01;
+            }
         }
 
         public override byte[] EncodeBody()

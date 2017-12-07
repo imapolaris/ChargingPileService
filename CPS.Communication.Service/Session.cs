@@ -53,12 +53,10 @@ namespace CPS.Communication.Service
                 case PacketTypeEnum.LoginResult:
                     break;
                 case PacketTypeEnum.Reboot:
-                    if (packet.Command == PacketTypeEnum.RebootResult && packet.OperType == MyPacket.OperType)
-                        return true;
-                    break;
-                case PacketTypeEnum.Confirm:
-                    break;
-                case PacketTypeEnum.Deny:
+                    {
+                        if (packet.Command == PacketTypeEnum.RebootResult && packet.OperType == MyPacket.OperType)
+                            return true;
+                    }
                     break;
                 case PacketTypeEnum.SetElecPrice:
                 case PacketTypeEnum.SetServicePrice:
@@ -126,8 +124,22 @@ namespace CPS.Communication.Service
                 case PacketTypeEnum.GetChargingPileState:
                     break;
                 case PacketTypeEnum.SetCharging:
-                    break;
-                case PacketTypeEnum.SetChargingResult:
+                    {
+                        // 无卡启停充电，需要操作ID、交易流水号、接口和操作都匹配。
+                        // 避免不同接口、不同操作、不同交易间相互干扰。
+                        if (packet.Command == PacketTypeEnum.SetChargingResult)
+                            if (packet.OperType == MyPacket.OperType)
+                            {
+                                var packet1 = MyPacket as SetChargingPacket;
+                                var packet2 = packet as SetChargingResultPacket;
+                                if (packet1 != null
+                                    && packet2 != null 
+                                    && packet1.TransactionSN == packet2.TransactionSN
+                                    && packet1.Action == packet2.Action
+                                    && packet1.QPort == packet2.QPort)
+                                    return true;
+                            }
+                    }
                     break;
                 case PacketTypeEnum.RealDataOfCharging:
                     break;
@@ -136,6 +148,17 @@ namespace CPS.Communication.Service
                 case PacketTypeEnum.ConfirmRecordOfCharging:
                     break;
                 case PacketTypeEnum.GetRecordOfCharging:
+                    {
+                        if (packet.Command == PacketTypeEnum.RecordOfCharging)
+                        {
+                            var packet1 = MyPacket as GetRecordOfChargingPacket;
+                            var packet2 = packet as RecordOfChargingPacket;
+                            if (packet1 != null
+                                && packet2 != null
+                                && packet1.TransactionSN == packet2.TransactionSN)
+                                return true;
+                        }
+                    }
                     break;
                 case PacketTypeEnum.FaultMessage:
                     break;
@@ -226,9 +249,9 @@ namespace CPS.Communication.Service
         private DateTime StartDate { get; set; }
         /// <summary>
         /// 超时时间（单位：毫秒）
-        /// 默认值：5秒
+        /// 默认值：10秒
         /// </summary>
-        public int Timeout { get; set; } = 5 * 1000;
+        public int Timeout { get; set; } = 10 * 1000;
         public bool Outdated
         {
             get

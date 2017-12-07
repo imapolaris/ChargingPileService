@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace CPS.Communication.Service.DataPackets
 {
-    public class GetRecordOfChargingPacket : PacketBase
+    public class GetRecordOfChargingPacket : OperPacketBase
     {
         public GetRecordOfChargingPacket() : base(PacketTypeEnum.GetRecordOfCharging)
         {
-            BodyLen = SerialNumberLen + 8;
+            BodyLen = 8;
         }
 
         private long _transactionSN;
@@ -23,8 +23,8 @@ namespace CPS.Communication.Service.DataPackets
 
         public override byte[] EncodeBody()
         {
-            byte[] body = base.EncodeBody();
-            int start = SerialNumberLen;
+            byte[] body = new byte[BodyLen];
+            int start = 0;
             byte[] temp = BitConverter.GetBytes(this._transactionSN);
             Array.Copy(temp, 0, body, start, temp.Length);
             return body;
@@ -32,8 +32,7 @@ namespace CPS.Communication.Service.DataPackets
 
         public override PacketBase DecodeBody(byte[] buffer)
         {
-            base.DecodeBody(buffer);
-            int start = SerialNumberLen;
+            int start = 0;
             this._transactionSN = BitConverter.ToInt64(buffer, start);
             return this;
         }

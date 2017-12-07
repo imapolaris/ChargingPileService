@@ -9,6 +9,9 @@ namespace CPS.Communication.Service.DataPackets
 {
     public class PacketBase
     {
+        protected const double RateCoefficient = 0.0001;
+        protected const int CardNoLen = 16;
+
         public const int HeaderLen = 14;
         public const int SerialNumberLen = 16;
         public const int MinPacketLen = 14 + 16;

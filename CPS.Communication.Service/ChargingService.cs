@@ -103,8 +103,6 @@ namespace CPS.Communication.Service
                 case PacketTypeEnum.Login:
                     LoginIn(client, packet as LoginPacket);
                     break;
-                case PacketTypeEnum.LoginResult:
-                    break;
                 case PacketTypeEnum.RebootResult:
                 case PacketTypeEnum.Confirm:
                 case PacketTypeEnum.Deny:
@@ -114,14 +112,22 @@ namespace CPS.Communication.Service
                 case PacketTypeEnum.GetTimePeriodResult:
                 case PacketTypeEnum.GetSecretKeyResult:
                 case PacketTypeEnum.GetQRcodeResult:
+                case PacketTypeEnum.SetChargingResult:
                     SessionCompleted(client, packet as OperPacketBase);
+                    break;
+                case PacketTypeEnum.ChargingPileState:
+                    ChargingPileState(client, packet);
+                    break;
+                case PacketTypeEnum.RecordOfCharging:
+                    SessionCompleted(client, packet as OperPacketBase);
+                    RecordOfCharging(client, packet as RecordOfChargingPacket);
                     break;
                 default:
                     break;
             }
         }
 
-        public void LoginIn(Client client, LoginPacket args)
+        private void LoginIn(Client client, LoginPacket args)
         {
             ThreadPool.QueueUserWorkItem(new WaitCallback((state) =>
             {
@@ -146,7 +152,7 @@ namespace CPS.Communication.Service
                     // 已经登录
                     if (client.HasLogined)
                     {
-                        packet.ResultEnum = LoginResultEnum.HasLogined;
+                        packet.ResultEnum = LoginResultTypeEnum.HasLogined;
                     }
                     else
                     {
@@ -157,25 +163,25 @@ namespace CPS.Communication.Service
                             // 登录成功
                             if (cp.Username == username && cp.Pwd == pwd)
                             {
-                                packet.ResultEnum = LoginResultEnum.Succeed;
+                                packet.ResultEnum = LoginResultTypeEnum.Succeed;
 
                                 client.SerialNumber = sn;
                                 client.HasLogined = packet.HasLogined;
                             }
                             else // 用户名或密码不正确
-                                packet.ResultEnum = LoginResultEnum.SecretKeyFailed;
+                                packet.ResultEnum = LoginResultTypeEnum.SecretKeyFailed;
                         }
                         catch (Exception ex)
                         {
                             // 设备不存在
-                            packet.ResultEnum = LoginResultEnum.NotExists;
+                            packet.ResultEnum = LoginResultTypeEnum.NotExists;
                         }
                     }                    
                 }
                 catch (Exception ex)
                 {
                     // 其他
-                    packet.ResultEnum = LoginResultEnum.Others;
+                    packet.ResultEnum = LoginResultTypeEnum.Others;
                     Console.WriteLine(ex.Message);
                 }
 

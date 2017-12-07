@@ -39,11 +39,21 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private string _cardNo;
-
+        /// <summary>
+        /// 卡号
+        /// </summary>
         public string CardNo
         {
             get { return _cardNo; }
             set { _cardNo = value; }
+        }
+
+        public string CardNoVal
+        {
+            get
+            {
+                return this._cardNo.PadLeft(CardNoLen, '0');
+            }
         }
 
         public override byte[] EncodeBody()

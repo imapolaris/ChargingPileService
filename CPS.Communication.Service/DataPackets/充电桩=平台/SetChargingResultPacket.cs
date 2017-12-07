@@ -51,12 +51,64 @@ namespace CPS.Communication.Service.DataPackets
             set { _result = value; }
         }
 
+        public ResultTypeEnum ResultEnum
+        {
+            get
+            {
+                return (ResultTypeEnum)this._result;
+            }
+        }
+
+        public string ResultString
+        {
+            get
+            {
+                switch (this.ResultEnum)
+                {
+                    case ResultTypeEnum.Succeed:
+                        return "成功";
+                    case ResultTypeEnum.Failed:
+                    default:
+                        return "失败";
+                }
+            }
+        }
+
         private byte _failReason;
 
         public byte FailReason
         {
             get { return _failReason; }
             set { _failReason = value; }
+        }
+
+        public FailReasonTypeEnum FailReasonEnum
+        {
+            get
+            {
+                return (FailReasonTypeEnum)this._failReason;
+            }
+        }
+
+        public string FailReasonString
+        {
+            get
+            {
+                switch (this.FailReasonEnum)
+                {
+                    case FailReasonTypeEnum.Normal:
+                        return "正常";
+                    case FailReasonTypeEnum.TurnedOn:
+                        return "已经开机";
+                    case FailReasonTypeEnum.NotStandby:
+                        return "不是待机状态";
+                    case FailReasonTypeEnum.NotConnected:
+                        return "枪未连接";
+                    case FailReasonTypeEnum.Others:
+                    default:
+                        return "其他错误";
+                }
+            }
         }
 
         private byte _soc;
