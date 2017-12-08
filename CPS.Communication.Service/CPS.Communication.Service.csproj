@@ -57,9 +57,16 @@
     <Compile Include="ChargingService.cs" />
     <Compile Include="ChargingService_GetSet.cs" />
     <Compile Include="ChargingService_Maintenance.cs" />
+    <Compile Include="ChargingService_System.cs" />
     <Compile Include="ChargingService_有卡.cs" />
     <Compile Include="ChargingService_无卡.cs" />
     <Compile Include="Client.cs" />
+    <Compile Include="DataPackets\充电桩=平台\UpgradeSfotwareReplyPacket.cs" />
+    <Compile Include="DataPackets\平台=充电桩\UpgradeSoftwarePacket.cs" />
+    <Compile Include="DataPackets\平台=充电桩\StartChargingWithCardResultReplyPacket.cs" />
+    <Compile Include="DataPackets\充电桩=平台\StartChargingWithCardResultPacket.cs" />
+    <Compile Include="DataPackets\平台=充电桩\StartChargingWithCardReplyPacket.cs" />
+    <Compile Include="DataPackets\充电桩=平台\StartChargingWithCardPacket.cs" />
     <Compile Include="DataPackets\充电桩=平台\GetTimePeriodResultPacket.cs" />
     <Compile Include="DataPackets\平台=充电桩\GetTimePeriodPacket.cs" />
     <Compile Include="DataPackets\平台=充电桩\ConfirmRecordOfChargingPacket.cs" />

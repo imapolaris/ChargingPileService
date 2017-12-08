@@ -122,6 +122,9 @@ namespace CPS.Communication.Service
                     SessionCompleted(client, packet as OperPacketBase);
                     RecordOfCharging(client, packet as RecordOfChargingPacket);
                     break;
+                case PacketTypeEnum.StartChargingWithCard:
+                    StartChargingWithCardReply(client, packet as StartChargingWithCardPacket);
+                    break;
                 default:
                     break;
             }

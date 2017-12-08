@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CPS.Communication.Service.DataPackets;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,6 +12,9 @@ namespace CPS.Communication.Service
     /// </summary>
     public partial class ChargingService
     {
+        private void StartChargingWithCardReply(Client client, PacketBase packet)
+        {
 
+        }
     }
 }

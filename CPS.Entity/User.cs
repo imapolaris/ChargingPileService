@@ -204,6 +204,7 @@ namespace CPS.Entities
         /// <summary>
         /// 用户类别
         /// </summary>
+        [NotMapped]
         public byte UserCategory
         {
             get { return userCategory; }

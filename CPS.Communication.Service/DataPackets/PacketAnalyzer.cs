@@ -146,7 +146,7 @@ namespace CPS.Communication.Service.DataPackets
                         break;
                     case PacketTypeEnum.UpgradeSoftware:
                         break;
-                    case PacketTypeEnum.UpgradeSfotwareReply:
+                    case PacketTypeEnum.UpgradeSoftwareReply:
                         break;
                     case PacketTypeEnum.DownloadFinished:
                         break;

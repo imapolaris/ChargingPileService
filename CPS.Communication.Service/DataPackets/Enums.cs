@@ -119,7 +119,7 @@ namespace CPS.Communication.Service.DataPackets
         GetWhitelistResult=0x68,
 
         UpgradeSoftware=0x6E,
-        UpgradeSfotwareReply=0x6F,
+        UpgradeSoftwareReply=0x6F,
 
         DownloadFinished=0x70,
         DownloadFinishedReply=0x71,
@@ -292,5 +292,15 @@ namespace CPS.Communication.Service.DataPackets
         /// 其他原因
         /// </summary>
         Others,
+    }
+
+    /// <summary>
+    /// 卡号状态
+    /// </summary>
+    public enum CardStateTypeEnum : byte
+    {
+        NormalUser=0x00,
+        WhileListUser,
+        BlackListUser,
     }
 }
