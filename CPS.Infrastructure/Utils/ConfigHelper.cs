@@ -77,19 +77,31 @@ namespace CPS.Infrastructure.Utils
 
         public static string GetValue(Assembly assembly, string key)
         {
-            var fileName = assembly.ManifestModule.FullyQualifiedName + ".config";
-            if (!File.Exists(fileName))
-                throw new ArgumentNullException("没有找到程序集配置文件");
-
-            var configFile = new ExeConfigurationFileMap();
-            configFile.ExeConfigFilename = fileName;
-            var configuration = ConfigurationManager.OpenMappedExeConfiguration(configFile, ConfigurationUserLevel.None);
+            var configuration = GetConfiguration(assembly);
 
             var val = configuration.AppSettings.Settings[key];
             if (val == null)
                 throw new KeyNotFoundException("没有找到key对应的值");
 
             return val.Value;
+        }
+
+        public static ConfigurationSection GetSection(Assembly assembly, string section)
+        {
+            var configuration = GetConfiguration(assembly);
+
+            return configuration.GetSection(section);
+        }
+
+        static Configuration GetConfiguration(Assembly assembly)
+        {
+            var fileName = assembly.ManifestModule.FullyQualifiedName + ".config";
+            if (!File.Exists(fileName))
+                throw new ArgumentNullException("没有找到程序集配置文件");
+
+            var configFile = new ExeConfigurationFileMap();
+            configFile.ExeConfigFilename = fileName;
+            return ConfigurationManager.OpenMappedExeConfiguration(configFile, ConfigurationUserLevel.None);
         }
     }
 }
