@@ -15,7 +15,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private byte _hasCard;
-
+        /// <summary>
+        /// 有卡、无卡标志
+        /// </summary>
         public byte HasCard
         {
             get { return _hasCard; }
@@ -33,7 +35,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private byte _qport;
-
+        /// <summary>
+        /// 充电桩接口
+        /// </summary>
         public byte QPort
         {
             get { return _qport; }
@@ -59,7 +63,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _beforeElec;
-
+        /// <summary>
+        /// 充电前总电能示值
+        /// </summary>
         public int BeforeElec
         {
             get { return _beforeElec; }
@@ -67,7 +73,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _afterElec;
-
+        /// <summary>
+        /// 充电后总电能示值
+        /// </summary>
         public int AfterElec
         {
             get { return _afterElec; }
@@ -75,7 +83,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _costMoney;
-
+        /// <summary>
+        /// 本次充电电费总金额
+        /// </summary>
         public int CostMoney
         {
             get { return _costMoney; }
@@ -83,7 +93,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _serviceMoney;
-
+        /// <summary>
+        /// 本次充电总服务费
+        /// </summary>
         public int ServiceMoney
         {
             get { return _serviceMoney; }
@@ -91,7 +103,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _sharpElecUnitPrice;
-
+        /// <summary>
+        /// 尖电价
+        /// </summary>
         public int SharpElecUnitPrice
         {
             get { return _sharpElecUnitPrice; }
@@ -99,7 +113,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _sharpServiceUnitPrice;
-
+        /// <summary>
+        /// 尖服务费单价
+        /// </summary>
         public int SharpServiceUnitPrice
         {
             get { return _sharpServiceUnitPrice; }
@@ -107,7 +123,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _sharpElec;
-
+        /// <summary>
+        /// 尖电量
+        /// </summary>
         public int SharpElec
         {
             get { return _sharpElec; }
@@ -115,7 +133,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _sharpCostMoney;
-
+        /// <summary>
+        /// 尖充电金额
+        /// </summary>
         public int SharpCostMoney
         {
             get { return _sharpCostMoney; }
@@ -123,7 +143,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _sharpServiceMoney;
-
+        /// <summary>
+        /// 尖服务费金额
+        /// </summary>
         public int SharpServiceMoney
         {
             get { return _sharpServiceMoney; }
@@ -131,7 +153,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private short _sharpTime;
-
+        /// <summary>
+        /// 尖充电时长
+        /// </summary>
         public short SharpTime
         {
             get { return _sharpTime; }
@@ -139,7 +163,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _peakElecUnitPrice;
-
+        /// <summary>
+        /// 峰电价
+        /// </summary>
         public int PeakElecUnitPrice
         {
             get { return _peakElecUnitPrice; }
@@ -147,7 +173,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _peakServiceUnitPrice;
-
+        /// <summary>
+        /// 峰服务费单价
+        /// </summary>
         public int PeakServiceUnitPrice
         {
             get { return _peakServiceUnitPrice; }
@@ -155,7 +183,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _peakElec;
-
+        /// <summary>
+        /// 峰电量
+        /// </summary>
         public int PeakElec
         {
             get { return _peakElec; }
@@ -163,7 +193,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _peakCostMoney;
-
+        /// <summary>
+        /// 峰充电金额
+        /// </summary>
         public int PeakCostMoney
         {
             get { return _peakCostMoney; }
@@ -171,7 +203,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _peakServiceMoney;
-
+        /// <summary>
+        /// 峰服务费金额
+        /// </summary>
         public int PeakServiceMoney
         {
             get { return _peakServiceMoney; }
@@ -179,7 +213,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private short _peakTime;
-
+        /// <summary>
+        /// 峰充电时长
+        /// </summary>
         public short PeakTime
         {
             get { return _peakTime; }
@@ -187,7 +223,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _flatElecUnitPrice;
-
+        /// <summary>
+        /// 平电价
+        /// </summary>
         public int FlatElecUnitPrice
         {
             get { return _flatElecUnitPrice; }
@@ -195,7 +233,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _flatServiceUnitPrice;
-
+        /// <summary>
+        /// 平服务费单价
+        /// </summary>
         public int FlatServiceUnitPrice
         {
             get { return _flatServiceUnitPrice; }
@@ -203,7 +243,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _flatElec;
-
+        /// <summary>
+        /// 平电量
+        /// </summary>
         public int FlatElec
         {
             get { return _flatElec; }
@@ -211,7 +253,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _flatCostMoney;
-
+        /// <summary>
+        /// 平充电金额
+        /// </summary>
         public int FlatCostMoney
         {
             get { return _flatCostMoney; }
@@ -219,7 +263,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _flatServiceMoney;
-
+        /// <summary>
+        /// 平服务费金额
+        /// </summary>
         public int FlatServiceMoney
         {
             get { return _flatServiceMoney; }
@@ -227,7 +273,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _flatTime;
-
+        /// <summary>
+        /// 平充电时长
+        /// </summary>
         public int FlatTime
         {
             get { return _flatTime; }
@@ -235,7 +283,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _valleyElecUnitPrice;
-
+        /// <summary>
+        /// 谷电价
+        /// </summary>
         public int ValleyElecUnitPrice
         {
             get { return _valleyElecUnitPrice; }
@@ -243,7 +293,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _valleyServiceUnitPrice;
-
+        /// <summary>
+        /// 谷服务费单价
+        /// </summary>
         public int ValleyServiceUnitPrice
         {
             get { return _valleyServiceUnitPrice; }
@@ -251,7 +303,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _valleyElec;
-
+        /// <summary>
+        /// 谷电量
+        /// </summary>
         public int ValleyElec
         {
             get { return _valleyElec; }
@@ -259,7 +313,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _valleyCostMoney;
-
+        /// <summary>
+        /// 谷充电金额
+        /// </summary>
         public int ValleyCostMoney
         {
             get { return _valleyCostMoney; }
@@ -267,7 +323,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _valleyServiceMoney;
-
+        /// <summary>
+        /// 谷服务费金额
+        /// </summary>
         public int ValleyServiceMoney
         {
             get { return _valleyServiceMoney; }
@@ -275,7 +333,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private short _valleyTime;
-
+        /// <summary>
+        /// 谷充电时长
+        /// </summary>
         public short ValleyTime
         {
             get { return _valleyTime; }
@@ -283,7 +343,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _startTime;
-
+        /// <summary>
+        /// 充电开始时间
+        /// </summary>
         public int StartTime
         {
             get { return _startTime; }
@@ -291,7 +353,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private short _costTime;
-
+        /// <summary>
+        /// 充电持续时间
+        /// </summary>
         public short CostTime
         {
             get { return _costTime; }
@@ -299,7 +363,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private byte _stopReason;
-
+        /// <summary>
+        /// 停止充电原因
+        /// </summary>
         public byte StopReason
         {
             get { return _stopReason; }
@@ -307,7 +373,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private byte _soc;
-
+        /// <summary>
+        /// 当前SOC
+        /// </summary>
         public byte SOC
         {
             get { return _soc; }
@@ -315,7 +383,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private byte _state;
-
+        /// <summary>
+        /// 状态
+        /// </summary>
         public byte State
         {
             get { return _state; }
@@ -323,7 +393,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _stopTime;
-
+        /// <summary>
+        /// 充电结束时间
+        /// </summary>
         public int StopTime
         {
             get { return _stopTime; }

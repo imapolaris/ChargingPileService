@@ -25,7 +25,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private byte _qport;
-
+        /// <summary>
+        /// 充电桩接口
+        /// </summary>
         public byte QPort
         {
             get { return _qport; }
@@ -33,7 +35,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _totalElec;
-
+        /// <summary>
+        /// 当前充电总电量
+        /// </summary>
         public int TotalElec
         {
             get { return _totalElec; }
@@ -41,7 +45,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _sharpElec;
-
+        /// <summary>
+        /// 当前充电尖电量
+        /// </summary>
         public int SharpElec
         {
             get { return _sharpElec; }
@@ -49,7 +55,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _peakElec;
-
+        /// <summary>
+        /// 当前充电峰电量
+        /// </summary>
         public int PeakElec
         {
             get { return _peakElec; }
@@ -57,7 +65,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _flatElec;
-
+        /// <summary>
+        /// 当前充电平电量
+        /// </summary>
         public int FlatElec
         {
             get { return _flatElec; }
@@ -65,7 +75,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _valleyElec;
-
+        /// <summary>
+        /// 当前充电谷电量
+        /// </summary>
         public int ValleyElec
         {
             get { return _valleyElec; }
@@ -73,7 +85,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _elecMoney  ;
-
+        /// <summary>
+        /// 当前充电金额
+        /// </summary>
         public int ElecMoney    
         {
             get { return _elecMoney; }
@@ -81,7 +95,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _serviceMoney;
-
+        /// <summary>
+        /// 当前服务费金额
+        /// </summary>
         public int ServiceMoney
         {
             get { return _serviceMoney; }
@@ -89,7 +105,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private short _costTime;
-
+        /// <summary>
+        /// 当前充电时间
+        /// </summary>
         public short CostTime
         {
             get { return _costTime; }
@@ -97,7 +115,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private byte _cpState;
-
+        /// <summary>
+        /// 充电桩状态
+        /// </summary>
         public byte CpState
         {
             get { return _cpState; }
@@ -105,7 +125,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private byte _stopReason;
-
+        /// <summary>
+        /// 停止充电原因
+        /// </summary>
         public byte StopReason
         {
             get { return _stopReason; }
@@ -113,7 +135,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private byte _soc;
-
+        /// <summary>
+        /// 当前SOC
+        /// </summary>
         public byte SOC
         {
             get { return _soc; }
@@ -121,7 +145,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private short _surplusTime;
-
+        /// <summary>
+        /// 剩余充电时间
+        /// </summary>
         public short SurplusTime
         {
             get { return _surplusTime; }
@@ -129,7 +155,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _outputV;
-
+        /// <summary>
+        /// 输出电压
+        /// </summary>
         public int OutputV
         {
             get { return _outputV; }
@@ -137,7 +165,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _outputA;
-
+        /// <summary>
+        /// 输出电流
+        /// </summary>
         public int OutputA
         {
             get { return _outputA; }
@@ -145,7 +175,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _minTemp;
-
+        /// <summary>
+        /// 电池组最低温度
+        /// </summary>
         public int MinTemp
         {
             get { return _minTemp; }
@@ -153,7 +185,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _maxTemp;
-
+        /// <summary>
+        /// 电池组最高温度
+        /// </summary>
         public int MaxTemp
         {
             get { return _maxTemp; }
@@ -161,7 +195,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _timestamp;
-
+        /// <summary>
+        /// 充电桩当前时间戳
+        /// </summary>
         public int TimeStamp
         {
             get { return _timestamp; }
@@ -169,7 +205,9 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private string _vin;
-
+        /// <summary>
+        /// 车辆VIN号
+        /// </summary>
         public string Vin
         {
             get { return _vin; }

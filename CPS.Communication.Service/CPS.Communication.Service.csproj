@@ -61,7 +61,7 @@
     <Compile Include="ChargingService_有卡.cs" />
     <Compile Include="ChargingService_无卡.cs" />
     <Compile Include="Client.cs" />
-    <Compile Include="DataPackets\充电桩=平台\UpgradeSfotwareReplyPacket.cs" />
+    <Compile Include="DataPackets\充电桩=平台\UpgradeSoftwareReplyPacket.cs" />
     <Compile Include="DataPackets\平台=充电桩\UpgradeSoftwarePacket.cs" />
     <Compile Include="DataPackets\平台=充电桩\StartChargingWithCardResultReplyPacket.cs" />
     <Compile Include="DataPackets\充电桩=平台\StartChargingWithCardResultPacket.cs" />
