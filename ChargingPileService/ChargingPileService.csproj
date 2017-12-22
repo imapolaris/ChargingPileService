@@ -109,6 +109,8 @@
   <ItemGroup>
     <Compile Include="App_Start\SmsServiceConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Common\AliPayConfig.cs" />
+    <Compile Include="Common\WxPayConfig.cs" />
     <Compile Include="Controllers\ChargingController.cs" />
     <Compile Include="Controllers\ChargingPilesController.cs" />
     <Compile Include="Controllers\MessagesController.cs" />
@@ -144,6 +146,10 @@
     <Folder Include="App_Data\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\alipay-sdk-NET-20171012102437\AopSdk.csproj">
+      <Project>{9c11cae5-5188-4e71-825b-68fc3135728a}</Project>
+      <Name>AopSdk</Name>
+    </ProjectReference>
     <ProjectReference Include="..\aliyun-net-sdk-core\aliyun-net-sdk-core.csproj">
       <Project>{bb84cecb-295d-4772-a669-3726e511ccfa}</Project>
       <Name>aliyun-net-sdk-core</Name>
@@ -167,6 +173,10 @@
     <ProjectReference Include="..\CPS.Infrastructure\CPS.Infrastructure.csproj">
       <Project>{099d33ee-0e51-41b8-bed7-0c6272b38327}</Project>
       <Name>CPS.Infrastructure</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\WxPayAPI\WxPayAPI.csproj">
+      <Project>{25911370-f06a-4956-8ee3-659a7ba14961}</Project>
+      <Name>WxPayAPI</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
