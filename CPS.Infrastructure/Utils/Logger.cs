@@ -26,7 +26,7 @@ namespace CPS.Infrastructure.Utils
 
         private void InitLogger()
         {
-            XmlConfigurator.Configure();
+            XmlConfigurator.ConfigureAndWatch(new System.IO.FileInfo("./log4net.config"));
         }
 
         public void Debug(object message)

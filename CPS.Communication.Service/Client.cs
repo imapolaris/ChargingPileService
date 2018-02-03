@@ -235,7 +235,7 @@ namespace CPS.Communication.Service
                         if (_emptyTimes == 100)
                         {
                             Close();
-                            //OnErrorOccurred(new ErrorEventArgs("连续接收到无效的空白信息，可能由于远端连接已异常关闭，连接自动退出！", ErrorTypes.SocketAccept));
+                            OnErrorOccurred(new ErrorEventArgs("连续接收到无效的空白信息，可能由于远端连接已异常关闭，连接自动退出！", ErrorTypes.SocketAccept));
                             return;
                         }
                     }

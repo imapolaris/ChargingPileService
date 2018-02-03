@@ -25,24 +25,20 @@ namespace CPS.Infrastructure.Utils
         public static byte[] Encrypt(byte[] buffer)
         {
             RijndaelManaged rm = new RijndaelManaged();
-            rm.Key = KeyArray;
-            rm.IV = IvArray;
             rm.Mode = CipherMode.CBC;
-            rm.Padding = PaddingMode.PKCS7;
+            rm.Padding = PaddingMode.Zeros;
 
-            var cTransform = rm.CreateEncryptor();
+            var cTransform = rm.CreateEncryptor(KeyArray, IvArray);
             return cTransform.TransformFinalBlock(buffer, 0, buffer.Length);
         }
 
         public static byte[] Decrypt(byte[] buffer)
         {
             RijndaelManaged rm = new RijndaelManaged();
-            rm.Key = KeyArray;
-            rm.IV = IvArray;
             rm.Mode = CipherMode.CBC;
-            rm.Padding = PaddingMode.PKCS7;
+            rm.Padding = PaddingMode.Zeros;
 
-            var cTransform = rm.CreateDecryptor();
+            var cTransform = rm.CreateDecryptor(KeyArray, IvArray);
             return cTransform.TransformFinalBlock(buffer, 0, buffer.Length);
         }
 

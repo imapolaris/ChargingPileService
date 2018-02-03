@@ -17,12 +17,12 @@ namespace CPS.Communication.Server
             Init();
             PrintStartInfo();
 
-            Service.Server server = new Service.Server();
-            server.ErrorOccurred += Server_ErrorOccurred;
-            server.ClientAccepted += Server_ClientAccepted;
-            server.ServerStarted += Server_ServerStarted;
-            server.ServerStopped += Server_ServerStopped;
-            server.Listen(2222);
+
+            lock ("123")
+            {
+                Console.WriteLine(DateTime.Now);
+                Console.WriteLine("thread-server");
+            }
 
             while (true)
             {
@@ -30,7 +30,7 @@ namespace CPS.Communication.Server
                 if (input.ToLower().Equals("exit"))
                     break;
                 else if (input.ToLower().Equals("detail"))
-                    Console.WriteLine(server);
+                    Console.WriteLine(MyService.MyServer);
                 else if (input.ToLower().Equals("clear"))
                 {
                     Console.Clear();
@@ -51,6 +51,14 @@ namespace CPS.Communication.Server
                 else if (input.ToLower().Equals("setrI_c"))
                 {
 
+                }
+                else if (input.ToLower().Equals("startc"))
+                {
+                    StartCharging();
+                }
+                else if (input.ToLower().Equals("stopc"))
+                {
+                    StopCharging();
                 }
             }
 
@@ -107,7 +115,6 @@ namespace CPS.Communication.Server
         /// <returns></returns>
         private static bool LaunchRedis()
         {
-
             return true;
         }
 
@@ -143,9 +150,28 @@ namespace CPS.Communication.Server
         {
             var state = await MyService.SetServicePrice("1234567890AbcBCa", 10000, 8000, 6000, 4000);
             if (state)
-                Console.WriteLine("设置服务费成功！");
+                Console.WriteLine("设置上报间隔成功！");
             else
-                Console.WriteLine("设置服务费失败！");
+                Console.WriteLine("设置上报间隔失败！");
+        }
+
+        /// 开始充电
+        private async static void StartCharging()
+        {
+            var result = await MyService.SetCharging("1110000001001001", 1, 0, CPS.Communication.Service.DataPackets.ActionTypeEnum.Startup, 0);
+            if (result)
+                Console.WriteLine("启动充电成功！");
+            else
+                Console.WriteLine("启动充电失败！");
+        }
+
+        private async static void StopCharging()
+        {
+            var result = await MyService.SetCharging("1110000001001001", 1, 0, CPS.Communication.Service.DataPackets.ActionTypeEnum.Shutdown, 0);
+            if (result)
+                Console.WriteLine("停止充电成功！");
+            else
+                Console.WriteLine("停止充电失败！");
         }
         #endregion ====测试====
     }

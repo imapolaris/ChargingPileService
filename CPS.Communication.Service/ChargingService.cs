@@ -31,15 +31,54 @@ namespace CPS.Communication.Service
 
             Sessions = new SessionCollection();
             //StartSessionStateDetection();
+
+            StartupServer();
         }
 
         private static ChargingService _instance;
-        static ChargingService()
+        public static ChargingService Instance
         {
-            if (_instance == null)
-                _instance = new ChargingService();
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = new ChargingService();
+                }
+                return _instance;
+            }
         }
-        public static ChargingService Instance { get { return _instance; } }
+
+        private void StartupServer()
+        {
+            MyServer = new Server(this);
+            MyServer.ErrorOccurred += Server_ErrorOccurred;
+            MyServer.ClientAccepted += Server_ClientAccepted;
+            MyServer.ServerStarted += Server_ServerStarted;
+            MyServer.ServerStopped += Server_ServerStopped;
+            MyServer.Listen(2222);
+        }
+
+        private static void Server_ServerStopped(object sender, Service.Events.ServerStoppedEventArgs args)
+        {
+            Console.WriteLine("Server Stopped!");
+            Logger.Instance.Info("Server Stopped!");
+        }
+
+        private static void Server_ServerStarted(object sender, Service.Events.ServerStartedEventArgs args)
+        {
+            Console.WriteLine("Server Started!");
+            Logger.Instance.Info("Server Started!");
+        }
+
+        private static void Server_ClientAccepted(object sender, Service.Events.ClientAcceptedEventArgs args)
+        {
+            Console.WriteLine($"----客户端 {args.CurClient.ID} 已连接！");
+        }
+
+        private static void Server_ErrorOccurred(object sender, Service.Events.ErrorEventArgs args)
+        {
+            Console.WriteLine("Error:" + args.ErrorMessage);
+        }
 
         public Server MyServer { get; set; }
 

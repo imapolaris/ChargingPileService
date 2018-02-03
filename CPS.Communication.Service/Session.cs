@@ -226,7 +226,7 @@ namespace CPS.Communication.Service
             {
                 while (!Outdated && !IsCompleted)
                 {
-                    Task.Delay(10);
+                    Task.Delay(1000);
                 }
             });
 

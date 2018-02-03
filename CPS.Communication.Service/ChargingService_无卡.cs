@@ -30,6 +30,7 @@ namespace CPS.Communication.Service
                 Money = money,
             };
 
+            return true;
             var client = MyServer.FindClientBySerialNumber(sn);
             if (client == null)
             {

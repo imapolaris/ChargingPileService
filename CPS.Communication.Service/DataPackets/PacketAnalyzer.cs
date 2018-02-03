@@ -91,20 +91,28 @@ namespace CPS.Communication.Service.DataPackets
                     case PacketTypeEnum.GetQRcodeResult:
                         break;
                     case PacketTypeEnum.ChargingPileState:
+                        packet = new ChargingPileStatePacket();
                         break;
                     case PacketTypeEnum.GetChargingPileState:
+                        packet = new GetChargingPileStatePacket();
                         break;
                     case PacketTypeEnum.SetCharging:
+                        packet = new SetChargingPacket();
                         break;
                     case PacketTypeEnum.SetChargingResult:
+                        packet = new SetChargingResultPacket();
                         break;
                     case PacketTypeEnum.RealDataOfCharging:
+                        packet = new RealDataOfChargingPacket();
                         break;
                     case PacketTypeEnum.RecordOfCharging:
+                        packet = new RecordOfChargingPacket();
                         break;
                     case PacketTypeEnum.ConfirmRecordOfCharging:
+                        packet = new ConfirmRecordOfChargingPacket();
                         break;
                     case PacketTypeEnum.GetRecordOfCharging:
+                        packet = new GetRecordOfChargingPacket();
                         break;
                     case PacketTypeEnum.FaultMessage:
                         break;
@@ -171,6 +179,8 @@ namespace CPS.Communication.Service.DataPackets
                 Array.Copy(buffer, PacketBase.HeaderLen, body, 0, body.Length);
                 packet.Decode(body);
                 packet.Header = header;
+
+                Console.WriteLine($"接收到的报文内容：{packet}");
 
                 return packet;
             }

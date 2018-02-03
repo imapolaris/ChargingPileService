@@ -18,7 +18,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>..\bin\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -56,6 +56,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\CPS.Infrastructure\log4net.config">
+      <Link>log4net.config</Link>
+    </None>
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
@@ -63,6 +66,10 @@
     <ProjectReference Include="..\CPS.Communication.Service\CPS.Communication.Service.csproj">
       <Project>{1c05b477-5de7-41fa-ba73-0cd90e74dc56}</Project>
       <Name>CPS.Communication.Service</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CPS.Infrastructure\CPS.Infrastructure.csproj">
+      <Project>{099d33ee-0e51-41b8-bed7-0c6272b38327}</Project>
+      <Name>CPS.Infrastructure</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

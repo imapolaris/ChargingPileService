@@ -22,11 +22,11 @@ namespace CPS.Communication.Service
         private bool _closing = false;
         private bool _closed = false;
         private ClientCollection _clients;
-        private IChargingPileService MyChargingService = ChargingService.Instance;
+        private IChargingPileService MyChargingService;
 
         #region 心跳检测
-        private const int HeartBeatInterval = 15; // 心跳间隔15秒
-        private const int HeartBeatCheckInterval = 60; // 心跳检测间隔60秒
+        private const int HeartBeatInterval = 30; // 心跳间隔30秒
+        private const int HeartBeatCheckInterval = 15; // 心跳检测间隔60秒
         private object heartbeatCheckLocker = new object();
         private bool stopHeartbeatCheck = false;
         private object heartbeatServerLocker = new object();
@@ -63,10 +63,15 @@ namespace CPS.Communication.Service
         public Server()
         {
             _clients = new ClientCollection();
-            MyChargingService.MyServer = this;
 
-            StartHeartbeatCheck();
+            //StartHeartbeatCheck();
             //SendHeartbeatFromServer();
+        }
+
+        public Server(ChargingService service)
+            : this()
+        {
+            MyChargingService = service;
         }
 
         public void Listen(int port)
@@ -382,7 +387,7 @@ namespace CPS.Communication.Service
             }
             catch (ArgumentNullException ane)
             {
-                Console.WriteLine($"该充电桩不存在：{ane.Message}");
+                Console.WriteLine($"充电桩不存在：{ane.Message}");
             }
             catch (InvalidOperationException ioe)
             {

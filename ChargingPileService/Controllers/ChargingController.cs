@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Threading.Tasks;
 using System.Web.Http;
 
 namespace ChargingPileService.Controllers
@@ -12,7 +13,7 @@ namespace ChargingPileService.Controllers
     [RoutePrefix("api/charging")]
     public class ChargingController : OperatorBase
     {
-        IChargingPileService chargingService = ChargingService.Instance;
+        static ChargingService MyService = ChargingService.Instance;
 
         /// <summary>
         /// 开始充电
@@ -21,17 +22,13 @@ namespace ChargingPileService.Controllers
         /// <returns></returns>
         [HttpGet]
         [Route("start/{sn}")]
-        public IHttpActionResult StartCharging(string sn)
+        public async Task<IHttpActionResult> StartCharging(string sn)
         {
-            var callback = new Func<string, IHttpActionResult>((serialNumber) =>
-             {
-                 var status = chargingService.startCharging(serialNumber);
-                 if (status)
-                     return Ok(SimpleResult.Succeed("请开始充电！"));
-                 else
-                     return Ok(SimpleResult.Failed("请求服务失败！"));
-             });
-            return ValidSerialNumber(sn, callback);
+            var status = await MyService.SetCharging(sn, 1, 0, CPS.Communication.Service.DataPackets.ActionTypeEnum.Startup, 0);
+            if (status)
+                return Ok(SimpleResult.Succeed("请开始充电！"));
+            else
+                return Ok(SimpleResult.Failed("请求服务失败！"));
         }
 
         /// <summary>
@@ -45,7 +42,7 @@ namespace ChargingPileService.Controllers
         {
             var callback = new Func<string, IHttpActionResult>((serialNumber) =>
             {
-                var status = chargingService.stopCharging(serialNumber);
+                var status = MyService.stopCharging(serialNumber);
                 if (status)
                     return Ok(SimpleResult.Succeed("已结束充电！"));
                 else
@@ -65,7 +62,7 @@ namespace ChargingPileService.Controllers
         {
             var callback = new Func<string, IHttpActionResult>((serialNumber) =>
             {
-                var info = chargingService.getChargingStatus(serialNumber);
+                var info = MyService.getChargingStatus(serialNumber);
                 var returnVal = new Models.SingleResult<object>(true, "请求成功！", info);
                 return Ok(returnVal);
             });
