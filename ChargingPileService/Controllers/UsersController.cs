@@ -36,7 +36,7 @@ namespace ChargingPileService.Controllers
             }
             catch (Exception ex)
             {
-                Logger.Instance.Error(ex);
+                Logger.Error(ex);
             }
 
             return Ok(SimpleResult.Failed("手机号或密码错误！"));
@@ -92,7 +92,7 @@ namespace ChargingPileService.Controllers
                 }
                 catch (Exception ex)
                 {
-                    Logger.Instance.Error(ex);
+                    Logger.Error(ex);
                 }
             }
 
@@ -119,7 +119,7 @@ namespace ChargingPileService.Controllers
             }
             catch (Exception ex)
             {
-                Logger.Instance.Error(ex);
+                Logger.Error(ex);
                 return Ok(new SimpleResult(false, "无法获取用户信息！"));
             }
         }
@@ -147,7 +147,7 @@ namespace ChargingPileService.Controllers
             }
             catch (Exception ex)
             {
-                Logger.Instance.Error(ex);
+                Logger.Error(ex);
                 return Ok(SimpleResult.Failed("修改个人资料失败！"));
             }
         }
@@ -172,7 +172,7 @@ namespace ChargingPileService.Controllers
             }
             catch (Exception ex)
             {
-                Logger.Instance.Error(ex);
+                Logger.Error(ex);
             }
 
             return Ok(SimpleResult.Failed("修改密码失败！"));

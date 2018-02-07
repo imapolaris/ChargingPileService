@@ -1,32 +1,60 @@
 ﻿using CPS.Communication.Service;
 using CPS.Communication.Service.DataPackets;
+using CPS.Infrastructure.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CPS.Communication.Server
+using Topshelf;
+
+namespace CPS.Communication.Service
 {
     class Program
     {
-        static ChargingService MyService = ChargingService.Instance;
-
         static void Main(string[] args)
         {
-            Init();
-            PrintStartInfo();
-
-
-            lock ("123")
+            var rc = HostFactory.Run(x =>
             {
-                Console.WriteLine(DateTime.Now);
-                Console.WriteLine("thread-server");
-            }
+                x.Service<CommunicationServer>(s =>
+                {
+                    s.ConstructUsing(name => new CommunicationServer());
+                    s.WhenStarted(tc => tc.Start());
+                    s.WhenStopped(tc => tc.Stop());
+                });
+                x.RunAsLocalSystem();
+
+                x.SetDescription("充电桩通信服务");
+                x.SetDisplayName("CPS.Communication.Server");
+                x.SetServiceName("CPS.Communication.Server");
+
+                x.UseLog4Net("./log4net.config", true);
+            });
+
+            var exitCode = (int)Convert.ChangeType(rc, rc.GetTypeCode());
+            Environment.ExitCode = exitCode;
+            Logger.Info($"启动结果：{exitCode}");
+        }
+    }
+
+    public class CommunicationServer : IDisposable
+    {
+        readonly ChargingService MyService;// = ChargingService.Instance;
+
+        public CommunicationServer() { }
+
+        public void Start()
+        {
+            InitEnv();
+            PrintStartInfo();
 
             while (true)
             {
                 string input = Console.ReadLine();
+
+                if (string.IsNullOrEmpty(input))
+                    break;
                 if (input.ToLower().Equals("exit"))
                     break;
                 else if (input.ToLower().Equals("detail"))
@@ -61,12 +89,15 @@ namespace CPS.Communication.Server
                     StopCharging();
                 }
             }
-
-            PrintStopInfo();
         }
 
+        public void Stop()
+        {
+            PrintStopInfo();
+            Dispose();
+        }
 
-        static void Init()
+        private void InitEnv()
         {
             Console.Title = "充电桩通信服务控制台";
             Console.BackgroundColor = ConsoleColor.Black;
@@ -75,36 +106,37 @@ namespace CPS.Communication.Server
             Console.BufferWidth = Console.LargestWindowWidth / 2;
         }
 
-        static void PrintStartInfo()
+        private void PrintStartInfo()
         {
+            Console.Clear();
             Console.WriteLine("-----------------------开始充电桩通信服务-----------------------");
             Console.WriteLine($"启动时间：{DateTime.Now.ToString("yyyy年MM月dd日 HH:mm:ss")}");
             Console.WriteLine($"版本：{"Ver 1.0"}");
             Console.WriteLine("----------------------------------------------------------------");
-            Console.WriteLine("服务正在运行 ......(输入exit停止服务)\n");
+            Console.WriteLine("服务正在运行 ......(输入 Control+C 停止服务)\n");
         }
 
-        static void PrintStopInfo()
+        private void PrintStopInfo()
         {
-            Console.WriteLine("-----------------------结束充电桩通信服务-----------------------");
+            Console.WriteLine("\n-----------------------结束充电桩通信服务-----------------------");
         }
 
-        private static void Server_ServerStopped(object sender, Service.Events.ServerStoppedEventArgs args)
+        private void Server_ServerStopped(object sender, Service.Events.ServerStoppedEventArgs args)
         {
             Console.WriteLine("Server Stopped!");
         }
 
-        private static void Server_ServerStarted(object sender, Service.Events.ServerStartedEventArgs args)
+        private void Server_ServerStarted(object sender, Service.Events.ServerStartedEventArgs args)
         {
             Console.WriteLine("Server Started!");
         }
 
-        private static void Server_ClientAccepted(object sender, Service.Events.ClientAcceptedEventArgs args)
+        private void Server_ClientAccepted(object sender, Service.Events.ClientAcceptedEventArgs args)
         {
             Console.WriteLine($"----客户端 {args.CurClient.ID} 已连接！");
         }
 
-        private static void Server_ErrorOccurred(object sender, Service.Events.ErrorEventArgs args)
+        private void Server_ErrorOccurred(object sender, Service.Events.ErrorEventArgs args)
         {
             Console.WriteLine("Error:" + args.ErrorMessage);
         }
@@ -113,13 +145,13 @@ namespace CPS.Communication.Server
         /// 启动redis
         /// </summary>
         /// <returns></returns>
-        private static bool LaunchRedis()
+        private bool LaunchRedis()
         {
             return true;
         }
 
         #region ====测试====
-        private async static void Reboot()
+        private async void Reboot()
         {
             var state = await MyService.Reboot("1234567890AbcBCa");
             if (state)
@@ -128,7 +160,7 @@ namespace CPS.Communication.Server
                 Console.WriteLine("充电桩重启失败！");
         }
 
-        private async static void SetElecPrice()
+        private async void SetElecPrice()
         {
             var state = await MyService.SetElecPrice("1234567890AbcBCa", 10000, 8000, 6000, 4000);
             if (state)
@@ -137,7 +169,7 @@ namespace CPS.Communication.Server
                 Console.WriteLine("设置电价失败！");
         }
 
-        private async static void SetServicePrice()
+        private async void SetServicePrice()
         {
             var state = await MyService.SetServicePrice("1234567890AbcBCa", 10000, 8000, 6000, 4000);
             if (state)
@@ -146,7 +178,7 @@ namespace CPS.Communication.Server
                 Console.WriteLine("设置服务费失败！");
         }
 
-        private async static void SetReportInterval()
+        private async void SetReportInterval()
         {
             var state = await MyService.SetServicePrice("1234567890AbcBCa", 10000, 8000, 6000, 4000);
             if (state)
@@ -156,7 +188,7 @@ namespace CPS.Communication.Server
         }
 
         /// 开始充电
-        private async static void StartCharging()
+        private async void StartCharging()
         {
             var result = await MyService.SetCharging("1110000001001001", 1, 0, CPS.Communication.Service.DataPackets.ActionTypeEnum.Startup, 0);
             if (result)
@@ -165,7 +197,7 @@ namespace CPS.Communication.Server
                 Console.WriteLine("启动充电失败！");
         }
 
-        private async static void StopCharging()
+        private async void StopCharging()
         {
             var result = await MyService.SetCharging("1110000001001001", 1, 0, CPS.Communication.Service.DataPackets.ActionTypeEnum.Shutdown, 0);
             if (result)
@@ -173,6 +205,24 @@ namespace CPS.Communication.Server
             else
                 Console.WriteLine("停止充电失败！");
         }
+
+        #region IDisposable Support
+        private bool disposedValue = false;
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                MyService?.Dispose();
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        #endregion
         #endregion ====测试====
     }
 }

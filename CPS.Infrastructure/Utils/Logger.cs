@@ -11,62 +11,40 @@ namespace CPS.Infrastructure.Utils
 {
     public class Logger
     {
-        private readonly ILog _log;
+        private static readonly ILog _log;
 
         private static readonly Logger _instance = new Logger();
         public static Logger Instance { get { return _instance; } }
 
-        
-        private Logger()
+        static Logger()
         {
-            InitLogger();
-
+            XmlConfigurator.ConfigureAndWatch(new System.IO.FileInfo("./log4net.config"));
             _log = LogManager.GetLogger(typeof(Logger));
         }
 
-        private void InitLogger()
-        {
-            XmlConfigurator.ConfigureAndWatch(new System.IO.FileInfo("./log4net.config"));
-        }
-
-        public void Debug(object message)
+        public static void Debug(object message)
         {
             _log.Debug(message);
         }
 
-        public void Info(object message)
+        public static void Info(object message)
         {
             _log.Info(message);
         }
 
-        public void Warn(object message)
+        public static void Warn(object message)
         {
             _log.Warn(message);
         }
 
-        public void Error(object message)
+        public static void Error(object message)
         {
             _log.Error(message);
         }
 
-        public void Fatal(object message)
+        public static void Fatal(object message)
         {
             _log.Fatal(message);
-        }
-
-        public void LogInfoConsole(object message)
-        {
-            Console.WriteLine($"----{message}");
-        }
-
-        public void LogWarnConsole(object message)
-        {
-            Console.WriteLine($"++++{message}");
-        }
-
-        public void LogErrorConsole(object message)
-        {
-            Console.WriteLine($"####{message}");
         }
     }
 }

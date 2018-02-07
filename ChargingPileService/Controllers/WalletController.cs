@@ -31,7 +31,7 @@ namespace ChargingPileService.Controllers
             }
             catch (Exception ex)
             {
-                Logger.Instance.Error(ex);
+                Logger.Error(ex);
             }
             return Ok(SimpleResult.Failed("没有发现余额记录..."));
         }
@@ -60,7 +60,7 @@ namespace ChargingPileService.Controllers
             }
             catch (Exception ex)
             {
-                Logger.Instance.Error(ex);
+                Logger.Error(ex);
             }
             return Ok(SimpleResult.Failed("充值失败..."));
         }

@@ -27,7 +27,7 @@ namespace ChargingPileService.Controllers
                 }
                 catch (Exception ex)
                 {
-                    Logger.Instance.Error(ex);
+                    Logger.Error(ex);
                 }
             }
 

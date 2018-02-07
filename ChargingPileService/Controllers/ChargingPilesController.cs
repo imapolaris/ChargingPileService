@@ -55,7 +55,7 @@ namespace ChargingPileService.Controllers
             }
             catch (Exception ex)
             {
-                Logger.Instance.Error(ex);
+                Logger.Error(ex);
             }
 
             return Ok(SimpleResult.Failed("预约失败！"));

@@ -58,7 +58,7 @@ namespace ChargingPileService
                 _resetEvent.Set();
             }
 
-            Logger.Instance.Info($"container length: {SmsContainer.Count()}, \nvalidate vcode: {phoneNumber}:{vcode}");
+            Logger.Info($"container length: {SmsContainer.Count()}, \nvalidate vcode: {phoneNumber}:{vcode}");
 
             return exists;
         }
@@ -76,7 +76,7 @@ namespace ChargingPileService
 
             _resetEvent.Set();
 
-            Logger.Instance.Info($"add vcode: {phoneNumber}:{vcode}");
+            Logger.Info($"add vcode: {phoneNumber}:{vcode}");
         }
 
         private void RunClear(object state)

@@ -61,13 +61,13 @@ namespace CPS.Communication.Service
         private static void Server_ServerStopped(object sender, Service.Events.ServerStoppedEventArgs args)
         {
             Console.WriteLine("Server Stopped!");
-            Logger.Instance.Info("Server Stopped!");
+            Logger.Info("Server Stopped!");
         }
 
         private static void Server_ServerStarted(object sender, Service.Events.ServerStartedEventArgs args)
         {
             Console.WriteLine("Server Started!");
-            Logger.Instance.Info("Server Started!");
+            Logger.Info("Server Started!");
         }
 
         private static void Server_ClientAccepted(object sender, Service.Events.ClientAcceptedEventArgs args)

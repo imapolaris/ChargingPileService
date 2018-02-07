@@ -33,7 +33,7 @@ namespace ChargingPileService.Controllers
             }
             catch(Exception ex)
             {
-                Logger.Instance.Error(ex);
+                Logger.Error(ex);
             }
 
             return Ok(SimpleResult.Failed("无法查询电站信息！"));

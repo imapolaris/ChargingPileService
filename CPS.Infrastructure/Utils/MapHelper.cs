@@ -32,7 +32,7 @@ namespace CPS.Infrastructure.Utils
             }
             catch (Exception ex)
             {
-                Logger.Instance.Error(ex);
+                Logger.Error(ex);
                 return double.MaxValue;
             }
         }

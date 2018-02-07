@@ -8,11 +8,12 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ChargingPileService.Tests</RootNamespace>
     <AssemblyName>ChargingPileService.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <IsCodedUITest>False</IsCodedUITest>
     <TestProjectType>UnitTest</TestProjectType>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -32,6 +33,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="CPS.DB, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\bin\CPS.DB.dll</HintPath>
+    </Reference>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.dll</HintPath>
       <Private>True</Private>
@@ -88,14 +93,6 @@
     <ProjectReference Include="..\ChargingPileService\ChargingPileService.csproj">
       <Project>{3EFA8CC6-03D7-48B6-BC5E-EBCF91C502EA}</Project>
       <Name>ChargingPileService</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CPS.DB\CPS.DB.csproj">
-      <Project>{5e5b50f1-c22d-4ccb-b692-5a7957b6d1ae}</Project>
-      <Name>CPS.DB</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CPS.Entity\CPS.Entities.csproj">
-      <Project>{abb3a8fd-b21b-402d-af96-45f65a8d2e1a}</Project>
-      <Name>CPS.Entities</Name>
     </ProjectReference>
     <ProjectReference Include="..\CPS.Infrastructure\CPS.Infrastructure.csproj">
       <Project>{099d33ee-0e51-41b8-bed7-0c6272b38327}</Project>

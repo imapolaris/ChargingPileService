@@ -60,18 +60,18 @@ namespace ChargingPileService.Controllers
                 }
                 else
                 {
-                    Logger.Instance.Error(sendSmsResponse.Message);
+                    Logger.Error(sendSmsResponse.Message);
                     return Ok(new SimpleResult(false, "验证码发送失败！"));
                 }
             }
             catch (ServerException e)
             {
-                Logger.Instance.Error(e.Message);
+                Logger.Error(e.Message);
                 return Content<string>(HttpStatusCode.InternalServerError, "server error");
             }
             catch (ClientException e)
             {
-                Logger.Instance.Error(e.Message);
+                Logger.Error(e.Message);
                 return Content<string>(HttpStatusCode.BadRequest, "bad request");
             }
         }
