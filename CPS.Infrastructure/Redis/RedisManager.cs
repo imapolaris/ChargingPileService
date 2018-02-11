@@ -1,4 +1,5 @@
 ﻿using CSRedis;
+using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,6 +33,14 @@ namespace CPS.Infrastructure.Redis
         {
             var endPoint = _redisConfig.AnalyseHost(ref _pwd);
             _prcm = new RedisConnectionPool(endPoint, _redisConfig.MaxPoolSize);
+        }
+
+        public static void Get()
+        {
+            ConnectionMultiplexer.Connect(new ConfigurationOptions()
+            {
+
+            });
         }
 
         /// <summary>

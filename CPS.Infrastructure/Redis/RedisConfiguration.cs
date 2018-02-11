@@ -38,7 +38,7 @@ namespace CPS.Infrastructure.Redis
 
         public static RedisConfiguration GetConfig(string sectionName)
         {
-            RedisConfiguration section = (RedisConfiguration)ConfigHelper.GetSection(typeof(RedisConfiguration).Assembly, sectionName);
+            RedisConfiguration section = (RedisConfiguration)ConfigHelper.GetSection("./redis.config", sectionName);
             if (section == null)
                 throw new ConfigurationErrorsException("Section " + sectionName + " is not found.");
             return section;

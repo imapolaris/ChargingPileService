@@ -50,6 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Cache\ICacheManager.cs" />
+    <Compile Include="Exceptions\CacheException.cs" />
     <Compile Include="Redis\RedisBase.cs" />
     <Compile Include="Redis\RedisConfiguration.cs" />
     <Compile Include="Redis\RedisManager.cs" />
@@ -70,17 +71,11 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
+    <None Include="redis.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Libs\csredis.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Libs\csredis.pdb">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Libs\csredis.XML">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <Content Include="Libs\csredis.dll" />
+    <Content Include="Libs\csredis.XML" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

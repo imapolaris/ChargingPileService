@@ -1,5 +1,6 @@
 ﻿using CPS.Infrastructure.Cache;
 using CPS.Infrastructure.Utils;
+using Soaring.WebMonter.Contract.Cache;
 using Soaring.WebMonter.DB;
 using System;
 using System.Collections.Generic;
@@ -18,9 +19,19 @@ namespace CPS.CacheDaemon.Cache
         public async Task LoadCache()
         {
             Logger.Info("start loading station data into the cache...");
+
             var result = await Task.Run(() =>
             {
-
+                var data = systemDbContext.Stations.Select(_ => new StationCache
+                {
+                    Id = _.Id,
+                    Name = _.Name,
+                    Address = _.Address,
+                    Longitude = 0,
+                    Latitude = 0,
+                    ElecPrice = 0,
+                });
+                
 
                 return true;
             });

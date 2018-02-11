@@ -77,7 +77,7 @@ namespace CPS.Infrastructure.Utils
 
         public static string GetValue(Assembly assembly, string key)
         {
-            var configuration = GetConfiguration(assembly);
+            var configuration = GetConfiguration(GetConfigFileName(assembly));
 
             var val = configuration.AppSettings.Settings[key];
             if (val == null)
@@ -88,19 +88,29 @@ namespace CPS.Infrastructure.Utils
 
         public static ConfigurationSection GetSection(Assembly assembly, string section)
         {
-            var configuration = GetConfiguration(assembly);
-
+            var configuration = GetConfiguration(GetConfigFileName(assembly));
             return configuration.GetSection(section);
         }
 
-        static Configuration GetConfiguration(Assembly assembly)
+        public static ConfigurationSection GetSection(string configFile, string section)
+        {
+            var configuration = GetConfiguration(configFile);
+            return configuration.GetSection(section);
+        }
+
+        static string GetConfigFileName(Assembly assembly)
         {
             var fileName = assembly.ManifestModule.FullyQualifiedName + ".config";
             if (!File.Exists(fileName))
-                throw new ArgumentNullException("没有找到程序集配置文件");
+                throw new ArgumentNullException("没有找到配置文件...");
 
+            return fileName;
+        }
+
+        static Configuration GetConfiguration(string configFileName)
+        {
             var configFile = new ExeConfigurationFileMap();
-            configFile.ExeConfigFilename = fileName;
+            configFile.ExeConfigFilename = configFileName;
             return ConfigurationManager.OpenMappedExeConfiguration(configFile, ConfigurationUserLevel.None);
         }
     }
