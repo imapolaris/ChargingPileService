@@ -54,8 +54,16 @@
       <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Microsoft.Diagnostics.Tracing.EventSource, Version=1.1.28.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Diagnostics.Tracing.EventSource.Redist.1.1.28\lib\net40\Microsoft.Diagnostics.Tracing.EventSource.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="RabbitMQ.Client, Version=5.0.0.0, Culture=neutral, PublicKeyToken=89e7d7c5feba84ce, processorArchitecture=MSIL">
+      <HintPath>..\packages\RabbitMQ.Client.5.0.1\lib\net451\RabbitMQ.Client.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -83,6 +91,7 @@
     <Compile Include="ChargingService_System.cs" />
     <Compile Include="ChargingService_有卡.cs" />
     <Compile Include="ChargingService_无卡.cs" />
+    <Compile Include="ChargingService_Generic.cs" />
     <Compile Include="Client.cs" />
     <Compile Include="DataPackets\充电桩=平台\UpgradeSoftwareReplyPacket.cs" />
     <Compile Include="DataPackets\平台=充电桩\UpgradeSoftwarePacket.cs" />
@@ -155,9 +164,6 @@
     </None>
     <None Include="App.config" />
     <None Include="packages.config" />
-    <None Include="startup.bat">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CPS.Infrastructure\CPS.Infrastructure.csproj">

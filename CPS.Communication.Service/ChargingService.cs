@@ -12,27 +12,30 @@ using System.Threading.Tasks;
 
 namespace CPS.Communication.Service
 {
+    using RabbitMQ.Client;
+    using RabbitMQ.Client.Events;
+
     public partial class ChargingService : IChargingPileService, IDisposable
     {
         CPS_Entities EntityContext = new CPS_Entities();
-        public SessionCollection Sessions { get; private set; }
 
-        #region ====会话====
-        Thread ThreadSessionStateDetection;
-        private bool stopSessionStateDetection = false;
-        private int SessionStateDetectionInterval = 60 * 1000;
-
-        #endregion ====会话====
-
+        #region 【singleton】
 
         private ChargingService()
         {
+            StartupServer();
+
             ThreadPool.SetMaxThreads(200, 500);
 
             Sessions = new SessionCollection();
             //StartSessionStateDetection();
 
-            StartupServer();
+            new Thread(() =>
+            {
+                StartMqService();
+            })
+            { IsBackground = true }
+            .Start();
         }
 
         private static ChargingService _instance;
@@ -48,6 +51,12 @@ namespace CPS.Communication.Service
             }
         }
 
+        #endregion 【singleton】
+
+        #region 【启动TCP服务】
+
+        internal Server MyServer { get; set; }
+
         private void StartupServer()
         {
             MyServer = new Server(this);
@@ -60,29 +69,38 @@ namespace CPS.Communication.Service
 
         private static void Server_ServerStopped(object sender, Service.Events.ServerStoppedEventArgs args)
         {
-            Console.WriteLine("Server Stopped!");
             Logger.Info("Server Stopped!");
         }
 
         private static void Server_ServerStarted(object sender, Service.Events.ServerStartedEventArgs args)
         {
-            Console.WriteLine("Server Started!");
             Logger.Info("Server Started!");
         }
 
         private static void Server_ClientAccepted(object sender, Service.Events.ClientAcceptedEventArgs args)
         {
-            Console.WriteLine($"----客户端 {args.CurClient.ID} 已连接！");
+            Logger.Info($"----客户端 {args.CurClient.ID} 已连接！");
         }
 
         private static void Server_ErrorOccurred(object sender, Service.Events.ErrorEventArgs args)
         {
-            Console.WriteLine("Error:" + args.ErrorMessage);
+            Logger.Info("Error:" + args.ErrorMessage);
         }
 
-        public Server MyServer { get; set; }
+        #endregion 【启动TCP服务】
 
-        public void StartSessionStateDetection()
+        #region 【会话服务】
+
+        Thread ThreadSessionStateDetection;
+        private bool stopSessionStateDetection = false;
+        private int SessionStateDetectionInterval = 60 * 1000;
+
+        private SessionCollection Sessions { get; set; }
+
+        /// <summary>
+        /// 轮询会话状态
+        /// </summary>
+        private void StartSessionStateDetection()
         {
             ThreadSessionStateDetection = new Thread(() =>
             {
@@ -111,6 +129,99 @@ namespace CPS.Communication.Service
             { IsBackground = true };
             ThreadSessionStateDetection.Start();
         }
+
+        /// <summary>
+        /// 启动会话
+        /// </summary>
+        protected async Task<object> StartSession(Client client, OperPacketBase packet)
+        {
+            Session session = new Session(client, packet);
+            Sessions.AddSession(session);
+
+            var result = MyServer.Send(client, packet);
+            if (!result)
+                return null;
+
+            var completed = await session.WaitSessionCompleted();
+            if (completed)
+            {
+                object obj = session.Result;
+                Sessions.RemoveSession(session);
+                return obj;
+            }
+            else
+                return null;
+        }
+
+        /// <summary>
+        /// 会话结束
+        /// </summary>
+        protected void SessionCompleted(Client client, OperPacketBase packet)
+        {
+            ThreadPool.QueueUserWorkItem(new WaitCallback((state) =>
+            {
+                var matched = Sessions.MatchSession(client, packet);
+                if (matched != null)
+                {
+                    matched.IsCompleted = true;
+                    matched.Result = packet;
+                }
+            }));
+        }
+
+        #endregion 【会话】
+
+        #region 【消息队列服务】
+
+        private const string RPC_CHARGING_QUEUE_NAME = @"rpc_charging_queue";
+
+        protected void StartMqService()
+        {
+            var factory = new ConnectionFactory() { HostName = "localhost" };
+            using (var connection = factory.CreateConnection())
+            using (var channel = connection.CreateModel())
+            {
+                channel.QueueDeclare(queue: RPC_CHARGING_QUEUE_NAME, durable: true,
+                  exclusive: false, autoDelete: false, arguments: null);
+                channel.BasicQos(0, 1, false);
+                var consumer = new EventingBasicConsumer(channel);
+                channel.BasicConsume(queue: RPC_CHARGING_QUEUE_NAME,
+                  autoAck: false, consumer: consumer);
+                Console.WriteLine(" [x] Awaiting RPC requests");
+
+                consumer.Received += (model, ea) =>
+                {
+                    string response = null;
+
+                    var body = ea.Body;
+                    var props = ea.BasicProperties;
+                    var replyProps = channel.CreateBasicProperties();
+                    replyProps.CorrelationId = props.CorrelationId;
+
+                    try
+                    {
+                        var message = Encoding.UTF8.GetString(body);
+                        int n = int.Parse(message);
+                        response = "123";
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(" [.] " + e.Message);
+                        response = "";
+                    }
+                    finally
+                    {
+                        var responseBytes = Encoding.UTF8.GetBytes(response);
+                        channel.BasicPublish(exchange: "", routingKey: props.ReplyTo,
+                          basicProperties: replyProps, body: responseBytes);
+                        channel.BasicAck(deliveryTag: ea.DeliveryTag,
+                          multiple: false);
+                    }
+                };
+            }
+        }
+
+        #endregion 【消息队列服务】
 
         public object getChargingStatus(string sn)
         {
@@ -167,135 +278,6 @@ namespace CPS.Communication.Service
                 default:
                     break;
             }
-        }
-
-        private void LoginIn(Client client, LoginPacket args)
-        {
-            ThreadPool.QueueUserWorkItem(new WaitCallback((state) =>
-            {
-                if (client == null || args == null) return;
-
-                string sn = args.SerialNumber;
-                string username = args.Username;
-                string pwd = args.Pwd;
-
-                if (string.IsNullOrEmpty(sn)
-                    || string.IsNullOrEmpty(username)
-                    || string.IsNullOrEmpty(pwd))
-                    throw new ArgumentNullException("参数不正确");
-
-                LoginResultPacket packet = new LoginResultPacket()
-                {
-                    SerialNumber = sn,
-                };
-
-                try
-                {
-                    // 已经登录
-                    if (client.HasLogined)
-                    {
-                        packet.ResultEnum = LoginResultTypeEnum.HasLogined;
-                    }
-                    else
-                    {
-                        try
-                        {
-                            var cp = EntityContext.CPS_ChargingPile.Where(_ => _.SerialNumber == sn).First();
-
-                            // 登录成功
-                            if (cp.Username == username && cp.Pwd == pwd)
-                            {
-                                packet.ResultEnum = LoginResultTypeEnum.Succeed;
-
-                                client.SerialNumber = sn;
-                                client.HasLogined = packet.HasLogined;
-                            }
-                            else // 用户名或密码不正确
-                                packet.ResultEnum = LoginResultTypeEnum.SecretKeyFailed;
-                        }
-                        catch (Exception ex)
-                        {
-                            // 设备不存在
-                            packet.ResultEnum = LoginResultTypeEnum.NotExists;
-                        }
-                    }                    
-                }
-                catch (Exception ex)
-                {
-                    // 其他
-                    packet.ResultEnum = LoginResultTypeEnum.Others;
-                    Console.WriteLine(ex.Message);
-                }
-
-                // for test.
-                client.SerialNumber = sn;
-                client.HasLogined = packet.HasLogined;
-
-                var now = DateTime.Now;
-                packet.TimeStamp = now.ConvertToTimeStampX();
-                client.Send(packet);
-
-                string loginState = packet.ResultString;
-                Console.WriteLine($"----客户端 {client.ID} 于{now} 登录： {loginState}!");
-            }));
-        }
-
-        public async Task<bool> Reboot(string serialNumber)
-        {
-            RebootPacket packet = new RebootPacket()
-            {
-                SerialNumber = serialNumber,
-                OperType = OperTypeEnum.RebootOper,
-            };
-
-            var client = MyServer.FindClientBySerialNumber(serialNumber);
-            if (client == null)
-            {
-                return false;
-                //throw new ArgumentNullException("客户端尚未连接...");
-            }
-
-            var result = await StartSession(client, packet);
-            if (result == null)
-                return false;
-            else
-            {
-                var data = result as RebootResultPacket;
-                return data.ResultBoolean;
-            }
-        }
-
-        public async Task<object> StartSession(Client client, OperPacketBase packet)
-        {
-            Session session = new Session(client, packet);
-            Sessions.AddSession(session);
-
-            var result = MyServer.Send(client, packet);
-            if (!result)
-                return null;
-
-            var completed = await session.WaitSessionCompleted();
-            if (completed)
-            {
-                object obj = session.Result;
-                Sessions.RemoveSession(session);
-                return obj;
-            }
-            else
-                return null;
-        }
-
-        public void SessionCompleted(Client client, OperPacketBase packet)
-        {
-            ThreadPool.QueueUserWorkItem(new WaitCallback((state) =>
-            {
-                var matched = Sessions.MatchSession(client, packet);
-                if (matched != null)
-                {
-                    matched.IsCompleted = true;
-                    matched.Result = packet;
-                }
-            }));
         }
 
         private bool disposed = false;

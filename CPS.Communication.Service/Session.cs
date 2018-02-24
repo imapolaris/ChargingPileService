@@ -11,7 +11,7 @@ namespace CPS.Communication.Service
 {
     public delegate bool SessionCompletedCallback(Client client, object result, bool state);
 
-    public class Session
+    internal class Session
     {
         public Guid SessionId { get; private set; }
         public Client MyClient { get; set; }
@@ -261,7 +261,7 @@ namespace CPS.Communication.Service
         }
     }
 
-    public class SessionCollection : IEnumerable<Session>
+    internal class SessionCollection : IEnumerable<Session>
     {
         private List<Session> _sessions;
         public List<Session> Sessions

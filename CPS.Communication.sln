@@ -9,13 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CPS.Communication.Service",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CPS.Infrastructure", "CPS.Infrastructure\CPS.Infrastructure.csproj", "{099D33EE-0E51-41B8-BED7-0C6272B38327}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{BF556E6B-CE1D-47D0-B74D-238E55B54BF1}"
-	ProjectSection(SolutionItems) = preProject
-		start.Server.AsWindowsService.bat = start.Server.AsWindowsService.bat
-		start.Server.InConsoleHost.bat = start.Server.InConsoleHost.bat
-		stop.Server.AsWindowsService.bat = stop.Server.AsWindowsService.bat
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

@@ -9,7 +9,7 @@ namespace ChargingPileService
 {
     public abstract class OperatorBase : ApiController
     {
-        protected bool IsDispose;
+        protected bool IsDispose=false;
         protected CPS_Entities EntityContext;
         public OperatorBase()
             : base()
@@ -17,19 +17,18 @@ namespace ChargingPileService
             EntityContext = new CPS_Entities();
         }
 
-        public new void Dispose()
+        public new virtual void Dispose()
         {
-            base.Dispose();
-            Dispose(IsDispose);
+            Dispose(false);
+            GC.SuppressFinalize(this);
         }
         protected new virtual void Dispose(bool isDispose)
         {
             base.Dispose(isDispose);
 
-            if (!isDispose)
+            if (!IsDispose)
             {
                 EntityContext.Dispose();
-                GC.SuppressFinalize(this);
                 IsDispose = true;
             }
         }

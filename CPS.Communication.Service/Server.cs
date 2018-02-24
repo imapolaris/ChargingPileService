@@ -16,7 +16,7 @@ using System.Collections;
 
 namespace CPS.Communication.Service
 {
-    public class Server : IDisposable
+    internal class Server : IDisposable
     {
         private Socket _listener;
         private bool _closing = false;
@@ -36,7 +36,7 @@ namespace CPS.Communication.Service
         /// </summary>
         Thread ThreadHeartbeatDetection;
         /// <summary>
-        /// 服务端发送心跳包线程
+        /// 服务端发送心跳检测包线程
         /// </summary>
         Thread ThreadHeartbeatFromServer;
 
@@ -124,7 +124,7 @@ namespace CPS.Communication.Service
         }
 
         /// <summary>
-        /// 启动心跳检测
+        /// 检测客户端心跳包
         /// </summary>
         private void StartHeartbeatCheck()
         {
@@ -171,6 +171,9 @@ namespace CPS.Communication.Service
             ThreadHeartbeatDetection.Start();
         }
 
+        /// <summary>
+        /// 由服务端发送心跳检测包
+        /// </summary>
         private void SendHeartbeatFromServer()
         {
             ThreadHeartbeatFromServer = new Thread(() =>
@@ -307,7 +310,7 @@ namespace CPS.Communication.Service
             if (args != null)
             {
                 //Logger.Instance.Error(args.ToString());
-                Console.WriteLine($"####{args.ToString()}");
+                Logger.Info($"####{args.ToString()}");
             }
         }
 
@@ -326,7 +329,7 @@ namespace CPS.Communication.Service
                 Client client = sender as Client;
                 if (this._clients != null)
                 {
-                    Console.WriteLine($"发送数据异常，关闭远程客户端：{client.ID}");
+                    Logger.Info($"发送数据异常，关闭远程客户端：{client.ID}");
                     this._clients.RemoveClient(client);
                 }
             }
@@ -371,7 +374,7 @@ namespace CPS.Communication.Service
 
         private void Client_ClientClosed(object sender, ClientClosedEventArgs args)
         {
-            Console.WriteLine($"----客户端 {args.Id} 断开连接!");
+            Logger.Info($"----客户端 {args.Id} 断开连接!");
         }
 
         private void handleSocketException(SocketException se, ErrorTypes eType)
@@ -387,7 +390,7 @@ namespace CPS.Communication.Service
             }
             catch (ArgumentNullException ane)
             {
-                Console.WriteLine($"充电桩不存在：{ane.Message}");
+                Logger.Info($"充电桩不存在：{ane.Message}");
             }
             catch (InvalidOperationException ioe)
             {

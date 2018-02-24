@@ -7,15 +7,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using Topshelf;
 
 namespace CPS.Communication.Service
 {
+    using Topshelf;
+
     class Program
     {
         static void Main(string[] args)
         {
-            var rc = HostFactory.Run(x =>
+            HostFactory.Run(x =>
             {
                 x.Service<CommunicationServer>(s =>
                 {
@@ -31,24 +32,95 @@ namespace CPS.Communication.Service
 
                 x.UseLog4Net("./log4net.config", true);
             });
-
-            var exitCode = (int)Convert.ChangeType(rc, rc.GetTypeCode());
-            Environment.ExitCode = exitCode;
-            Logger.Info($"启动结果：{exitCode}");
         }
     }
 
     public class CommunicationServer : IDisposable
     {
-        readonly ChargingService MyService;// = ChargingService.Instance;
+        readonly ChargingService MyService = ChargingService.Instance;
 
-        public CommunicationServer() { }
+        public CommunicationServer()
+        {}
 
         public void Start()
         {
             InitEnv();
             PrintStartInfo();
+        }
 
+        public void Stop()
+        {
+            PrintStopInfo();
+            Dispose();
+        }
+
+        private void InitEnv()
+        {
+            Console.Title = "充电桩通信服务控制台";
+            Console.BackgroundColor = ConsoleColor.Black;
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WindowWidth = Console.LargestWindowWidth / 2;
+            Console.BufferWidth = Console.LargestWindowWidth / 2;
+        }
+
+        private void PrintStartInfo()
+        {
+            Console.Clear();
+            Console.WriteLine("-----------------------开始充电桩通信服务-----------------------");
+            Console.WriteLine($"启动时间：{DateTime.Now.ToString("yyyy年MM月dd日 HH:mm:ss")}");
+            Console.WriteLine($"版本：{"Ver 1.0"}");
+            Console.WriteLine("----------------------------------------------------------------");
+            Console.WriteLine("服务正在运行 ......(输入 Control+C 停止服务)\n");
+        }
+
+        private void PrintStopInfo()
+        {
+            Logger.Info("\n-----------------------结束充电桩通信服务-----------------------");
+        }
+
+        private void Server_ServerStopped(object sender, Service.Events.ServerStoppedEventArgs args)
+        {
+            Logger.Info("Server Stopped!\n");
+        }
+
+        private void Server_ServerStarted(object sender, Service.Events.ServerStartedEventArgs args)
+        {
+            Logger.Info("Server Started!\n");
+        }
+
+        private void Server_ClientAccepted(object sender, Service.Events.ClientAcceptedEventArgs args)
+        {
+            Logger.Info($"----客户端 {args.CurClient.ID} 已连接！\n");
+        }
+
+        private void Server_ErrorOccurred(object sender, Service.Events.ErrorEventArgs args)
+        {
+            Logger.Info("Error:" + args.ErrorMessage);
+        }
+
+        #region 【IDisposable Support】
+
+        private bool disposedValue = false;
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                MyService?.Dispose();
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        #endregion 【IDisposable Support】
+
+        #region 【测试】
+        private void TestCase()
+        {
             while (true)
             {
                 string input = Console.ReadLine();
@@ -91,66 +163,6 @@ namespace CPS.Communication.Service
             }
         }
 
-        public void Stop()
-        {
-            PrintStopInfo();
-            Dispose();
-        }
-
-        private void InitEnv()
-        {
-            Console.Title = "充电桩通信服务控制台";
-            Console.BackgroundColor = ConsoleColor.Black;
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WindowWidth = Console.LargestWindowWidth / 2;
-            Console.BufferWidth = Console.LargestWindowWidth / 2;
-        }
-
-        private void PrintStartInfo()
-        {
-            Console.Clear();
-            Console.WriteLine("-----------------------开始充电桩通信服务-----------------------");
-            Console.WriteLine($"启动时间：{DateTime.Now.ToString("yyyy年MM月dd日 HH:mm:ss")}");
-            Console.WriteLine($"版本：{"Ver 1.0"}");
-            Console.WriteLine("----------------------------------------------------------------");
-            Console.WriteLine("服务正在运行 ......(输入 Control+C 停止服务)\n");
-        }
-
-        private void PrintStopInfo()
-        {
-            Console.WriteLine("\n-----------------------结束充电桩通信服务-----------------------");
-        }
-
-        private void Server_ServerStopped(object sender, Service.Events.ServerStoppedEventArgs args)
-        {
-            Console.WriteLine("Server Stopped!");
-        }
-
-        private void Server_ServerStarted(object sender, Service.Events.ServerStartedEventArgs args)
-        {
-            Console.WriteLine("Server Started!");
-        }
-
-        private void Server_ClientAccepted(object sender, Service.Events.ClientAcceptedEventArgs args)
-        {
-            Console.WriteLine($"----客户端 {args.CurClient.ID} 已连接！");
-        }
-
-        private void Server_ErrorOccurred(object sender, Service.Events.ErrorEventArgs args)
-        {
-            Console.WriteLine("Error:" + args.ErrorMessage);
-        }
-
-        /// <summary>
-        /// 启动redis
-        /// </summary>
-        /// <returns></returns>
-        private bool LaunchRedis()
-        {
-            return true;
-        }
-
-        #region ====测试====
         private async void Reboot()
         {
             var state = await MyService.Reboot("1234567890AbcBCa");
@@ -206,23 +218,6 @@ namespace CPS.Communication.Service
                 Console.WriteLine("停止充电失败！");
         }
 
-        #region IDisposable Support
-        private bool disposedValue = false;
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                MyService?.Dispose();
-                disposedValue = true;
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-        #endregion
-        #endregion ====测试====
+        #endregion 【测试】
     }
 }

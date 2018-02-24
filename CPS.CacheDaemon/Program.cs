@@ -34,7 +34,7 @@ namespace CPS.CacheDaemon
                 x.StartManually();
                 x.RunAsLocalSystem();
 
-                x.SetDescription("cps -- cache daemon service");
+                x.SetDescription("cps--cache daemon service");
                 x.SetDisplayName("CPS.CacheDaemon");
                 x.SetInstanceName("CPS.CacheDaemon");
 

@@ -26,6 +26,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{F1428EEC
 		publish.bat = publish.bat
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProductsApp", "ProductsApp\ProductsApp.csproj", "{AFBE3D04-BF3F-44DB-B21E-6EE5764EA411}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -64,6 +66,10 @@ Global
 		{D2E1A01C-7A07-4ECB-8D78-8F0229EADB77}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D2E1A01C-7A07-4ECB-8D78-8F0229EADB77}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D2E1A01C-7A07-4ECB-8D78-8F0229EADB77}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AFBE3D04-BF3F-44DB-B21E-6EE5764EA411}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AFBE3D04-BF3F-44DB-B21E-6EE5764EA411}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AFBE3D04-BF3F-44DB-B21E-6EE5764EA411}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AFBE3D04-BF3F-44DB-B21E-6EE5764EA411}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
