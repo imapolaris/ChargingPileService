@@ -51,6 +51,7 @@
   <ItemGroup>
     <Compile Include="Cache\ICacheManager.cs" />
     <Compile Include="Exceptions\CacheException.cs" />
+    <Compile Include="Models\LngLat.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Redis\RedisBase.cs" />
     <Compile Include="Redis\RedisConfiguration.cs" />

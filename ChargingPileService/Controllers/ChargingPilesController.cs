@@ -1,6 +1,7 @@
 ﻿using ChargingPileService.Models;
 using CPS.Entities;
 using CPS.Infrastructure.Utils;
+using Soaring.WebMonter.Contract.Manager;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,18 +11,22 @@ using System.Web.Http;
 
 namespace ChargingPileService.Controllers
 {
-    [RoutePrefix("api/chargingPiles")]
+    [RoutePrefix("api/chargingpiles")]
     public class ChargingPilesController : OperatorBase
     {
-        public IEnumerable<ChargingPile> GetChargingPilesByStationId(string id)
+        [HttpGet]
+        public IEnumerable<Sys_ChargingPile> GetChargingPilesByStationId(string stationId)
         {
-            return EntityContext.CPS_ChargingPile.Where(_ => _.StationId == id);
+            return SysDbContext.ChargingPiles.Where(_ => _.StationId == stationId).ToList();
         }
 
-        [HttpGet]
+        [HttpPost]
         [Route("subscribe")]
-        public IHttpActionResult Subscribe(string userId, string sn)
+        public IHttpActionResult Subscribe(dynamic obj)
         {
+            string userId = obj.userId;
+            string sn = obj.sn;
+
             var exists = EntityContext.CPS_ChargingPile.Any(_ => _.SerialNumber == sn);
             if (!exists)
             {
