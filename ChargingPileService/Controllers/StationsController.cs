@@ -55,7 +55,7 @@ namespace ChargingPileService.Controllers
                 var exists = SysDbContext.Stations.Any(_ => _.Id == stationId);
                 if (exists)
                 {
-                    station = SysDbContext.Stations.Where(_ => _.Id == stationId).First();
+                    station = SysDbContext.Stations.Include("Detail").Where(_ => _.Id == stationId).First();
                     var c_s = HisDbContext.CustomerStations.Where(_ => _.CustomerId == userId && _.StationId == stationId).FirstOrDefault();
                     if (c_s == null)
                         station.C_S = new CustomerStation();
@@ -119,11 +119,14 @@ namespace ChargingPileService.Controllers
             string userId = obj.userId;
             string stationId = obj.stationId;
             var entities = HisDbContext.CustomerStations.Where(_ => _.CustomerId == userId && _.StationId == stationId);
+            var message = "收藏成功";
             if (entities != null && entities.Count() > 0)
             {
                 foreach (var entity in entities)
                 {
                     entity.IsCollect = !entity.IsCollect;
+                    if (!entity.IsCollect)
+                        message = "取消收藏";
                 }
             }
             else
@@ -139,13 +142,15 @@ namespace ChargingPileService.Controllers
             }
 
             HisDbContext.SaveChanges();
-            return Ok(SimpleResult.Succeed("操作成功！"));
+            return Ok(SimpleResult.Succeed(message));
         }
 
         [HttpPost]
         [Route("collect/clear")]
-        public IHttpActionResult ClearCollectStations([FromBody]string userId)
+        public IHttpActionResult ClearCollectStations(dynamic obj)
         {
+            string userId = obj.userId;
+
             var entities = HisDbContext.CustomerStations.Where(_ => _.CustomerId == userId && _.IsCollect);
             if (entities != null && entities.Count() > 0)
             {
