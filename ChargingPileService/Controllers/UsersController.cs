@@ -1,7 +1,7 @@
 ﻿using ChargingPileService.Models;
-using CPS.DB;
-using CPS.Entities;
+using CPS.Infrastructure.Enums;
 using CPS.Infrastructure.Utils;
+using Soaring.WebMonter.Contract.Manager;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,22 +16,28 @@ namespace ChargingPileService.Controllers
     {
         [HttpPost]
         [Route("login")]
-        public IHttpActionResult Login(User user)
+        public IHttpActionResult Login(dynamic obj)
         {
+            string telephone = obj.telephone;
+            string pwd = obj.pwd;
+            CustomerTypeEnum cType = obj.cType;
+
             try
             {
-                var exists = EntityContext.CPS_User.Any(_ => _.PhoneNumber == user.PhoneNumber && _.Password == user.Password);
-                if (exists)
+                if (cType == CustomerTypeEnum.Personal)
                 {
-                    var theUser = EntityContext.CPS_User.Where(_ => _.PhoneNumber == user.PhoneNumber && _.Password == user.Password).First();
-                    return Ok(new Models.SingleResult<User>(true, "登录成功！", new CPS.Entities.User
+                    var customer = SysDbContext.PersonalCustomers.Where(_ => _.Telephone == telephone && _.Password == pwd).FirstOrDefault();
+                    if (customer != null)
                     {
-                        Id = theUser.Id,
-                        PhoneNumber = theUser.PhoneNumber,
-                        Avatar = theUser.Avatar,
-                        Gender = theUser.Gender,
-                        NickName = theUser.NickName,
-                    }));
+                        return Ok(new Models.SingleResult<PersonalCustomer>(true, "登录成功！", new PersonalCustomer
+                        {
+                            Id = customer.Id,
+                            Telephone = customer.Telephone,
+                            Avatar = customer.Avatar,
+                            Sex = customer.Sex,
+                            NickName = customer.NickName,
+                        }));
+                    }
                 }
             }
             catch (Exception ex)
@@ -39,29 +45,33 @@ namespace ChargingPileService.Controllers
                 Logger.Error(ex);
             }
 
-            return Ok(SimpleResult.Failed("手机号或密码错误！"));
+            return Ok(SimpleResult.Failed("登录失败！"));
         }
 
         [HttpPost]
         [Route("register")]
-        public IHttpActionResult Register(User user)
+        public IHttpActionResult Register(dynamic obj)
         {
-            var exists = EntityContext.CPS_User.Any(_ => _.PhoneNumber == user.PhoneNumber);
+            string telephone = obj.telephone;
+            string vcode = obj.vcode;
+            string pwd = obj.pwd;
+
+            var exists = SysDbContext.PersonalCustomers.Any(_ => _.Telephone == telephone);
             if (exists)
             {
                 return Ok(SimpleResult.Failed("手机号已注册！"));
             }
 
-            var valid = SmsServiceConfig.Instance.ValidateVCode(user.PhoneNumber, user.VCode);
+            var valid = SmsServiceConfig.Instance.ValidateVCode(telephone, vcode);
             if (valid)
             {
-                EntityContext.CPS_User.Add(new User
+                SysDbContext.PersonalCustomers.Add(new PersonalCustomer
                 {
-                    PhoneNumber = user.PhoneNumber,
-                    Password = user.Password,
-                    NickName = user.PhoneNumber,
+                    Telephone = telephone,
+                    Password = pwd,
+                    NickName = telephone,
                 });
-                EntityContext.SaveChanges();
+                SysDbContext.SaveChanges();
 
                 return Ok(SimpleResult.Succeed("注册成功，请登录！"));
             }
@@ -71,24 +81,28 @@ namespace ChargingPileService.Controllers
 
         [HttpPost]
         [Route("reset")]
-        public IHttpActionResult ResetPwd(User user)
+        public IHttpActionResult ResetPwd(dynamic obj)
         {
-            var exists = EntityContext.CPS_User.Any(_ => _.PhoneNumber == user.PhoneNumber);
+            string telephone = obj.telephone;
+            string pwd = obj.pwd;
+            string vcode = obj.vcode;
+
+            var exists = SysDbContext.PersonalCustomers.Any(_ => _.Telephone == telephone);
             if (!exists)
             {
                 return Ok(SimpleResult.Failed("手机号不存在！"));
             }
 
-            var valid = SmsServiceConfig.Instance.ValidateVCode(user.PhoneNumber, user.VCode);
+            var valid = SmsServiceConfig.Instance.ValidateVCode(telephone, vcode);
             if (valid)
             {
                 try
                 {
-                    var theUser = EntityContext.CPS_User.Where(_ => _.PhoneNumber == user.PhoneNumber).First();
-                    theUser.Password = user.Password;
-                    EntityContext.SaveChanges();
+                    var theCustomer = SysDbContext.PersonalCustomers.Where(_ => _.Telephone == telephone).First();
+                    theCustomer.Password = pwd;
+                    SysDbContext.SaveChanges();
 
-                    return Ok(SimpleResult.Succeed("重置密码成功！"));
+                    return Ok(SimpleResult.Succeed("重置成功！"));
                 }
                 catch (Exception ex)
                 {
@@ -96,25 +110,26 @@ namespace ChargingPileService.Controllers
                 }
             }
 
-            return Ok(SimpleResult.Failed("重置密码失败！"));
+            return Ok(SimpleResult.Failed("重置失败！"));
         }
 
         // 检索个人信息
         [HttpPost]
         [Route("info")]
-        public IHttpActionResult GetUserProfile(User user)
+        public IHttpActionResult GetUserProfile(dynamic obj)
         {
+            string userId = obj.userId;
             try
             {
-                var theUser = EntityContext.CPS_User.Where(_ => _.Id == user.Id).First();
+                var customer = SysDbContext.PersonalCustomers.Where(_ => _.Id == userId).First();
 
-                return Ok(new Models.SingleResult<User>(true, "", new User
+                return Ok(new Models.SingleResult<PersonalCustomer>(true, "", new PersonalCustomer
                 {
-                    Id = theUser.Id,
-                    NickName = theUser.NickName,
-                    Gender = theUser.Gender,
-                    Avatar = theUser.Avatar,
-                    PhoneNumber = theUser.PhoneNumber,
+                    Id = customer.Id,
+                    NickName = customer.NickName,
+                    Sex = customer.Sex,
+                    Avatar = customer.Avatar,
+                    Telephone = customer.Telephone,
                 }));
             }
             catch (Exception ex)
@@ -127,9 +142,9 @@ namespace ChargingPileService.Controllers
         // 更新个人信息
         [HttpPost]
         [Route("update")]
-        public IHttpActionResult UpdateUserProfile(User user)
+        public IHttpActionResult UpdateUserProfile(PersonalCustomer customer)
         {
-            var exists = EntityContext.CPS_User.Any(_ => _.Id == user.Id);
+            var exists = SysDbContext.PersonalCustomers.Any(_ => _.Id == customer.Id);
             if (!exists)
             {
                 return Ok(SimpleResult.Failed("用户不存在！"));
@@ -137,26 +152,30 @@ namespace ChargingPileService.Controllers
 
             try
             {
-                var theUser = EntityContext.CPS_User.Where(_ => _.Id == user.Id).First();
-                theUser.Avatar = user.Avatar;
-                theUser.NickName = user.NickName;
-                theUser.Gender = user.Gender;
-                EntityContext.SaveChanges();
+                var theCustomer = SysDbContext.PersonalCustomers.Where(_ => _.Id == customer.Id).First();
+                theCustomer.Avatar = customer.Avatar;
+                theCustomer.NickName = customer.NickName;
+                theCustomer.Sex = customer.Sex;
+                SysDbContext.SaveChanges();
 
-                return Ok(SimpleResult.Succeed("修改个人资料成功！"));
+                return Ok(SimpleResult.Succeed("修改成功！"));
             }
             catch (Exception ex)
             {
                 Logger.Error(ex);
-                return Ok(SimpleResult.Failed("修改个人资料失败！"));
+                return Ok(SimpleResult.Failed("修改失败！"));
             }
         }
 
         [HttpPost]
         [Route("change")]
-        public IHttpActionResult ChangePwd(User user)
+        public IHttpActionResult ChangePwd(dynamic obj)
         {
-            var exists = EntityContext.CPS_User.Any(_ => _.Id == user.Id && _.Password == user.Password);
+            string userId = obj.id;
+            string oldPwd = obj.oldPwd;
+            string newPwd = obj.newPwd;
+
+            var exists = SysDbContext.PersonalCustomers.Any(_ => _.Id == userId && _.Password == oldPwd);
             if (!exists)
             {
                 return Ok(SimpleResult.Failed("原密码不正确！"));
@@ -164,9 +183,9 @@ namespace ChargingPileService.Controllers
 
             try
             {
-                var theUser = EntityContext.CPS_User.Where(_ => _.Id == user.Id && _.Password == user.Password).First();
-                theUser.Password = user.NewPassword;
-                EntityContext.SaveChanges();
+                var customer = SysDbContext.PersonalCustomers.Where(_ => _.Id == userId && _.Password == oldPwd).First();
+                customer.Password = newPwd;
+                SysDbContext.SaveChanges();
 
                 return Ok(SimpleResult.Succeed("修改密码成功！"));
             }

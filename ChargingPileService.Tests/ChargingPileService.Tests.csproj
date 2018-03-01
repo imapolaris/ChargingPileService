@@ -79,6 +79,7 @@
     <Compile Include="DbTest.cs" />
     <Compile Include="MapTest.cs" />
     <Compile Include="PayTest.cs" />
+    <Compile Include="SmsServiceTest.cs" />
     <Compile Include="UtilsTest.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -100,6 +101,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\CPS.Infrastructure\redis.config">
+      <Link>redis.config</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>

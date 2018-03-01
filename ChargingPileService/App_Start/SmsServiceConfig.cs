@@ -1,4 +1,6 @@
-﻿using CPS.Infrastructure.Utils;
+﻿using CPS.Infrastructure.Redis;
+using CPS.Infrastructure.Utils;
+using CSRedis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,10 +12,12 @@ namespace ChargingPileService
     public class SmsServiceConfig
     {
         private static readonly int VCodeValidityDuration = ConfigHelper.VCodeValidityDuration;
-        private List<SmsEntity> SmsContainer;
         private Timer _timer;
         private bool registered = false;
-        private ManualResetEvent _resetEvent = new ManualResetEvent(true);
+
+        private const string SMSContainerKey = "SMSContainer";
+        private readonly RedisClient _client = null;
+        private ManualResetEvent _manualEvent = new ManualResetEvent(true);
 
         public void Register()
         {
@@ -21,10 +25,11 @@ namespace ChargingPileService
             {
                 registered = !registered;
 
-                SmsContainer = new List<SmsEntity>();
-                _timer = new Timer(RunClear, null, VCodeValidityDuration * 1000, VCodeValidityDuration*1000);
+                _timer = new Timer(RunClear, null, VCodeValidityDuration * 1000, 500);
             }
         }
+
+        #region 【singleton】
 
         public static SmsServiceConfig Instance
         {
@@ -37,60 +42,63 @@ namespace ChargingPileService
                 return _instance;
             }
         }
-        private SmsServiceConfig() { }
+        private SmsServiceConfig()
+        {
+            _client = RedisManager.GetClient();
+        }
         private static SmsServiceConfig _instance;
+
+        #endregion 【singleton】
 
         public bool ValidateVCode(string phoneNumber, string vcode)
         {
-            var exists = SmsContainer.Any(_ => _.PhoneNumber == phoneNumber && _.VCode == vcode && !_.Expired);
-            if (exists)
-            {
-                _resetEvent.Reset();
-
-                SmsContainer.ForEach(_ =>
-                {
-                    if (_.PhoneNumber == phoneNumber)
-                    {
-                        _.Expired = true;
-                    }
-                });
-
-                _resetEvent.Set();
-            }
-
-            Logger.Info($"container length: {SmsContainer.Count()}, \nvalidate vcode: {phoneNumber}:{vcode}");
-
-            return exists;
+            var json = _client.HGet(SMSContainerKey, phoneNumber);
+            if (string.IsNullOrEmpty(json))
+                return false;
+            var entity = JsonHelper.Deserialize<SmsEntity>(json);
+            if (entity != null && entity.VCode == vcode)
+                return true;
+            return false;
         }
 
         public void AppendVCode(string phoneNumber, string vcode)
         {
-            _resetEvent.Reset();
-
-            SmsContainer.Add(new SmsEntity()
-            {
-                PhoneNumber = phoneNumber,
-                VCode = vcode,
-                RegisterDate = DateTime.Now,
-            });
-
-            _resetEvent.Set();
-
-            Logger.Info($"add vcode: {phoneNumber}:{vcode}");
+            _client.HSet(SMSContainerKey,
+                phoneNumber,
+                new SmsEntity()
+                {
+                    PhoneNumber = phoneNumber,
+                    VCode = vcode,
+                    RegisterDate = DateTime.Now,
+                });
         }
 
-        private void RunClear(object state)
+        public void RunClear(object state)
         {
-            _resetEvent.Reset();
+            _manualEvent.Reset();
 
             var now = DateTime.Now;
-            SmsContainer.RemoveAll(_=>
+            var fs = _client.HKeys(SMSContainerKey);
+            if (fs == null || fs.Length <= 0) return;
+            var collection = _client.HMGet(SMSContainerKey, fs);
+            if (collection != null && collection.Length > 0)
             {
-                return _.Expired
-                    || (now - _.RegisterDate).TotalSeconds > VCodeValidityDuration;
-            });
+                List<string> fields = new List<string>();
+                foreach (var item in collection)
+                {
+                    var entity = JsonHelper.Deserialize<SmsEntity>(item);
+                    if ((now - entity.RegisterDate).TotalSeconds >= VCodeValidityDuration)
+                    {
+                        fields.Add(entity.PhoneNumber);
+                    }
+                }
+                if (fields.Count > 0)
+                {
+                    _client.HDel(SMSContainerKey, fields.ToArray());
+                }
+            }
 
-            _resetEvent.Set();
+            _manualEvent.Set();
         }
     }
 
@@ -99,9 +107,10 @@ namespace ChargingPileService
         public string PhoneNumber { get; set; }
         public string VCode { get; set; }
         public DateTime RegisterDate { get; set; }
-        /// <summary>
-        /// 是否过期，用来清除验证码列表的标识
-        /// </summary>
-        public bool Expired { get; set; } = false;
+
+        public override string ToString()
+        {
+            return JsonHelper.Serialize(this);
+        }
     }
 }

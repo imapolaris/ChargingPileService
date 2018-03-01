@@ -110,7 +110,7 @@ namespace CPS.Infrastructure.Utils
         static Configuration GetConfiguration(string configFileName)
         {
             var configFile = new ExeConfigurationFileMap();
-            configFile.ExeConfigFilename = configFileName;
+            configFile.ExeConfigFilename = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, configFileName);
             return ConfigurationManager.OpenMappedExeConfiguration(configFile, ConfigurationUserLevel.None);
         }
     }

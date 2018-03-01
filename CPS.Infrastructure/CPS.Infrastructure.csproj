@@ -38,7 +38,12 @@
       <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.11.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -50,6 +55,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Cache\ICacheManager.cs" />
+    <Compile Include="Enums\CustomerEnum.cs" />
     <Compile Include="Exceptions\CacheException.cs" />
     <Compile Include="Models\LngLat.cs" />
     <Compile Include="Program.cs" />
@@ -64,6 +70,7 @@
     <Compile Include="Utils\DateHelper.cs" />
     <Compile Include="Utils\EncryptHelper.cs" />
     <Compile Include="Utils\EncodeHelper.cs" />
+    <Compile Include="Utils\JsonHelper.cs" />
     <Compile Include="Utils\Logger.cs" />
     <Compile Include="Utils\MapHelper.cs" />
   </ItemGroup>
@@ -76,8 +83,12 @@
     <None Include="redis.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Libs\csredis.dll" />
-    <Content Include="Libs\csredis.XML" />
+    <Content Include="Libs\csredis.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Libs\csredis.XML">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
