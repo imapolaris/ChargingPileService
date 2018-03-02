@@ -1,14 +1,15 @@
-﻿using log4net;
-using log4net.Config;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using log4net.Core;
 
 namespace CPS.Infrastructure.Utils
 {
+    using System.IO;
+    using log4net;
+    using log4net.Config;
+
     public class Logger
     {
         private static readonly ILog _log;
@@ -18,7 +19,8 @@ namespace CPS.Infrastructure.Utils
 
         static Logger()
         {
-            XmlConfigurator.ConfigureAndWatch(new System.IO.FileInfo("./log4net.config"));
+            string configFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "./log4net.config");
+            XmlConfigurator.ConfigureAndWatch(new FileInfo(configFile));
             _log = LogManager.GetLogger(typeof(Logger));
         }
 

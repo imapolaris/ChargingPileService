@@ -1,4 +1,7 @@
-﻿using System;
+﻿using ChargingPileService.Models;
+using CPS.Infrastructure.Utils;
+using Soaring.WebMonter.Contract.History;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -7,8 +10,48 @@ using System.Web.Http;
 
 namespace ChargingPileService.Controllers
 {
-    public class BatteryTestingController : ApiController
+    [RoutePrefix("api/batterytesting")]
+    public class BatteryTestingController : OperatorBase
     {
+        [HttpGet]
+        public IEnumerable<BatteryCheckResult> GetBatteryTestingReports(string userId)
+        {
+            return HisDbContext.BatteryCheckResults.Where(_ => _.CustomerId == userId);
+        }
 
+        [HttpGet]
+        public IHttpActionResult GetBatteryTestingReportDetail(string reportId)
+        {
+            var result = HisDbContext.BatteryCheckResultDetails.Where(_ => _.ReportId == reportId).FirstOrDefault();
+            return Ok(new Models.SingleResult<BatteryCheckResultDetail>(true, "查找到报告详情！", result));
+        }
+
+        [HttpPost]
+        [Route("submit")]
+        public IHttpActionResult SubmitBatteryTestingReport(BatteryCheckResult report)
+        {
+            return Ok();
+        }
+
+        [HttpPost]
+        [Route("start")]
+        public IHttpActionResult StartBatteryTesting()
+        {
+            return Ok();
+        }
+
+        [HttpPost]
+        [Route("stop")]
+        public IHttpActionResult StopBatteryTesting()
+        {
+            return Ok();
+        }
+
+        [HttpPost]
+        [Route("monitor")]
+        public IHttpActionResult QueryBatteryTestingProcess(string processId)
+        {
+            return Ok();
+        }
     }
 }
