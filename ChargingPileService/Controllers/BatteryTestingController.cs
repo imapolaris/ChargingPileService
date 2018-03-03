@@ -16,7 +16,16 @@ namespace ChargingPileService.Controllers
         [HttpGet]
         public IEnumerable<BatteryCheckResult> GetBatteryTestingReports(string userId)
         {
-            return HisDbContext.BatteryCheckResults.Where(_ => _.CustomerId == userId);
+            var results = HisDbContext.BatteryCheckResults.Where(_ => _.CustomerId == userId).ToList();
+            var ids = results.Select(_ => _.VehicleId).ToList();
+            var vs = SysDbContext.VehicleInfoes.Where(p => ids.Contains(p.Id)).ToList();
+
+            foreach (var x in results)
+            {
+                x.Vehicle = vs.FirstOrDefault(p => x.VehicleId == p.Id);
+            }
+
+            return results;
         }
 
         [HttpGet]

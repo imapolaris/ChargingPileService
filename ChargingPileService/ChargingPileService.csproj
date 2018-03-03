@@ -176,6 +176,7 @@
     <Compile Include="Controllers\SubscribeRecordsController.cs" />
     <Compile Include="Controllers\SystemController.cs" />
     <Compile Include="Controllers\UsersController.cs" />
+    <Compile Include="Controllers\VehicleController.cs" />
     <Compile Include="Controllers\WalletController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -196,6 +197,10 @@
     </Content>
     <Content Include="..\CPS.Infrastructure\redis.config">
       <Link>redis.config</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\bin\ShareSetting.config">
+      <Link>ShareSetting.config</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <None Include="Properties\PublishProfiles\chargingpileservice.pubxml" />

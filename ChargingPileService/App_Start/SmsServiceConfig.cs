@@ -25,7 +25,7 @@ namespace ChargingPileService
             {
                 registered = !registered;
 
-                _timer = new Timer(RunClear, null, VCodeValidityDuration * 1000, 500);
+                //_timer = new Timer(RunClear, null, VCodeValidityDuration * 1000, 500);
             }
         }
 

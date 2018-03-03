@@ -23,5 +23,15 @@ namespace ChargingPileService.Models
             get { return data; }
             set { data = value; }
         }
+
+        public static SingleResult<T> Succeed(string message, T data)
+        {
+            return new SingleResult<T>(true, message, data);
+        }
+
+        public static SingleResult<T> Failed(string message, T data)
+        {
+            return new SingleResult<T>(false, message, data);
+        }
     }
 }
