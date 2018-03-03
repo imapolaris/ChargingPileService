@@ -3,8 +3,8 @@ using Aop.Api.Domain;
 using Aop.Api.Request;
 using Aop.Api.Response;
 using ChargingPileService.Models;
-using CPS.Entities;
 using CPS.Infrastructure.Utils;
+using Soaring.WebMonter.Contract.History;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,24 +19,52 @@ namespace ChargingPileService.Controllers
     public class WalletController : OperatorBase
     {
         [HttpGet]
-        [Route("balance/{userId}")]
-        public IHttpActionResult Get(string userId)
+        [Route("balance")]
+        public IHttpActionResult GetBalance(string userId)
         {
             try
             {
-                var theWallet = EntityContext.CPS_Wallet.Where(_ => _.UserId == userId).First();
-
-                var returnVal = new Models.SingleResult<double>(true, "", theWallet.Remaining);
-                return Ok(returnVal);
+                var theWallet = SysDbContext.Wallets.Where(_ => _.CustomerId == userId).FirstOrDefault();
+                return Ok(Models.SingleResult<double>.Succeed("查询成功！", theWallet.Remaining));
             }
             catch (Exception ex)
             {
                 Logger.Error(ex);
+                return NotFound();
             }
-            return Ok(SimpleResult.Failed("没有发现余额记录..."));
         }
 
         [HttpGet]
+        [Route("records")]
+        public IEnumerable<PayRecord> GetRechargeRecords(string userId)
+        {
+            return HisDbContext.PayRecords.Where(_=>_.CustomerId == userId && _.IsValid == true);
+        }
+
+        [HttpDelete]
+        [Route("clear")]
+        public IHttpActionResult ClearRechargeRecords(dynamic obj)
+        {
+            try
+            {
+                string userId = obj.userId;
+
+                var result = HisDbContext.PayRecords.Where(_ => _.CustomerId == userId).ToList();
+                if (result != null && result.Count() > 0)
+                {
+                    result.ForEach(_ => _.IsValid = false);
+                    HisDbContext.SaveChanges();
+                }
+                return Ok(SimpleResult.Succeed("操作完成！"));
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex);
+                return Ok(SimpleResult.Failed("操作失败！"));
+            }
+        }
+
+        [HttpPost]
         [Route("charge")]
         public IHttpActionResult MakeOneCharge(string userId, double money, string payway)
         {
@@ -45,12 +73,12 @@ namespace ChargingPileService.Controllers
                 var theWallet = EntityContext.CPS_Wallet.Where(_ => _.UserId == userId).First();
                 theWallet.Remaining += money;
 
-                EntityContext.CPS_PayRecord.Add(new PayRecord()
+                HisDbContext.PayRecords.Add(new PayRecord()
                 {
-                    PayDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                    PayDate = DateTime.Now,//DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
                     PayWay = payway,
                     PayMoney = money,
-                    UserId = userId,
+                    CustomerId = userId,
                 });
 
                 EntityContext.SaveChanges();
