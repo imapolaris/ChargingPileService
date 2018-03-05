@@ -11,6 +11,8 @@ namespace CPS.Infrastructure.Utils
 {
     public class ConfigHelper
     {
+        #region 【属性】
+
         public static string AliAccessKeyId
         {
             get
@@ -75,6 +77,18 @@ namespace CPS.Infrastructure.Utils
             }
         }
 
+        public static string ProductDesc
+        {
+            get
+            {
+                return ConfigurationManager.AppSettings["ProductDesc"];
+            }
+        }
+
+        #endregion 【属性】
+
+        #region 【接口】
+
         public static string GetValue(Assembly assembly, string key)
         {
             var configuration = GetConfiguration(GetConfigFileName(assembly));
@@ -113,5 +127,7 @@ namespace CPS.Infrastructure.Utils
             configFile.ExeConfigFilename = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, configFileName);
             return ConfigurationManager.OpenMappedExeConfiguration(configFile, ConfigurationUserLevel.None);
         }
+
+        #endregion 【接口】
     }
 }
