@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CPS.Infrastructure.Models;
 
 namespace CPS.Communication.Service.DataPackets
 {
-    public class SetChargingResultPacket : OperPacketBase
+    public class SetChargingResultPacket : OperPacketBase, IUniversal
     {
         public SetChargingResultPacket() : base(PacketTypeEnum.SetChargingResult)
         {
@@ -154,6 +155,19 @@ namespace CPS.Communication.Service.DataPackets
             start += 1;
             this._soc = buffer[start];
             return this;
+        }
+
+        public UniversalData GetUniversalData()
+        {
+            UniversalData data = new UniversalData();
+            data.SetValue("transSn", this._transactionSN);
+            data.SetValue("port", this._qport);
+            data.SetValue("oper", this._action);
+            data.SetValue("result", this._result);
+            data.SetValue("failReason", this._failReason);
+            data.SetValue("soc", this._soc);
+
+            return data;
         }
     }
 }

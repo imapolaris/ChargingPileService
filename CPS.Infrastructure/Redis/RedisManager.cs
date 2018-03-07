@@ -41,9 +41,10 @@ namespace CPS.Infrastructure.Redis
         {
             var p = "";
             var endPoint = _redisConfig.AnalyseHost(ref p);
-            var client = new RedisClient(endPoint);
-            if (!string.IsNullOrWhiteSpace(p))
-                client.Auth(_pwd);
+            //var client = new RedisClient(endPoint);
+            //if (!string.IsNullOrWhiteSpace(p))
+            //    client.Auth(_pwd);
+            var client = GetRpcClient();
             return client;
         }
 

@@ -5,79 +5,33 @@ using System.Web;
 
 namespace ChargingPileService.Controllers
 {
+    using CSRedis;
+    using CPS.Infrastructure.Redis;
     using CPS.Infrastructure.Utils;
-    using RabbitMQ.Client;
-    using RabbitMQ.Client.Events;
-    using System.Collections.Concurrent;
 
     public class MqOperatorBase : OperatorBase
     {
-        private const string RPC_CHARGING_QUEUE_NAME = @"rpc_charging_queue";
-
-        private readonly IConnection connection;
-        private readonly IModel channel;
-        private readonly string replyQueueName;
-        private readonly EventingBasicConsumer consumer;
-        private readonly BlockingCollection<string> respQueue = new BlockingCollection<string>();
-        private readonly IBasicProperties props;
+        private static readonly string Call_Channel = ConfigHelper.Message_From_Http_Channel;
+        protected SessionServiceConfig SessionService = SessionServiceConfig.Instance;
 
         public MqOperatorBase()
         {
-            var factory = new ConnectionFactory() { HostName = "localhost" };
+            
+        }
 
-            connection = factory.CreateConnection();
-            channel = connection.CreateModel();
-            replyQueueName = channel.QueueDeclare().QueueName;
-            consumer = new EventingBasicConsumer(channel);
-
-            props = channel.CreateBasicProperties();
-            var correlationId = Guid.NewGuid().ToString();
-            props.CorrelationId = correlationId;
-            props.ReplyTo = replyQueueName;
-
-            consumer.Received += (model, ea) =>
+        public virtual void Call(string msg)
+        {
+            using (var client = RedisManager.GetClient())
             {
-                var body = ea.Body;
-                var response = EncodeHelper.GetString(body);
-                if (ea.BasicProperties.CorrelationId == correlationId)
-                {
-                    respQueue.Add(response);
-                }
-            };
+                client.Publish(Call_Channel, msg);
+            }
         }
 
-        public string Rpc_Charging(string message)
+        public virtual void CallAsync(string msg)
         {
-            var messageBytes = EncodeHelper.GetBytes(message);
-            channel.BasicPublish(
-                exchange: "",
-                routingKey: RPC_CHARGING_QUEUE_NAME,
-                basicProperties: props,
-                body: messageBytes);
-
-            channel.BasicConsume(
-                consumer: consumer,
-                queue: replyQueueName,
-                autoAck: true);
-
-            return respQueue.Take();
-        }
-
-        public override void Dispose()
-        {
-            Dispose(false);
-            GC.SuppressFinalize(this);
-        }
-
-        private bool disposed = false;
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-
-            if (!disposed)
+            using (var client = RedisManager.GetClient())
             {
-                connection?.Close();
-                disposed = true;
+                client.PublishAsync(Call_Channel, msg);
             }
         }
     }

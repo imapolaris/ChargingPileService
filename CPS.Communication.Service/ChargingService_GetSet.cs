@@ -1,4 +1,5 @@
 ﻿using CPS.Communication.Service.DataPackets;
+using CPS.Infrastructure.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,7 +24,7 @@ namespace CPS.Communication.Service
             {
                 try
                 {
-                    SetElecPrice(item, sharpRate, peakRate, flatRate, valleyRate);
+                    //SetElecPrice(item, sharpRate, peakRate, flatRate, valleyRate);
                 }
                 catch (Exception ex)
                 {
@@ -32,11 +33,17 @@ namespace CPS.Communication.Service
             }
         }
 
-        public async Task<bool> SetElecPrice(string serialNumber, int sharpRate, int peakRate, int flatRate, int valleyRate)
+        public bool SetElecPrice(UniversalData data)
         {
+            string id = data.GetStringValue("id");
+            string sn = data.GetStringValue("sn");
+            int sharpRate = data.GetIntValue("sr");
+            int peakRate = data.GetIntValue("pr");
+            int flatRate = data.GetIntValue("fr");
+            int valleyRate = data.GetIntValue("vr");
             SetElecPricePacket packet = new SetElecPricePacket()
             {
-                SerialNumber = serialNumber,
+                SerialNumber = sn,
                 OperType = OperTypeEnum.SetElecPriceOper,
                 SharpRate = sharpRate,
                 PeakRate = peakRate,
@@ -44,7 +51,7 @@ namespace CPS.Communication.Service
                 ValleyRate = valleyRate,
             };
 
-            return await SetParams(serialNumber, packet);
+            return SetParams(id, sn, packet);
         }
 
         public void SetServicePriceForAll(List<string> sns, int sharpRate, int peakRate, int flatRate, int valleyRate)
@@ -56,7 +63,7 @@ namespace CPS.Communication.Service
             {
                 try
                 {
-                    SetServicePrice(item, sharpRate, peakRate, flatRate, valleyRate);
+                    //SetServicePrice(item, sharpRate, peakRate, flatRate, valleyRate);
                 }
                 catch (Exception ex)
                 {
@@ -65,11 +72,17 @@ namespace CPS.Communication.Service
             }
         }
 
-        public async Task<bool> SetServicePrice(string serialNumber, int sharpRate, int peakRate, int flatRate, int valleyRate)
+        public bool SetServicePrice(UniversalData data)
         {
+            string id = data.GetStringValue("id");
+            string sn = data.GetStringValue("sn");
+            int sharpRate = data.GetIntValue("sr");
+            int peakRate = data.GetIntValue("pr");
+            int flatRate = data.GetIntValue("fr");
+            int valleyRate = data.GetIntValue("vr");
             SetServicePricePacket packet = new SetServicePricePacket()
             {
-                SerialNumber = serialNumber,
+                SerialNumber = sn,
                 OperType = OperTypeEnum.SetServicePriceOper,
                 SharpRate = sharpRate,
                 PeakRate = peakRate,
@@ -77,168 +90,183 @@ namespace CPS.Communication.Service
                 ValleyRate = valleyRate,
             };
 
-            return await SetParams(serialNumber, packet);
+            return SetParams(id, sn, packet);
         }
 
-        public async Task<bool> SetReportInterval(string serialNumber, byte stateReportInterval, byte rtDataReportInterval)
+        public bool SetReportInterval(UniversalData data)
         {
+            string id = data.GetStringValue("id");
+            string sn = data.GetStringValue("sn");
+            byte stateReportInterval = data.GetByteValue("ri");
+            byte rtDataReportInterval = data.GetByteValue("rtri");
             SetReportIntervalPacket packet = new SetReportIntervalPacket()
             {
-                SerialNumber = serialNumber,
+                SerialNumber = sn,
                 StateReportInterval = stateReportInterval,
                 RealDataReportInterval = rtDataReportInterval,
                 OperType = OperTypeEnum.SetReportIntervalOper,
             };
 
-            return await SetParams(serialNumber, packet);
+            return SetParams(id, sn, packet);
         }
 
-        public async Task<bool> SetTimePeriod(string serialNumber)
+        public bool SetTimePeriod(UniversalData data)
         {
+            string id = data.GetStringValue("id");
+            string sn = data.GetStringValue("sn");
             SetTimePeriodPacket packet = new SetTimePeriodPacket()
             {
-                SerialNumber = serialNumber,
+                SerialNumber = sn,
                 OperType = OperTypeEnum.SetTimePeriodOper,
             };
 
-            return await SetParams(serialNumber, packet);
+            return SetParams(id, sn, packet);
         }
 
-        public async Task<bool> SetSecretKey(string serialNumber, string key, int timestamp)
+        public bool SetSecretKey(UniversalData data)
         {
+            string id = data.GetStringValue("id");
+            string sn = data.GetStringValue("sn");
+            string key = data.GetStringValue("key");
+            int timestamp = data.GetIntValue("timestamp");
             SetSecretKeyPacket packet = new SetSecretKeyPacket()
             {
-                SerialNumber = serialNumber,
+                SerialNumber = sn,
                 SecretKey = key,
                 TimeStamp = timestamp,
                 OperType = OperTypeEnum.SetTimePeriodOper,
             };
 
-            return await SetParams(serialNumber, packet);
+            return SetParams(id, sn, packet);
         }
 
-        public async Task<bool> SetQRcode(string serialNumber)
+        public bool SetQRcode(UniversalData data)
         {
+            string id = data.GetStringValue("id");
+            string sn = data.GetStringValue("sn");
             SetQRcodePacket packet = new SetQRcodePacket()
             {
-                SerialNumber = serialNumber,
+                SerialNumber = sn,
                 OperType = OperTypeEnum.SetTimePeriodOper,
             };
 
-            return await SetParams(serialNumber, packet);
+            return SetParams(id, sn, packet);
         }
 
-        private async Task<bool> SetParams(string serialNumber, OperPacketBase packet)
+        private bool SetParams(string id, string sn, OperPacketBase packet)
         {
-            var client = MyServer.FindClientBySerialNumber(serialNumber);
+            var client = MyServer.FindClientBySerialNumber(sn);
             if (client == null)
             {
                 return false;
-                //throw new ArgumentNullException("客户端尚未连接...");
             }
 
-            var result = await StartSession(client, packet);
-            if (result == null)
-                return false;
-            else
-            {
-                if (result is ConfirmPacket)
-                    return true;
-                else
-                    return false;
-            }
+            return StartSession(id, client, packet);
         }
 
         #endregion ====Set操作====
 
         #region  ====Get操作====
-        public async Task<GetElecPriceResultPacket> GetElecPrice(string serialNumber)
+        public bool GetElecPrice(UniversalData data)
         {
+            string id = data.GetStringValue("id");
+            string sn = data.GetStringValue("sn");
             GetElecPricePacket packet = new GetElecPricePacket()
             {
-                SerialNumber = serialNumber,
+                SerialNumber = sn,
                 OperType = OperTypeEnum.GetElecPriceOper,
             };
 
-            return await GetParams<GetElecPriceResultPacket>(serialNumber, packet);
+            return GetParams(id, sn, packet);
         }
 
-        public async Task<GetServicePriceResultPacket> GetServicePrice(string serialNumber)
+        public bool GetServicePrice(UniversalData data)
         {
+            string id = data.GetStringValue("id");
+            string sn = data.GetStringValue("sn");
             GetServicePricePacket packet = new GetServicePricePacket()
             {
-                SerialNumber = serialNumber,
+                SerialNumber = sn,
                 OperType = OperTypeEnum.GetServicePriceOper,
             };
 
-            return await GetParams<GetServicePriceResultPacket>(serialNumber, packet);
+            return GetParams(id, sn, packet);
         }
 
-        public async Task<GetReportIntervalResultPacket> GetReportInterval(string serialNumber)
+        public bool GetReportInterval(UniversalData data)
         {
+            string id = data.GetStringValue("id");
+            string sn = data.GetStringValue("sn");
             GetReportIntervalPacket packet = new GetReportIntervalPacket()
             {
-                SerialNumber = serialNumber,
+                SerialNumber = sn,
                 OperType = OperTypeEnum.GetReportIntervalOper,
             };
 
-            return await GetParams<GetReportIntervalResultPacket>(serialNumber, packet);
+            return GetParams(id, sn, packet);
         }
 
-        public async Task<GetTimePeriodResultPacket> GetTimePeriod(string serialNumber)
+        public bool GetTimePeriod(UniversalData data)
         {
+            string id = data.GetStringValue("id");
+            string sn = data.GetStringValue("sn");
             GetTimePeriodPacket packet = new GetTimePeriodPacket()
             {
-                SerialNumber = serialNumber,
+                SerialNumber = sn,
                 OperType = OperTypeEnum.GetTimePeriodOper,
             };
 
-            return await GetParams<GetTimePeriodResultPacket>(serialNumber, packet);
+            return GetParams(id, sn, packet);
         }
 
-        public async Task<GetSecretKeyResultPacket> GetSecretKey(string serialNumber)
+        public bool GetSecretKey(UniversalData data)
         {
+            string id = data.GetStringValue("id");
+            string sn = data.GetStringValue("sn");
             GetSecretKeyPacket packet = new GetSecretKeyPacket()
             {
-                SerialNumber = serialNumber,
+                SerialNumber = sn,
                 OperType = OperTypeEnum.GetSecretKeyOper,
             };
 
-            return await GetParams<GetSecretKeyResultPacket>(serialNumber, packet);
+            return GetParams(id, sn, packet);
         }
         
-        public async Task<GetSoftwareVerResultPacket> GetSoftwareVer(string serialNumber)
+        public bool GetSoftwareVer(UniversalData data)
         {
+            string id = data.GetStringValue("id");
+            string sn = data.GetStringValue("sn");
             GetSoftwareVerPacket packet = new GetSoftwareVerPacket()
             {
-                SerialNumber = serialNumber,
+                SerialNumber = sn,
                 OperType = OperTypeEnum.GetSoftwareVerOper,
             };
 
-            return await GetParams<GetSoftwareVerResultPacket>(serialNumber, packet);
+            return GetParams(id, sn, packet);
         }
 
-        public async Task<GetQRcodeResultPacket> GetQRcode(string serialNumber)
+        public bool GetQRcode(UniversalData data)
         {
+            string id = data.GetStringValue("id");
+            string sn = data.GetStringValue("sn");
             GetQRcodePacket packet = new GetQRcodePacket()
             {
-                SerialNumber = serialNumber,
+                SerialNumber = sn,
                 OperType = OperTypeEnum.GetSoftwareVerOper,
             };
 
-            return await GetParams<GetQRcodeResultPacket>(serialNumber, packet);
+            return GetParams(id, sn, packet);
         }
 
-        private async Task<T> GetParams<T>(string serialNumber, OperPacketBase packet) where T : PacketBase, new()
+        private bool GetParams(string id, string sn, OperPacketBase packet)
         {
-            var client = MyServer.FindClientBySerialNumber(serialNumber);
+            var client = MyServer.FindClientBySerialNumber(sn);
             if (client == null)
             {
-                return null;
-                //throw new ArgumentNullException("客户端尚未连接...");
+                return false;
             }
 
-            return await StartSession(client, packet) as T;
+            return StartSession(id, client, packet);
         }
 
         #endregion  ====Get操作====

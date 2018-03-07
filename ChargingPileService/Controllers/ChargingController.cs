@@ -1,5 +1,5 @@
 ﻿using ChargingPileService.Models;
-using CPS.Communication.Service;
+using Soaring.WebMonter.Contract.History;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,82 +10,208 @@ using System.Web.Http;
 
 namespace ChargingPileService.Controllers
 {
+    using CPS.Infrastructure.Enums;
+    using CPS.Infrastructure.Models;
+    using CPS.Infrastructure.Utils;
+
     [RoutePrefix("api/charging")]
-    public class ChargingController : OperatorBase
+    public class ChargingController : MqOperatorBase
     {
-        static ChargingService MyService = ChargingService.Instance;
-
-        /// <summary>
-        /// 开始充电
-        /// </summary>
-        /// <param name="serialNumber">充电桩序列号</param>
-        /// <returns></returns>
-        [HttpGet]
-        [Route("start/{sn}")]
-        public async Task<IHttpActionResult> StartCharging(string sn)
+        [HttpPost]
+        [Route("start")]
+        public async Task<IHttpActionResult> StartCharging(dynamic obj)
         {
-            var status = await MyService.SetCharging(sn, 1, 0, CPS.Communication.Service.DataPackets.ActionTypeEnum.Startup, 0);
-            if (status)
-                return Ok(SimpleResult.Succeed("请开始充电！"));
-            else
-                return Ok(SimpleResult.Failed("请求服务失败！"));
-        }
-
-        /// <summary>
-        /// 结束充电
-        /// </summary>
-        /// <param name="serialNumber">充电桩序列号</param>
-        /// <returns></returns>
-        [HttpGet]
-        [Route("stop/{sn}")]
-        public IHttpActionResult StopCharging(string sn)
-        {
-            var callback = new Func<string, IHttpActionResult>((serialNumber) =>
+            try
             {
-                var status = MyService.stopCharging(serialNumber);
+                string sn = obj.sn;
+                string userId = obj.userId;
+
+                Session session = SessionService.StartOneSession();
+                UniversalData data = new UniversalData();
+                data.SetValue("id", session.Id);
+                data.SetValue("oper", MQMessageType.StartCharging);
+                data.SetValue("sn", sn);
+                data.SetValue("transSn", 1);
+                data.SetValue("port", 0);
+                data.SetValue("money", 0);
+                CallAsync(data.ToJson());
+                
+                var status = await session.WaitSessionCompleted();
                 if (status)
-                    return Ok(SimpleResult.Succeed("已结束充电！"));
+                {
+                    var result = session.GetSessionResult()?.GetBooleanValue("result") ?? false;
+                    var record = new ChargRecord()
+                    {
+                        CustomerId = userId,
+                        ChargingDate = DateTime.Now,
+                        CPSerialNumber = sn,
+                        StartDate = DateTime.Now,
+                        Cost = 0,
+                        Kwhs = 0,
+                        IsSucceed = result,
+                    };
+
+                    // 防止操作数据库期间发生错误，而此时已经开始充电，APP却得到错误的状态。
+                    try
+                    {
+                        HisDbContext.ChargingRecords.Add(record);
+                        HisDbContext.SaveChangesAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Error(ex);
+                    }
+
+                    if (result)
+                    {
+                        return Ok(Models.SingleResult<ChargRecord>.Succeed("已开始充电！", record));
+                    }
+                    else
+                    {
+                        Logger.Error("启动充电失败！");
+                        return Ok(SimpleResult.Failed("启动充电失败！"));
+                    }
+                }
                 else
-                    return Ok(SimpleResult.Failed("请求服务失败！"));
-            });
-            return ValidSerialNumber(sn, callback);
+                {
+                    Logger.Error("启动充电失败：超时！");
+                    return Ok(SimpleResult.Failed("启动充电失败！"));
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex);
+                return Ok(SimpleResult.Failed("启动充电失败！"));
+            }
         }
 
-        /// <summary>
-        /// 请求充电状态
-        /// </summary>
-        /// <param name="serialNumber">充电桩序列号</param>
-        /// <returns></returns>
-        [HttpGet]
-        [Route("status/{sn}")]
-        public IHttpActionResult RequestChargingStatus(string sn)
+        [HttpPost]
+        [Route("stop")]
+        public async Task<IHttpActionResult> StopCharging(dynamic obj)
         {
-            var callback = new Func<string, IHttpActionResult>((serialNumber) =>
+            try
             {
-                var info = MyService.getChargingStatus(serialNumber);
-                var returnVal = new Models.SingleResult<object>(true, "请求成功！", info);
-                return Ok(returnVal);
-            });
-            return ValidSerialNumber(sn, callback);
+                string userId = obj.userId;
+                string sn = obj.sn;
+                string recordId = "123";//obj.recordId;
+
+                Session session = SessionService.StartOneSession();
+                UniversalData data = new UniversalData();
+                data.SetValue("id", session.Id);
+                data.SetValue("oper", MQMessageType.StopCharging);
+                data.SetValue("sn", sn);
+                data.SetValue("transSn", 1);
+                data.SetValue("port", 0);
+                CallAsync(data.ToJson());
+
+                var status = await session.WaitSessionCompleted();
+                if (status)
+                {
+                    var result = session.GetSessionResult()?.GetBooleanValue("result") ?? false;
+                    if (result)
+                    {
+                        // 防止操作数据库期间发生错误，而此时已经结束充电，APP却得到错误的状态。
+                        try
+                        {
+                            var record = HisDbContext.ChargingRecords.Where(_ => _.Id == recordId).FirstOrDefault();
+                            // 如果开始充电时没有记录到数据库，在这里补充一条记录。
+                            if (record == null)
+                            {
+                                record = new ChargRecord()
+                                {
+                                    CustomerId = userId,
+                                    ChargingDate = DateTime.Now,
+                                    CPSerialNumber = sn,
+                                    //StartDate = DateTime.Now,
+                                    Cost = 0,
+                                    Kwhs = 0,
+                                    IsSucceed = true,
+                                    EndDate = DateTime.Now,
+                                };
+                                HisDbContext.ChargingRecords.Add(record);
+                                HisDbContext.SaveChangesAsync();
+                            }
+                            else
+                            {
+                                record.EndDate = DateTime.Now;
+                                HisDbContext.SaveChangesAsync();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Error(ex);
+                        }
+
+                        return Ok(SimpleResult.Succeed("已结束充电！"));
+                    }
+                    else
+                    {
+                        Logger.Error("结束充电失败！");
+                        return Ok(SimpleResult.Failed("结束充电失败！"));
+                    }
+                }
+                else
+                {
+                    Logger.Error("启动充电失败：超时！");
+                    return Ok(SimpleResult.Failed("启动充电失败！"));
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex);
+                return Ok(SimpleResult.Failed("结束充电失败！"));
+            }
+        }
+
+        [HttpGet]
+        [Route("status")]
+        public async Task<IHttpActionResult> RequestChargingStatus(string sn)
+        {
+            Session session = SessionService.StartOneSession();
+            UniversalData data = new UniversalData();
+            data.SetValue("id", session.Id);
+            data.SetValue("oper", MQMessageType.GetChargingPileState);
+            data.SetValue("sn", sn);
+
+            var status = await session.WaitSessionCompleted();
+            if (status)
+            {
+                var result = session.GetSessionResult()?.GetBooleanValue("result") ?? false;
+                if (result)
+                {
+                    return Ok(SimpleResult.Succeed("查询成功！"));
+                }
+                else
+                {
+                    Logger.Info("查询充电桩状态失败：充电桩没有反馈！");
+                    return Ok(SimpleResult.Failed("查询充电桩状态失败！"));
+                }
+            }
+            else
+            {
+                Logger.Info("查询充电桩状态失败：超时！");
+                return Ok(SimpleResult.Failed("查询充电桩状态失败！"));
+            }
+        }
+
+        [HttpGet]
+        [Route("summary")]
+        public IHttpActionResult GetChargingSummary(string userId)
+        {
+            return null;
+        }
+
+        [HttpGet]
+        [Route("records")]
+        public IEnumerable<ChargRecord> GetChargingRecords(string userId)
+        {
+            return HisDbContext.ChargingRecords.Where(_=>_.CustomerId == userId).OrderByDescending(_=>_.StartDate);
         }
 
         [NonAction]
-        private IHttpActionResult ValidSerialNumber(string serialNumber, Func<string, IHttpActionResult> callback)
+        private bool ValidSerialNumber(string serialNumber)
         {
-            var exists = EntityContext.CPS_ChargingPile.Any(_ => _.SerialNumber == serialNumber);
-
-            // for test.
-            exists = true;
-
-            if (exists)
-            {
-                if (callback != null)
-                {
-                    return callback.Invoke(serialNumber);
-                }
-            }
-
-            return Ok(SimpleResult.Failed("编号不存在！"));
+            return SysDbContext.ChargingPiles.Any(_ => _.SerialNumber == serialNumber);
         }
     }
 }

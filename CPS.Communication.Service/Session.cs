@@ -13,27 +13,15 @@ namespace CPS.Communication.Service
 
     internal class Session
     {
-        public Guid SessionId { get; private set; }
+        public string Id { get; private set; }
         public Client MyClient { get; set; }
         public OperPacketBase MyPacket { get; set; }
         public bool IsCompleted { get; set; }
         public object Result { get; set; }
 
-
-        /// <summary>
-        /// 消息重发次数
-        /// </summary>
-        public int RetryTimes { get; set; } = 0;
-
-        private Session()
+        public Session(string id, Client client, OperPacketBase packet)
         {
-            SessionId = Guid.NewGuid();
-            StartDate = DateTime.Now;
-        }
-
-        public Session(Client client, OperPacketBase packet)
-            : this()
-        {
+            Id = id;
             MyClient = client;
             MyPacket = packet;
         }
@@ -122,6 +110,11 @@ namespace CPS.Communication.Service
                 case PacketTypeEnum.ChargingPileState:
                     break;
                 case PacketTypeEnum.GetChargingPileState:
+                    {
+                        if (packet.Command == PacketTypeEnum.ChargingPileState)
+                            if (packet.OperType == MyPacket.OperType)
+                                return true;
+                    }
                     break;
                 case PacketTypeEnum.SetCharging:
                     {
@@ -218,46 +211,6 @@ namespace CPS.Communication.Service
                     break;
             }
             return false;
-        }
-
-        public async Task<bool> WaitSessionCompleted()
-        {
-            await Task.Run(() =>
-            {
-                while (!Outdated && !IsCompleted)
-                {
-                    Task.Delay(1000);
-                }
-            });
-
-            if (IsCompleted)
-                return true;
-            else
-            {
-                if (RetryTimes <= 0)
-                    return false;
-                else
-                {
-                    MyClient.Send(MyPacket);
-                    StartDate = DateTime.Now;
-                    RetryTimes--;
-                    return await WaitSessionCompleted();
-                }
-            }
-        }
-
-        private DateTime StartDate { get; set; }
-        /// <summary>
-        /// 超时时间（单位：毫秒）
-        /// 默认值：10秒
-        /// </summary>
-        public int Timeout { get; set; } = 10 * 1000;
-        public bool Outdated
-        {
-            get
-            {
-                return (DateTime.Now - StartDate).TotalMilliseconds > Timeout;
-            }
         }
     }
 

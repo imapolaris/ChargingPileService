@@ -1,6 +1,5 @@
 ﻿using CPS.Communication.Service.DataPackets;
 using CPS.Communication.Service.Events;
-using CPS.DB;
 using CPS.Infrastructure.Utils;
 using Newtonsoft.Json.Linq;
 using System;
@@ -12,30 +11,42 @@ using System.Threading.Tasks;
 
 namespace CPS.Communication.Service
 {
+    using Infrastructure.Enums;
+    using Infrastructure.Models;
+    using Infrastructure.MQ;
     using RabbitMQ.Client;
     using RabbitMQ.Client.Events;
+    using Soaring.WebMonter.DB;
+    using CSRedis;
+    using Infrastructure.Redis;
 
-    public partial class ChargingService : IChargingPileService, IDisposable
+    public partial class ChargingService : /*IChargingPileService,*/ IDisposable
     {
-        CPS_Entities EntityContext = new CPS_Entities();
+        SystemDbContext SysDbContext = new SystemDbContext();
+        public Server MyServer { get; set; }
 
         #region 【singleton】
 
         private ChargingService()
         {
-            StartupServer();
-
             ThreadPool.SetMaxThreads(200, 500);
 
             Sessions = new SessionCollection();
-            //StartSessionStateDetection();
 
-            new Thread(() =>
-            {
-                StartMqService();
-            })
-            { IsBackground = true }
-            .Start();
+            //new Thread(() =>
+            //{
+            //    while (true)
+            //    {
+            //        StartMqService();
+
+            //        Thread.Sleep(1);
+            //    }
+            //})
+            //{ IsBackground = true }
+            //.Start();
+
+            _client = RedisManager.GetClient();
+            RegisterMQService();
         }
 
         private static ChargingService _instance;
@@ -53,104 +64,28 @@ namespace CPS.Communication.Service
 
         #endregion 【singleton】
 
-        #region 【启动TCP服务】
-
-        internal Server MyServer { get; set; }
-
-        private void StartupServer()
-        {
-            MyServer = new Server(this);
-            MyServer.ErrorOccurred += Server_ErrorOccurred;
-            MyServer.ClientAccepted += Server_ClientAccepted;
-            MyServer.ServerStarted += Server_ServerStarted;
-            MyServer.ServerStopped += Server_ServerStopped;
-            MyServer.Listen(2222);
-        }
-
-        private static void Server_ServerStopped(object sender, Service.Events.ServerStoppedEventArgs args)
-        {
-            Logger.Info("Server Stopped!");
-        }
-
-        private static void Server_ServerStarted(object sender, Service.Events.ServerStartedEventArgs args)
-        {
-            Logger.Info("Server Started!");
-        }
-
-        private static void Server_ClientAccepted(object sender, Service.Events.ClientAcceptedEventArgs args)
-        {
-            Logger.Info($"----客户端 {args.CurClient.ID} 已连接！");
-        }
-
-        private static void Server_ErrorOccurred(object sender, Service.Events.ErrorEventArgs args)
-        {
-            Logger.Info("Error:" + args.ErrorMessage);
-        }
-
-        #endregion 【启动TCP服务】
-
         #region 【会话服务】
 
-        Thread ThreadSessionStateDetection;
-        private bool stopSessionStateDetection = false;
-        private int SessionStateDetectionInterval = 60 * 1000;
-
         private SessionCollection Sessions { get; set; }
-
-        /// <summary>
-        /// 轮询会话状态
-        /// </summary>
-        private void StartSessionStateDetection()
-        {
-            ThreadSessionStateDetection = new Thread(() =>
-            {
-                while (true)
-                {
-                    if (ThreadSessionStateDetection == null
-                        || !ThreadSessionStateDetection.IsAlive
-                        || stopSessionStateDetection)
-                        break;
-
-                    List<Session> outdatedList = new List<Session>();
-                    foreach (var item in Sessions)
-                    {
-                        if (item.Outdated || item.IsCompleted)
-                            outdatedList.Add(item);
-                    }
-
-                    foreach (var item in outdatedList)
-                    {
-                        Sessions.RemoveSession(item);
-                    }
-
-                    Thread.Sleep(SessionStateDetectionInterval);
-                }
-            })
-            { IsBackground = true };
-            ThreadSessionStateDetection.Start();
-        }
+        private static readonly string PubChannel = ConfigHelper.Message_From_Tcp_Channel;
+        private RedisClient _client = null;
 
         /// <summary>
         /// 启动会话
         /// </summary>
-        protected async Task<object> StartSession(Client client, OperPacketBase packet)
+        protected bool StartSession(string SessionId, Client client, OperPacketBase packet)
         {
-            Session session = new Session(client, packet);
-            Sessions.AddSession(session);
-
             var result = MyServer.Send(client, packet);
             if (!result)
-                return null;
-
-            var completed = await session.WaitSessionCompleted();
-            if (completed)
             {
-                object obj = session.Result;
-                Sessions.RemoveSession(session);
-                return obj;
+                return false;
             }
             else
-                return null;
+            {
+                Session session = new Session(SessionId, client, packet);
+                Sessions.AddSession(session);
+                return true;
+            }
         }
 
         /// <summary>
@@ -165,13 +100,73 @@ namespace CPS.Communication.Service
                 {
                     matched.IsCompleted = true;
                     matched.Result = packet;
+
+                    IUniversal data = packet as IUniversal;
+                    if (data == null)
+                        return;
+                    _client.Publish(PubChannel, data.GetUniversalData().ToJson());
                 }
             }));
         }
 
         #endregion 【会话】
 
-        #region 【消息队列服务】
+        #region 【注册消息队列服务】
+
+        IMqManager MqManager = null;
+        private static readonly string[] Channels = new string[] { ConfigHelper.Message_From_Http_Channel };
+        private void RegisterMQService()
+        {
+            try
+            {
+                MqManager = new MqManager_Redis(Channels);
+                MqManager.MessageReceived += MqManager_MessageReceived;
+                MqManager.Start();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex);
+            }
+        }
+
+        private void MqManager_MessageReceived(string msg)
+        {
+            UniversalData data = new UniversalData();
+            data.FromJson(msg);
+            var id = data.GetStringValue("id");
+            if (string.IsNullOrEmpty(id)) return;
+            var oper = (MQMessageType)data.GetIntValue("oper");
+            var result = false;
+            switch (oper)
+            {
+                case MQMessageType.StartCharging:
+                case MQMessageType.StopCharging:
+                    result = SetCharging(data);
+                    break;
+                case MQMessageType.GetChargingPileState:
+                    result = GetChargingPileState(data);
+                    break;
+                default:
+                    break;
+            }
+
+            if (!result)
+            {
+                UniversalData rdata = new UniversalData();
+                rdata.SetValue("id", id);
+                rdata.SetValue("result", false);
+                _client?.Publish(PubChannel, rdata.ToJson());
+            }
+        }
+
+        private void UnregisterMQService()
+        {
+            MqManager?.Stop();
+        }
+
+        #endregion
+
+        #region 【消息队列服务（暂时废弃）】
 
         private const string RPC_CHARGING_QUEUE_NAME = @"rpc_charging_queue";
 
@@ -223,23 +218,6 @@ namespace CPS.Communication.Service
 
         #endregion 【消息队列服务】
 
-        public object getChargingStatus(string sn)
-        {
-            var data = new JObject();
-            data.Add("status", 1);
-            data.Add("electric", 30);
-            return data;
-        }
-
-        public bool startCharging(string sn)
-        {
-            return true;
-        }
-
-        public bool stopCharging(string sn)
-        {
-            return true;
-        }
 
         public void ServiceFactory(Client client, PacketBase packet)
         {
@@ -266,6 +244,7 @@ namespace CPS.Communication.Service
                     SessionCompleted(client, packet as OperPacketBase);
                     break;
                 case PacketTypeEnum.ChargingPileState:
+                    SessionCompleted(client, packet as OperPacketBase);
                     ChargingPileState(client, packet);
                     break;
                 case PacketTypeEnum.RecordOfCharging:
@@ -280,6 +259,8 @@ namespace CPS.Communication.Service
             }
         }
 
+        #region 【支持dispose】
+
         private bool disposed = false;
         public void Dispose()
         {
@@ -291,14 +272,12 @@ namespace CPS.Communication.Service
         {
             if (!disposed)
             {
-                if (disposing)
-                {
-                    stopSessionStateDetection = true;
-                    ThreadSessionStateDetection = null;
-                }
+                UnregisterMQService();
 
                 disposed = true;
             }
         }
+
+        #endregion 【支持dispose】
     }
 }

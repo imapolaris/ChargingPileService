@@ -1,6 +1,6 @@
 ﻿using ChargingPileService.Models;
-using CPS.Entities;
 using CPS.Infrastructure.Utils;
+using Soaring.WebMonter.Contract.History;
 using Soaring.WebMonter.Contract.Manager;
 using System;
 using System.Collections.Generic;
@@ -27,7 +27,7 @@ namespace ChargingPileService.Controllers
             string userId = obj.userId;
             string sn = obj.sn;
 
-            var exists = EntityContext.CPS_ChargingPile.Any(_ => _.SerialNumber == sn);
+            var exists = SysDbContext.ChargingPiles.Any(_ => _.SerialNumber == sn);
             if (!exists)
             {
                 return Ok(SimpleResult.Failed("编号不存在！"));
@@ -35,25 +35,33 @@ namespace ChargingPileService.Controllers
 
             try
             {
-                var theCPile = EntityContext.CPS_ChargingPile.Where(_ => _.SerialNumber == sn).First();
-                if (/*theCPile.Status != "在线"*/false)
+                var theCPile = SysDbContext.ChargingPiles.Where(_ => _.SerialNumber == sn).First();
+                if (theCPile.Status !=  ChargingPileStatu.Free)
                 {
-                    //return Ok(SimpleResult.Failed("无法预约！"));
+                    HisDbContext.SubscribeRecords.Add(new SubscribeRecord()
+                    {
+                        SerialNumber = sn,
+                        SubscribeDate = DateTime.Now,
+                        SubscribeStatus = "预约失败",
+                        CustomerId = userId,
+                    });
+                    HisDbContext.SaveChanges();
+                    return Ok(SimpleResult.Failed("无法预约！"));
                 }
                 else
                 {
-                    theCPile.Status = "预约";
+                    theCPile.Status = ChargingPileStatu.Appointmented;
+                    SysDbContext.SaveChanges();
 
-                    // record it.
-                    EntityContext.CPS_SubscribeRecord.Add(new SubscribeRecord()
+                    HisDbContext.SubscribeRecords.Add(new SubscribeRecord()
                     {
                         SerialNumber = sn,
-                        SubscribeDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                        SubscribeDate = DateTime.Now,
                         SubscribeStatus = "预约成功",
-                        UserId = userId,
+                        CustomerId = userId,
                     });
 
-                    EntityContext.SaveChanges();
+                    HisDbContext.SaveChanges();
                 }
 
                 return Ok(SimpleResult.Succeed("预约成功！"));

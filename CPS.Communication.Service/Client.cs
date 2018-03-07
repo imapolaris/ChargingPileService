@@ -180,7 +180,7 @@ namespace CPS.Communication.Service
             }
             catch (UnConnectException uce)
             {
-                Console.WriteLine(uce.Message);
+                Logger.Error(uce);
             }
             catch (SocketException se)
             {
@@ -189,11 +189,11 @@ namespace CPS.Communication.Service
             }
             catch (ObjectDisposedException ode)
             {
-                Console.WriteLine(ode.Message);
+                Logger.Error(ode);
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Logger.Error(ex);
             }
         }
 
@@ -216,7 +216,7 @@ namespace CPS.Communication.Service
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Logger.Error(ex);
             }
         }
 
@@ -288,11 +288,11 @@ namespace CPS.Communication.Service
                 }
                 catch (ObjectDisposedException ode)
                 {
-                    Console.WriteLine(ode.Message);
+                    Logger.Error(ode);
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.Message);
+                    Logger.Error(ex);
                 }
             }
         }

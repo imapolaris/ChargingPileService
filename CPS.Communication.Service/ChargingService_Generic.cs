@@ -1,4 +1,5 @@
 ﻿using CPS.Communication.Service.DataPackets;
+using CPS.Infrastructure.Models;
 using CPS.Infrastructure.Utils;
 using System;
 using System.Collections.Generic;
@@ -45,10 +46,10 @@ namespace CPS.Communication.Service
                     {
                         try
                         {
-                            var cp = EntityContext.CPS_ChargingPile.Where(_ => _.SerialNumber == sn).First();
+                            var cp = SysDbContext.ChargingPiles.Where(_ => _.SerialNumber == sn).First();
 
                             // 登录成功
-                            if (cp.Username == username && cp.Pwd == pwd)
+                            if (cp.UserName == username && cp.Pwd == pwd)
                             {
                                 packet.ResultEnum = LoginResultTypeEnum.Succeed;
 
@@ -60,6 +61,7 @@ namespace CPS.Communication.Service
                         }
                         catch (Exception ex)
                         {
+                            Logger.Error(ex);
                             // 设备不存在
                             packet.ResultEnum = LoginResultTypeEnum.NotExists;
                         }
@@ -88,29 +90,23 @@ namespace CPS.Communication.Service
         /// <summary>
         /// 重启
         /// </summary>
-        public async Task<bool> Reboot(string serialNumber)
+        public bool Reboot(UniversalData data)
         {
+            string id = data.GetStringValue("id");
+            string sn = data.GetStringValue("sn");
             RebootPacket packet = new RebootPacket()
             {
-                SerialNumber = serialNumber,
+                SerialNumber = sn,
                 OperType = OperTypeEnum.RebootOper,
             };
 
-            var client = MyServer.FindClientBySerialNumber(serialNumber);
+            var client = MyServer.FindClientBySerialNumber(sn);
             if (client == null)
             {
                 return false;
-                //throw new ArgumentNullException("客户端尚未连接...");
             }
 
-            var result = await StartSession(client, packet);
-            if (result == null)
-                return false;
-            else
-            {
-                var data = result as RebootResultPacket;
-                return data.ResultBoolean;
-            }
+            return StartSession(id, client, packet);
         }
     }
 }

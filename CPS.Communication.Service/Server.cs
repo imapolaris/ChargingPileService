@@ -13,16 +13,17 @@ using CPS.Communication.Service.State;
 using CPS.Infrastructure.Utils;
 using CPS.Communication.Service.DataPackets;
 using System.Collections;
+using CPS.Communication.Service;
 
 namespace CPS.Communication.Service
 {
-    internal class Server : IDisposable
+    public class Server : IDisposable
     {
         private Socket _listener;
         private bool _closing = false;
         private bool _closed = false;
         private ClientCollection _clients;
-        private IChargingPileService MyChargingService;
+        private ChargingService MyChargingService;
 
         #region 心跳检测
         private const int HeartBeatInterval = 30; // 心跳间隔30秒
@@ -62,16 +63,12 @@ namespace CPS.Communication.Service
 
         public Server()
         {
+            MyChargingService = ChargingService.Instance;
+            MyChargingService.MyServer = this;
             _clients = new ClientCollection();
 
             //StartHeartbeatCheck();
             //SendHeartbeatFromServer();
-        }
-
-        public Server(ChargingService service)
-            : this()
-        {
-            MyChargingService = service;
         }
 
         public void Listen(int port)
@@ -309,7 +306,6 @@ namespace CPS.Communication.Service
         {
             if (args != null)
             {
-                //Logger.Instance.Error(args.ToString());
                 Logger.Info($"####{args.ToString()}");
             }
         }
@@ -335,7 +331,7 @@ namespace CPS.Communication.Service
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Logger.Error(ex);
             }
         }
 
@@ -368,7 +364,7 @@ namespace CPS.Communication.Service
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Logger.Error(ex);
             }
         }
 
@@ -390,15 +386,15 @@ namespace CPS.Communication.Service
             }
             catch (ArgumentNullException ane)
             {
-                Logger.Info($"充电桩不存在：{ane.Message}");
+                Logger.Error($"充电桩不存在：{ane.Message}");
             }
             catch (InvalidOperationException ioe)
             {
-                Console.WriteLine(ioe.Message);
+                Logger.Error(ioe);
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Logger.Error(ex);
             }
 
             return null;

@@ -14,6 +14,9 @@ namespace ChargingPileService
             GlobalConfiguration.Configure(WebApiConfig.Register);
             // 注册并启动短信服务
             SmsServiceConfig.Instance.Register();
+
+            // 注册并启动消息队列服务
+            SessionServiceConfig.Instance.Register();
         }
     }
 }

@@ -85,6 +85,48 @@ namespace CPS.Infrastructure.Utils
             }
         }
 
+        public static string ServerIP
+        {
+            get
+            {
+                return ConfigurationManager.AppSettings["serverIP"];
+            }
+        }
+
+        public const int DefaultPort = 2222;
+        public static int ServerPort
+        {
+            get
+            {
+                var port = ConfigurationManager.AppSettings["serverPort"];
+                if (string.IsNullOrEmpty(port))
+                    return DefaultPort;
+                else
+                {
+                    int p = DefaultPort;
+                    int.TryParse(port, out p);
+                    return p;
+                }
+
+            }
+        }
+
+        public static string Message_From_Http_Channel
+        {
+            get
+            {
+                return ConfigurationManager.AppSettings["message_from_http_channel"];
+            }
+        }
+
+        public static string Message_From_Tcp_Channel
+        {
+            get
+            {
+                return ConfigurationManager.AppSettings["message_from_tcp_channel"];
+            }
+        }
+
         #endregion 【属性】
 
         #region 【接口】

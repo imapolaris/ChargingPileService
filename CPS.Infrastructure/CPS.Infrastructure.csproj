@@ -38,8 +38,16 @@
       <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Microsoft.Diagnostics.Tracing.EventSource, Version=1.1.28.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Diagnostics.Tracing.EventSource.Redist.1.1.28\lib\net40\Microsoft.Diagnostics.Tracing.EventSource.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.11.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="RabbitMQ.Client, Version=5.0.0.0, Culture=neutral, PublicKeyToken=89e7d7c5feba84ce, processorArchitecture=MSIL">
+      <HintPath>..\packages\RabbitMQ.Client.5.0.1\lib\net451\RabbitMQ.Client.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -56,8 +64,14 @@
   <ItemGroup>
     <Compile Include="Cache\ICacheManager.cs" />
     <Compile Include="Enums\CustomerEnum.cs" />
+    <Compile Include="Enums\Enums.cs" />
     <Compile Include="Exceptions\CacheException.cs" />
+    <Compile Include="Exceptions\UniversalException.cs" />
     <Compile Include="Models\LngLat.cs" />
+    <Compile Include="Models\UniversalData.cs" />
+    <Compile Include="MQ\IMqManager.cs" />
+    <Compile Include="MQ\MqManager_Rabbit.cs" />
+    <Compile Include="MQ\MqManager_Redis.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Redis\RedisBase.cs" />
     <Compile Include="Redis\RedisConfiguration.cs" />

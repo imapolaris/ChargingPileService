@@ -1,4 +1,6 @@
 ﻿using CPS.Communication.Service.DataPackets;
+using CPS.Infrastructure.Models;
+using CPS.Infrastructure.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,8 +20,36 @@ namespace CPS.Communication.Service
 
         }
 
-        public async Task<bool> SetCharging(string sn, long transSN, byte port, ActionTypeEnum ate, int money)
+        private bool GetChargingPileState(UniversalData data)
         {
+            string id = data.GetStringValue("id");
+            string sn = data.GetStringValue("sn");
+            byte port = data.GetByteValue("port");
+            GetChargingPileStatePacket packet = new GetChargingPileStatePacket()
+            {
+                SerialNumber = sn,
+                QPort = port,
+                OperType = OperTypeEnum.GetChargingPileStateOper,
+            };
+
+            var client = MyServer.FindClientBySerialNumber(sn);
+            if (client == null)
+            {
+                Logger.Error($"{sn}客户端尚未连接...");
+                return false;
+            }
+
+            return StartSession(id, client, packet);
+        }
+
+        private bool SetCharging(UniversalData data)
+        {
+            string id = data.GetStringValue("id");
+            string sn = data.GetStringValue("sn");
+            long transSN = data.GetLongValue("transSn");
+            byte port = data.GetByteValue("port");
+            ActionTypeEnum ate = (ActionTypeEnum)data.GetIntValue("oper");
+            int money = data.GetIntValue("money");
             SetChargingPacket packet = new SetChargingPacket()
             {
                 SerialNumber = sn,
@@ -30,25 +60,14 @@ namespace CPS.Communication.Service
                 Money = money,
             };
 
-            return true;
             var client = MyServer.FindClientBySerialNumber(sn);
             if (client == null)
             {
-                return false;
-                //throw new ArgumentNullException("客户端尚未连接...");
-            }
-
-            var result = await StartSession(client, packet) as SetChargingResultPacket;
-            if (result == null)
-                return false;
-
-            if (result.ResultEnum == ResultTypeEnum.Succeed)
-                return true;
-            else
-            {
-
+                Logger.Error($"{sn}客户端尚未连接...");
                 return false;
             }
+
+            return StartSession(id, client, packet);
         }
 
         /// <summary>
@@ -82,15 +101,18 @@ namespace CPS.Communication.Service
             }));
         }
 
-        public async Task<RecordOfChargingPacket> GetRecordOfCharging(string sn, long transSN)
+        public bool GetRecordOfCharging(UniversalData data)
         {
+            string id = data.GetStringValue("id");
+            string sn = data.GetStringValue("sn");
+            long transSN = data.GetLongValue("transSn");
             GetRecordOfChargingPacket packet = new GetRecordOfChargingPacket()
             {
                 SerialNumber = sn,
                 TransactionSN = transSN,
             };
 
-            return await GetParams<RecordOfChargingPacket>(sn, packet);
+            return GetParams(id, sn, packet);
         }
     }
 }

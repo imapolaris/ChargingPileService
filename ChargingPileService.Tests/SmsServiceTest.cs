@@ -24,7 +24,7 @@ namespace ChargingPileService.Tests
         [TestMethod]
         public void RunClear()
         {
-            instance.RunClear(null);
+            instance.RunClear();
         }
     }
 }

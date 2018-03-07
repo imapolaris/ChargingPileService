@@ -21,7 +21,7 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="60"/>
             </Grid.ColumnDefinitions>
-            <TextBox Name="txtIP" Height="30" VerticalContentAlignment="Center">127.0.0.1</TextBox>
+            <TextBox Name="txtIP" Height="30" VerticalContentAlignment="Center">0.0.0.0</TextBox>
             <TextBox Name="txtPort" Grid.Column="1" VerticalContentAlignment="Center" Height="30">2222</TextBox>
             <Button Grid.Column="2" Name="btnConnect" Click="btnConnect_Click">连接</Button>
         </Grid>

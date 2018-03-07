@@ -12,20 +12,18 @@ namespace ChargingPileService
     public class SmsServiceConfig
     {
         private static readonly int VCodeValidityDuration = ConfigHelper.VCodeValidityDuration;
-        private Timer _timer;
         private bool registered = false;
 
         private const string SMSContainerKey = "SMSContainer";
-        private readonly RedisClient _client = null;
         private ManualResetEvent _manualEvent = new ManualResetEvent(true);
 
         public void Register()
         {
             if (!registered)
             {
-                registered = !registered;
+                RunClear();
 
-                //_timer = new Timer(RunClear, null, VCodeValidityDuration * 1000, 500);
+                registered = !registered;
             }
         }
 
@@ -44,7 +42,6 @@ namespace ChargingPileService
         }
         private SmsServiceConfig()
         {
-            _client = RedisManager.GetClient();
         }
         private static SmsServiceConfig _instance;
 
@@ -52,18 +49,23 @@ namespace ChargingPileService
 
         public bool ValidateVCode(string phoneNumber, string vcode)
         {
-            var json = _client.HGet(SMSContainerKey, phoneNumber);
-            if (string.IsNullOrEmpty(json))
+            using (var client = RedisManager.GetClient())
+            {
+                var json = client.HGet(SMSContainerKey, phoneNumber);
+                if (string.IsNullOrEmpty(json))
+                    return false;
+                var entity = JsonHelper.Deserialize<SmsEntity>(json);
+                if (entity != null && entity.VCode == vcode)
+                    return true;
                 return false;
-            var entity = JsonHelper.Deserialize<SmsEntity>(json);
-            if (entity != null && entity.VCode == vcode)
-                return true;
-            return false;
+            }
         }
 
         public void AppendVCode(string phoneNumber, string vcode)
         {
-            _client.HSet(SMSContainerKey,
+            using (var client = RedisManager.GetClient())
+            {
+                client.HSet(SMSContainerKey,
                 phoneNumber,
                 new SmsEntity()
                 {
@@ -71,34 +73,58 @@ namespace ChargingPileService
                     VCode = vcode,
                     RegisterDate = DateTime.Now,
                 });
+            }
         }
 
-        public void RunClear(object state)
+        private Thread ThreadRunClear;
+        private bool stopRunClear = false;
+        public void RunClear()
         {
-            _manualEvent.Reset();
-
-            var now = DateTime.Now;
-            var fs = _client.HKeys(SMSContainerKey);
-            if (fs == null || fs.Length <= 0) return;
-            var collection = _client.HMGet(SMSContainerKey, fs);
-            if (collection != null && collection.Length > 0)
+            ThreadRunClear = new Thread(() =>
             {
-                List<string> fields = new List<string>();
-                foreach (var item in collection)
+                while (true)
                 {
-                    var entity = JsonHelper.Deserialize<SmsEntity>(item);
-                    if ((now - entity.RegisterDate).TotalSeconds >= VCodeValidityDuration)
+                    try
                     {
-                        fields.Add(entity.PhoneNumber);
-                    }
-                }
-                if (fields.Count > 0)
-                {
-                    _client.HDel(SMSContainerKey, fields.ToArray());
-                }
-            }
+                        if (ThreadRunClear == null
+                            || !ThreadRunClear.IsAlive
+                            || stopRunClear)
+                            break;
 
-            _manualEvent.Set();
+                        using (var client = RedisManager.GetClient())
+                        {
+                            var now = DateTime.Now;
+                            string[] fs = client.HKeys(SMSContainerKey);
+                            if (fs == null || fs.Length <= 0) continue;
+                            var collection = client.HMGet(SMSContainerKey, fs);
+                            if (collection != null && collection.Length > 0)
+                            {
+                                List<string> fields = new List<string>();
+                                foreach (var item in collection)
+                                {
+                                    var entity = JsonHelper.Deserialize<SmsEntity>(item);
+                                    if ((now - entity.RegisterDate).TotalSeconds >= VCodeValidityDuration)
+                                    {
+                                        fields.Add(entity.PhoneNumber);
+                                    }
+                                }
+                                if (fields.Count > 0)
+                                {
+                                    client.HDelAsync(SMSContainerKey, fields.ToArray());
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Error(ex);
+                    }
+
+                    Thread.Sleep(500);
+                }
+            })
+            { IsBackground = true };
+            ThreadRunClear.Start();
         }
     }
 

@@ -16,16 +16,7 @@ namespace ChargingPileService.Controllers
         [HttpGet]
         public IEnumerable<BatteryCheckResult> GetBatteryTestingReports(string userId)
         {
-            var results = HisDbContext.BatteryCheckResults.Where(_ => _.CustomerId == userId).ToList();
-            var ids = results.Select(_ => _.VehicleId).ToList();
-            var vs = SysDbContext.VehicleInfoes.Where(p => ids.Contains(p.Id)).ToList();
-
-            foreach (var x in results)
-            {
-                x.Vehicle = vs.FirstOrDefault(p => x.VehicleId == p.Id);
-            }
-
-            return results;
+            return HisDbContext.BatteryCheckResults.Where(_ => _.CustomerId == userId).ToList();
         }
 
         [HttpGet]
@@ -61,6 +52,20 @@ namespace ChargingPileService.Controllers
         public IHttpActionResult QueryBatteryTestingProcess(string processId)
         {
             return Ok();
+        }
+
+        [HttpGet]
+        [Route("summary")]
+        public IHttpActionResult GetBatteryTestingSummary()
+        {
+            return null;
+        }
+
+        [HttpGet]
+        [Route("records")]
+        public IEnumerable<BatteryCheckRecord> GetBatteryTestingRecords()
+        {
+            return null;
         }
     }
 }

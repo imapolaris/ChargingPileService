@@ -34,14 +34,11 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CPS.DB, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\bin\CPS.DB.dll</HintPath>
-    </Reference>
     <Reference Include="CPS.Entities, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\bin\CPS.Entities.dll</HintPath>
     </Reference>
+    <Reference Include="csredis, Version=3.1.0.0, Culture=neutral, PublicKeyToken=null" />
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.dll</HintPath>
       <Private>True</Private>
@@ -65,6 +62,14 @@
     <Reference Include="RabbitMQ.Client, Version=5.0.0.0, Culture=neutral, PublicKeyToken=89e7d7c5feba84ce, processorArchitecture=MSIL">
       <HintPath>..\packages\RabbitMQ.Client.5.0.1\lib\net451\RabbitMQ.Client.dll</HintPath>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="Soaring.WebMonter.Contract, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\bin\Soaring.WebMonter.Contract.dll</HintPath>
+    </Reference>
+    <Reference Include="Soaring.WebMonter.DB, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\bin\Soaring.WebMonter.DB.exe</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
@@ -93,6 +98,7 @@
     <Compile Include="ChargingService_无卡.cs" />
     <Compile Include="ChargingService_Generic.cs" />
     <Compile Include="Client.cs" />
+    <Compile Include="DataPackets\IUniversal.cs" />
     <Compile Include="DataPackets\充电桩=平台\UpgradeSoftwareReplyPacket.cs" />
     <Compile Include="DataPackets\平台=充电桩\UpgradeSoftwarePacket.cs" />
     <Compile Include="DataPackets\平台=充电桩\StartChargingWithCardResultReplyPacket.cs" />
@@ -160,6 +166,10 @@
     <None Include="..\CPS.Infrastructure\log4net.config">
       <Link>log4net.config</Link>
       <SubType>Designer</SubType>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\CPS.Infrastructure\redis.config">
+      <Link>redis.config</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="App.config" />

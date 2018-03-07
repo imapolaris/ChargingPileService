@@ -180,6 +180,8 @@ namespace CPS.Communication.Service.DataPackets
         GetSoftwareVerOper,
 
         SetChargingOper,
+
+        GetChargingPileStateOper,
     }
 
     public enum SubscribeStateTypeEnum : byte
