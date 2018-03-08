@@ -182,12 +182,11 @@
       <Link>redis.config</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\bin\ShareSetting.config">
-      <Link>ShareSetting.config</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <None Include="Properties\PublishProfiles\chargingpileservice.pubxml" />
     <None Include="Properties\PublishProfiles\cloudserver.pubxml" />
+    <Content Include="ShareSetting.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

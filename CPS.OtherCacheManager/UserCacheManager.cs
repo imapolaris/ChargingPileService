@@ -12,7 +12,7 @@ namespace CPS.OtherCacheManager
     [Export(typeof(ICacheManager))]
     public class UserCacheManager : ICacheManager
     {
-        public async Task LoadCache()
+        public async Task Initializer()
         {
             //Logger.Info("start loading user data into the cache...");
             await Task.Run(() =>

@@ -31,7 +31,7 @@ namespace CPS.CacheDaemon
             Logger.Info("cache daemon service start...");
 
             if (this._managers == null) return;
-            this._managers.AsParallel().ForAll(_ => _.LoadCache());
+            this._managers.AsParallel().ForAll(_ => _.Initializer());
         }
 
         public void Stop()

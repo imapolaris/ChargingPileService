@@ -34,6 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="csredis, Version=3.1.0.0, Culture=neutral, PublicKeyToken=null" />
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
     <Reference Include="Soaring.WebMonter.Contract, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -62,6 +63,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Cache\CacheManagerBase.cs" />
     <Compile Include="Cache\ChargingPileCacheManager.cs" />
     <Compile Include="Cache\StationCacheManager.cs" />
     <Compile Include="Program.cs" />
@@ -71,6 +73,10 @@
   <ItemGroup>
     <None Include="..\CPS.Infrastructure\log4net.config">
       <Link>log4net.config</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\CPS.Infrastructure\ShareSetting.config">
+      <Link>ShareSetting.config</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="App.config" />

@@ -10,14 +10,61 @@ using System.Threading.Tasks;
 
 namespace CPS.Communication.Service
 {
+    using CSRedis;
+    using Infrastructure.Redis;
+    using Soaring.WebMonter.Contract.Cache;
+
     /// <summary>
     /// 无卡充电
     /// </summary>
     public partial class ChargingService
     {
-        private void ChargingPileState(Client client, PacketBase packet)
-        {
+        private static readonly string ChargingPileContainer = ConfigHelper.ChargingPileContainerKey;
 
+        private async void ChargingPileState(Client client, PacketBase packet)
+        {
+            var p = packet as ChargingPileStatePacket;
+            if (p == null) return;
+
+            await Task.Run(() =>
+            {
+                using (var redis = RedisManager.GetClient())
+                {
+                    var sn = p.SerialNumber;
+                    var data = redis.HGet(ChargingPileContainer, sn);
+                    if (string.IsNullOrEmpty(data))
+                        return;
+                    else
+                    {
+                        var cache = JsonHelper.Deserialize<ChargingPileCache>(data);
+                        if (cache == null) return;
+
+                        cache.AA = p.APhaseA;
+                        cache.BA = p.BPhaseA;
+                        cache.CA = p.CPhaseA;
+                        cache.AV = p.APhaseV;
+                        cache.BV = p.BPhaseV;
+                        cache.CV = p.CPhaseV;
+                        cache.CarPortStatus = p.CarPortState;
+                        cache.CurrentTime = p.TimeStamp;
+                        cache.EMP = p.EMP;
+                        cache.EMQ = p.EMQ;
+                        cache.FaultCode = p.FaultCode;
+                        cache.OutputA = p.OutputA;
+                        cache.OutputV = p.OutputV;
+                        cache.OutputRelayStatus = p.OutputRelayState;
+                        cache.P = p.P;
+                        cache.Q = p.Q;
+                        cache.PortConnectStatus = p.ConnectState;
+                        cache.PortWorkStatus = p.WorkingState;
+                        cache.SOC = p.SOC;
+                        cache.RTTemp = p.RtTemp;
+                        cache.WPGWorkStatus = p.WpgWorkingState;
+
+                        redis.HSet(ChargingPileContainer, sn, cache);
+                    }
+                }
+            });
         }
 
         private bool GetChargingPileState(UniversalData data)

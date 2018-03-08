@@ -63,9 +63,9 @@ namespace ChargingPileService.Controllers
 
         [HttpGet]
         [Route("records")]
-        public IEnumerable<BatteryCheckRecord> GetBatteryTestingRecords()
+        public IEnumerable<BatteryCheckRecord> GetBatteryTestingRecords(string userId)
         {
-            return null;
+            return HisDbContext.BatteryCheckRecords.Where(_ => _.CustomerId == userId).OrderByDescending(_ => _.StartDate);
         }
     }
 }

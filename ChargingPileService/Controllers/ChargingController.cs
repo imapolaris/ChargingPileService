@@ -26,6 +26,11 @@ namespace ChargingPileService.Controllers
                 string sn = obj.sn;
                 string userId = obj.userId;
 
+                if (!ValidSerialNumber(sn))
+                {
+                    //return Ok(SimpleResult.Failed("充电桩编号不存在！"));
+                }
+
                 Session session = SessionService.StartOneSession();
                 UniversalData data = new UniversalData();
                 data.SetValue("id", session.Id);
@@ -75,7 +80,7 @@ namespace ChargingPileService.Controllers
                 else
                 {
                     Logger.Error("启动充电失败：超时！");
-                    return Ok(SimpleResult.Failed("启动充电失败！"));
+                    return Ok(SimpleResult.Failed("启动充电失败，请求超时！"));
                 }
             }
             catch (Exception ex)
@@ -94,6 +99,11 @@ namespace ChargingPileService.Controllers
                 string userId = obj.userId;
                 string sn = obj.sn;
                 string recordId = "123";//obj.recordId;
+
+                if (!ValidSerialNumber(sn))
+                {
+                    //return Ok(SimpleResult.Failed("充电桩编号不存在！"));
+                }
 
                 Session session = SessionService.StartOneSession();
                 UniversalData data = new UniversalData();
@@ -152,8 +162,8 @@ namespace ChargingPileService.Controllers
                 }
                 else
                 {
-                    Logger.Error("启动充电失败：超时！");
-                    return Ok(SimpleResult.Failed("启动充电失败！"));
+                    Logger.Error("结束充电失败：超时！");
+                    return Ok(SimpleResult.Failed("结束充电失败，请求超时！"));
                 }
             }
             catch (Exception ex)
@@ -167,29 +177,42 @@ namespace ChargingPileService.Controllers
         [Route("status")]
         public async Task<IHttpActionResult> RequestChargingStatus(string sn)
         {
-            Session session = SessionService.StartOneSession();
-            UniversalData data = new UniversalData();
-            data.SetValue("id", session.Id);
-            data.SetValue("oper", MQMessageType.GetChargingPileState);
-            data.SetValue("sn", sn);
-
-            var status = await session.WaitSessionCompleted();
-            if (status)
+            if (!ValidSerialNumber(sn))
             {
-                var result = session.GetSessionResult()?.GetBooleanValue("result") ?? false;
-                if (result)
+                //return Ok(SimpleResult.Failed("充电桩编号不存在！"));
+            }
+
+            try
+            {
+                Session session = SessionService.StartOneSession();
+                UniversalData data = new UniversalData();
+                data.SetValue("id", session.Id);
+                data.SetValue("oper", MQMessageType.GetChargingPileState);
+                data.SetValue("sn", sn);
+
+                var status = await session.WaitSessionCompleted();
+                if (status)
                 {
-                    return Ok(SimpleResult.Succeed("查询成功！"));
+                    var result = session.GetSessionResult()?.GetBooleanValue("result") ?? false;
+                    if (result)
+                    {
+                        return Ok(SimpleResult.Succeed("查询成功！"));
+                    }
+                    else
+                    {
+                        Logger.Info("查询充电桩状态失败：充电桩没有反馈！");
+                        return Ok(SimpleResult.Failed("查询充电桩状态失败！"));
+                    }
                 }
                 else
                 {
-                    Logger.Info("查询充电桩状态失败：充电桩没有反馈！");
+                    Logger.Info("查询充电桩状态失败：超时！");
                     return Ok(SimpleResult.Failed("查询充电桩状态失败！"));
                 }
             }
-            else
+            catch (Exception ex)
             {
-                Logger.Info("查询充电桩状态失败：超时！");
+                Logger.Error(ex);
                 return Ok(SimpleResult.Failed("查询充电桩状态失败！"));
             }
         }

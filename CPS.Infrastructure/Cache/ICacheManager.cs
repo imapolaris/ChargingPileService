@@ -8,6 +8,6 @@ namespace CPS.Infrastructure.Cache
 {
     public interface ICacheManager
     {
-        Task LoadCache();
+        Task Initializer();
     }
 }
