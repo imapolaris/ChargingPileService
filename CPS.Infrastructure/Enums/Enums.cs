@@ -8,7 +8,7 @@ namespace CPS.Infrastructure.Enums
 {
     public enum MQMessageType
     {
-        StartCharging = 0x00,
+        StartCharging = 0x01,
         StopCharging,
 
         GetChargingPileState,

@@ -28,7 +28,7 @@ namespace CPS.Communication.Service
                 if (string.IsNullOrEmpty(sn)
                     || string.IsNullOrEmpty(username)
                     || string.IsNullOrEmpty(pwd))
-                    throw new ArgumentNullException("参数不正确");
+                    ;//throw new ArgumentNullException("参数不正确");
 
                 LoginResultPacket packet = new LoginResultPacket()
                 {
@@ -46,18 +46,26 @@ namespace CPS.Communication.Service
                     {
                         try
                         {
-                            var cp = SysDbContext.ChargingPiles.Where(_ => _.SerialNumber == sn).First();
-
-                            // 登录成功
-                            if (cp.UserName == username && cp.Pwd == pwd)
+                            var data = SysDbContext.ChargingPiles.Where(_ => _.SerialNumber == sn);
+                            if (data == null || data.Count() <= 0)
                             {
-                                packet.ResultEnum = LoginResultTypeEnum.Succeed;
-
-                                client.SerialNumber = sn;
-                                client.HasLogined = packet.HasLogined;
+                                packet.ResultEnum = LoginResultTypeEnum.NotExists;
                             }
-                            else // 用户名或密码不正确
-                                packet.ResultEnum = LoginResultTypeEnum.SecretKeyFailed;
+                            else
+                            {
+                                var cp = data.First();
+
+                                // 登录成功
+                                if (cp.UserName == username && cp.Pwd == pwd)
+                                {
+                                    packet.ResultEnum = LoginResultTypeEnum.Succeed;
+
+                                    client.SerialNumber = sn;
+                                    client.HasLogined = packet.HasLogined;
+                                }
+                                else // 用户名或密码不正确
+                                    packet.ResultEnum = LoginResultTypeEnum.SecretKeyFailed;
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -71,7 +79,7 @@ namespace CPS.Communication.Service
                 {
                     // 其他
                     packet.ResultEnum = LoginResultTypeEnum.Others;
-                    Console.WriteLine(ex.Message);
+                    Logger.Error(ex.Message);
                 }
 
                 // for test.
@@ -82,8 +90,7 @@ namespace CPS.Communication.Service
                 packet.TimeStamp = now.ConvertToTimeStampX();
                 client.Send(packet);
 
-                string loginState = packet.ResultString;
-                Console.WriteLine($"----客户端 {client.ID} 于{now} 登录： {loginState}!");
+                Logger.Info($"----客户端 {client.ID} 于{now} 登录： {packet.ResultString}!");
             }));
         }
 

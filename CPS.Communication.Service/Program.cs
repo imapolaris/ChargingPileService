@@ -67,7 +67,7 @@ namespace CPS.Communication.Service
             MyServer.ClientAccepted += Server_ClientAccepted;
             MyServer.ServerStarted += Server_ServerStarted;
             MyServer.ServerStopped += Server_ServerStopped;
-            MyServer.Listen(ServerIP, ServerPort);
+            MyServer.Listen(ServerPort);
         }
 
         private static void Server_ServerStopped(object sender, Service.Events.ServerStoppedEventArgs args)

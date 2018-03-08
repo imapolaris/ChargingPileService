@@ -45,7 +45,6 @@ namespace CPS.Communication.Service
             //{ IsBackground = true }
             //.Start();
 
-            _client = RedisManager.GetClient();
             RegisterMQService();
         }
 
@@ -68,7 +67,6 @@ namespace CPS.Communication.Service
 
         private SessionCollection Sessions { get; set; }
         private static readonly string PubChannel = ConfigHelper.Message_From_Tcp_Channel;
-        private RedisClient _client = null;
 
         /// <summary>
         /// 启动会话
@@ -104,7 +102,17 @@ namespace CPS.Communication.Service
                     IUniversal data = packet as IUniversal;
                     if (data == null)
                         return;
-                    _client.Publish(PubChannel, data.GetUniversalData().ToJson());
+                    try
+                    {
+                        using (var redis = RedisManager.GetClient())
+                        {
+                            redis.Publish(PubChannel, data.GetUniversalData().ToJson());
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Error(ex);
+                    }
                 }
             }));
         }
@@ -155,7 +163,10 @@ namespace CPS.Communication.Service
                 UniversalData rdata = new UniversalData();
                 rdata.SetValue("id", id);
                 rdata.SetValue("result", false);
-                _client?.Publish(PubChannel, rdata.ToJson());
+                using (var redis = RedisManager.GetClient())
+                {
+                    redis.Publish(PubChannel, rdata.ToJson());
+                }
             }
         }
 

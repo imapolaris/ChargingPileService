@@ -380,24 +380,16 @@ namespace CPS.Communication.Service
 
         public Client FindClientBySerialNumber(string serialNumber)
         {
-            try
+            var data = this._clients.Where(_ => _.SerialNumber == serialNumber);
+            if (data == null || data.Count() <= 0)
             {
-                return this._clients.Where(_ => _.SerialNumber == serialNumber).First();
+                Logger.Warn($"充电桩{serialNumber}不存在");
+                return null;
             }
-            catch (ArgumentNullException ane)
+            else
             {
-                Logger.Error($"充电桩不存在：{ane.Message}");
+                return data.First();
             }
-            catch (InvalidOperationException ioe)
-            {
-                Logger.Error(ioe);
-            }
-            catch (Exception ex)
-            {
-                Logger.Error(ex);
-            }
-
-            return null;
         }
 
         public override string ToString()
@@ -451,23 +443,20 @@ namespace CPS.Communication.Service
         {
             if (!this.disposed)
             {
-                if (disposing)
+                try
                 {
-                    try
-                    {
-                        StopListen();
+                    StopListen();
 
-                        stopHeartbeatCheck = true;
-                        ThreadHeartbeatDetection = null;
-                    }
-                    catch (SocketException se)
-                    {
-                        handleSocketException(se, ErrorTypes.ServerStop);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex.Message);
-                    }
+                    stopHeartbeatCheck = true;
+                    ThreadHeartbeatDetection = null;
+                }
+                catch (SocketException se)
+                {
+                    handleSocketException(se, ErrorTypes.ServerStop);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
                 }
 
                 disposed = true;
