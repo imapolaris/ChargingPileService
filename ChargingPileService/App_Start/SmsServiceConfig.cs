@@ -1,6 +1,5 @@
 ﻿using CPS.Infrastructure.Redis;
 using CPS.Infrastructure.Utils;
-using CSRedis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +8,8 @@ using System.Web;
 
 namespace ChargingPileService
 {
+    using StackExchange.Redis;
+
     public class SmsServiceConfig
     {
         private static readonly int VCodeValidityDuration = ConfigHelper.VCodeValidityDuration;
@@ -16,6 +17,7 @@ namespace ChargingPileService
 
         private const string SMSContainerKey = "SMSContainer";
         private ManualResetEvent _manualEvent = new ManualResetEvent(true);
+        private ConnectionMultiplexer _redis = null;
 
         public void Register()
         {
@@ -42,6 +44,7 @@ namespace ChargingPileService
         }
         private SmsServiceConfig()
         {
+            _redis = RedisManager.GetClient();
         }
         private static SmsServiceConfig _instance;
 
@@ -49,31 +52,29 @@ namespace ChargingPileService
 
         public bool ValidateVCode(string phoneNumber, string vcode)
         {
-            using (var client = RedisManager.GetClient())
-            {
-                var json = client.HGet(SMSContainerKey, phoneNumber);
-                if (string.IsNullOrEmpty(json))
-                    return false;
-                var entity = JsonHelper.Deserialize<SmsEntity>(json);
-                if (entity != null && entity.VCode == vcode)
-                    return true;
+            var db = _redis.GetDatabase();
+            var json = db.HashGet(SMSContainerKey, phoneNumber);
+            if (string.IsNullOrEmpty(json))
                 return false;
-            }
+            var entity = JsonHelper.Deserialize<SmsEntity>(json);
+            if (entity != null && entity.VCode == vcode)
+                return true;
+            return false;
         }
 
         public void AppendVCode(string phoneNumber, string vcode)
         {
-            using (var client = RedisManager.GetClient())
-            {
-                client.HSet(SMSContainerKey,
+            var db = _redis.GetDatabase();
+            db.HashSet(SMSContainerKey,
                 phoneNumber,
-                new SmsEntity()
-                {
-                    PhoneNumber = phoneNumber,
-                    VCode = vcode,
-                    RegisterDate = DateTime.Now,
-                });
-            }
+                JsonHelper.Serialize(
+                    new SmsEntity()
+                    {
+                        PhoneNumber = phoneNumber,
+                        VCode = vcode,
+                        RegisterDate = DateTime.Now,
+                    }
+             ));
         }
 
         private Thread ThreadRunClear;
@@ -91,26 +92,17 @@ namespace ChargingPileService
                             || stopRunClear)
                             break;
 
-                        using (var client = RedisManager.GetClient())
+                        var db = _redis.GetDatabase();
+                        var now = DateTime.Now;
+                        var collection = db.HashValues(SMSContainerKey);
+                        if (collection != null && collection.Length > 0)
                         {
-                            var now = DateTime.Now;
-                            string[] fs = client.HKeys(SMSContainerKey);
-                            if (fs == null || fs.Length <= 0) continue;
-                            var collection = client.HMGet(SMSContainerKey, fs);
-                            if (collection != null && collection.Length > 0)
+                            foreach (var item in collection)
                             {
-                                List<string> fields = new List<string>();
-                                foreach (var item in collection)
+                                var entity = JsonHelper.Deserialize<SmsEntity>(item);
+                                if ((now - entity.RegisterDate).TotalSeconds >= VCodeValidityDuration)
                                 {
-                                    var entity = JsonHelper.Deserialize<SmsEntity>(item);
-                                    if ((now - entity.RegisterDate).TotalSeconds >= VCodeValidityDuration)
-                                    {
-                                        fields.Add(entity.PhoneNumber);
-                                    }
-                                }
-                                if (fields.Count > 0)
-                                {
-                                    client.HDelAsync(SMSContainerKey, fields.ToArray());
+                                    db.HashDelete(SMSContainerKey, entity.PhoneNumber);
                                 }
                             }
                         }

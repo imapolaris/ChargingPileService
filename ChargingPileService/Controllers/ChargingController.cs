@@ -23,6 +23,8 @@ namespace ChargingPileService.Controllers
         {
             try
             {
+                //return Ok(Models.SingleResult<ChargRecord>.Succeed("已开始充电！", null));
+
                 string sn = obj.sn;
                 string userId = obj.userId;
 
@@ -96,6 +98,8 @@ namespace ChargingPileService.Controllers
         {
             try
             {
+                //return Ok(SimpleResult.Succeed("已结束充电！"));
+
                 string userId = obj.userId;
                 string sn = obj.sn;
                 string recordId = "123";//obj.recordId;

@@ -1,5 +1,4 @@
-﻿using CSRedis;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,6 +6,8 @@ using System.Threading.Tasks;
 
 namespace CPS.Infrastructure.Redis
 {
+    using StackExchange.Redis;
+
     public class RedisManager
     {
         /// <summary>
@@ -14,7 +15,6 @@ namespace CPS.Infrastructure.Redis
         /// </summary>
         private static RedisConfiguration _redisConfig = RedisConfiguration.GetConfig();
         private static string _pwd;
-        private static RedisConnectionPool _prcm;
 
         /// <summary>
         /// 静态构造方法，初始化链接池管理对象
@@ -30,37 +30,36 @@ namespace CPS.Infrastructure.Redis
         /// </summary>
         private static void CreateManager()
         {
-            var endPoint = _redisConfig.AnalyseHost(ref _pwd);
-            _prcm = new RedisConnectionPool(endPoint, _redisConfig.MaxPoolSize);
+            //var endPoint = _redisConfig.AnalyseHost(ref _pwd);
+            //_prcm = new RedisConnectionPool(endPoint, _redisConfig.MaxPoolSize);
         }
 
         /// <summary>
         /// 客户端缓存操作对象
         /// </summary>
-        public static RedisClient GetClient()
+        public static ConnectionMultiplexer GetClient()
         {
             var p = "";
             var endPoint = _redisConfig.AnalyseHost(ref p);
-            //var client = new RedisClient(endPoint);
-            //if (!string.IsNullOrWhiteSpace(p))
-            //    client.Auth(_pwd);
-            var client = GetRpcClient();
+            var client = ConnectionMultiplexer.Connect(_redisConfig.ServerHost);
             return client;
         }
 
-        private static RedisClient GetRpcClient()
+        private static ConnectionMultiplexer GetRpcClient()
         {
-            if (_prcm == null)
-                CreateManager();
-            var client = _prcm.GetClient();
-            if (client != null
-                && !string.IsNullOrWhiteSpace(_pwd))
-                client.Auth(_pwd);
-            return client;
+            //if (_prcm == null)
+            //    CreateManager();
+            //var client = _prcm.GetClient();
+            //if (client != null
+            //    && !string.IsNullOrWhiteSpace(_pwd))
+            //    client.Auth(_pwd);
+            //return client;
+
+            return null;
         }
-        public static RedisPubSubServer GetPubServer(Action<string, string> OnMessage, params string[] channel)
+        public static RedisPubSubServer GetPubServer(Action<RedisChannel, RedisValue> OnMessage, params RedisChannel[] channel)
         {
-            var client = GetRpcClient();
+            var client = GetClient();
             if (client == null)
             {
                 //LoggerMng.Log.Error("连接池已经消耗至尽");

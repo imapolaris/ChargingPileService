@@ -11,8 +11,8 @@ using System.Threading.Tasks;
 
 namespace CPS.CacheDaemon.Cache
 {
-    using CSRedis;
     using Infrastructure.Redis;
+    using StackExchange.Redis;
 
     [Export(typeof(ICacheManager))]
     internal class ChargingPileCacheManager : CacheManagerBase
@@ -44,10 +44,14 @@ namespace CPS.CacheDaemon.Cache
                         SOC = _.SOC,
                     }).ToDictionary(_ => _.SN, _=>JsonHelper.Serialize(_));
 
-                    using (var client = RedisManager.GetClient())
+                    var db = _redis.GetDatabase();
+                    List<HashEntry> list = new List<HashEntry>();
+                    foreach (var item in data)
                     {
-                        client.HMSet(ChargingPileContainer, data);
+                        HashEntry he = new HashEntry(item.Key, item.Value);
+                        list.Add(he);
                     }
+                    db.HashSet(ChargingPileContainer, list.ToArray());
                 }
                 catch (Exception ex)
                 {
@@ -82,29 +86,33 @@ namespace CPS.CacheDaemon.Cache
         private void _timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             Logger.Info($"start inspect charging pile data at {DateTime.Now}");
-            using (var client = RedisManager.GetClient())
+
+            var db = _redis.GetDatabase();
+            var fields = db.HashKeys(ChargingPileContainer);
+
+            if (fields == null || fields.Count() <= 0)
+                return;
+
+            var SysDbContext = new SystemDbContext();
+            var data = SysDbContext.ChargingPiles.Where(_ => !fields.Contains(_.Id));
+            if (data == null || data.Count() <= 0) return;
+            var newd = data.Select(_ => new ChargingPileCache()
             {
-                var fields = client.HKeys(ChargingPileContainer);
+                Id = _.Id,
+                Name = _.DisName,
+                Category = _.Cpcategory,
+                StationId = _.StationId,
+                SubscribeStatus = (int)_.Status,
+                SN = _.SerialNumber,
+                SOC = _.SOC,
+            }).ToDictionary(_ => _.SN, _ => JsonHelper.Serialize(_));
 
-                if (fields == null || fields.Count() <= 0)
-                    return;
-
-                var SysDbContext = new SystemDbContext();
-                var data = SysDbContext.ChargingPiles.Where(_ => !fields.Contains(_.Id));
-                if (data == null || data.Count() <= 0) return;
-                var newd = data.Select(_=> new ChargingPileCache()
-                {
-                    Id = _.Id,
-                    Name = _.DisName,
-                    Category = _.Cpcategory,
-                    StationId = _.StationId,
-                    SubscribeStatus = (int)_.Status,
-                    SN = _.SerialNumber,
-                    SOC = _.SOC,
-                }).ToDictionary(_ => _.SN, _ => JsonHelper.Serialize(_));
-
-                client.HMSet(ChargingPileContainer, newd);
+            List<HashEntry> list = new List<HashEntry>();
+            foreach (var item in newd)
+            {
+                list.Add(new HashEntry(item.Key, item.Value));
             }
+            db.HashSet(ChargingPileContainer, list.ToArray());
             Logger.Info("inspect charging pile data completed...");
         }
     }

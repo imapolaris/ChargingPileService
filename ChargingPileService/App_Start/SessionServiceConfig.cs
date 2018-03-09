@@ -8,17 +8,18 @@ using System.Web;
 
 namespace ChargingPileService
 {
-    using CSRedis;
     using CPS.Infrastructure.Redis;
     using System.Threading;
     using CPS.Infrastructure.Models;
+    using StackExchange.Redis;
 
     public class SessionServiceConfig
     {
-        private static readonly string[] Channels = new string[] { ConfigHelper.Message_From_Tcp_Channel };
+        private static readonly RedisChannel[] Channels = new RedisChannel[] { ConfigHelper.Message_From_Tcp_Channel };
         private IMqManager MqManager { get; set; }
         private bool _registered = false;
         private const string SessionContainerKey = "SessionContainer";
+        private ConnectionMultiplexer _redis = null;
 
         public void Register()
         {
@@ -77,28 +78,17 @@ namespace ChargingPileService
                         || stopSessionStateDetection)
                             break;
 
-                        using (var _client = RedisManager.GetClient())
+                        var db = _redis.GetDatabase();
+                        var sessions = db.HashValues(SessionContainerKey);
+                        if (sessions != null && sessions.Length > 0)
                         {
-                            string[] fields = _client.HKeys(SessionContainerKey);
-                            List<string> delFields = new List<string>();
-                            if (fields != null && fields.Count() > 0)
+                            foreach (var item in sessions)
                             {
-                                var sessions = _client.HMGet(SessionContainerKey, fields);
-                                if (sessions != null && sessions.Length > 0)
+                                var session = JsonHelper.Deserialize<Session>(item);
+                                if (session.Outdated)
                                 {
-                                    foreach (var item in sessions)
-                                    {
-                                        var session = JsonHelper.Deserialize<Session>(item);
-                                        if (session.Outdated)
-                                        {
-                                            delFields.Add(session.Id);
-                                        }
-                                    }
+                                    db.HashDelete(SessionContainerKey, session.Id);
                                 }
-                            }
-                            if (delFields.Count > 0)
-                            {
-                                _client.HDelAsync(SessionContainerKey, delFields.ToArray());
                             }
                         }
                     }
@@ -116,47 +106,37 @@ namespace ChargingPileService
 
         public Session StartOneSession(int timeout=10*1000)
         {
-            using (var _client = RedisManager.GetClient())
-            {
-                Session session = new Session(timeout);
-                _client.FlushDb();
-                bool success = _client.HSet(SessionContainerKey, session.Id, JsonHelper.Serialize(session));
-                if (success)
-                    return session;
-                else
-                    return null;
-            }
+            var db = _redis.GetDatabase();
+            Session session = new Session(timeout);
+            bool success = db.HashSet(SessionContainerKey, session.Id, JsonHelper.Serialize(session));
+            if (success)
+                return session;
+            else
+                return null;
         }
 
         public Session GetSession(string id)
         {
-            using (var _client = RedisManager.GetClient())
+            var db = _redis.GetDatabase();
+            string json = db.HashGet(SessionContainerKey, id);
+            if (string.IsNullOrEmpty(json))
+                return null;
+            else
             {
-                string json = _client.HGet(SessionContainerKey, id);
-                if (string.IsNullOrEmpty(json))
-                    return null;
-                else
-                {
-                    return JsonHelper.Deserialize<Session>(json);
-                }
+                return JsonHelper.Deserialize<Session>(json);
             }
         }
 
         public bool UpdateSession(Session session)
         {
-            using (var _client = RedisManager.GetClient())
-            {
-                return _client.HSet(SessionContainerKey, session.Id, JsonHelper.Serialize(session));
-            }
+            var db = _redis.GetDatabase();
+            return db.HashSet(SessionContainerKey, session.Id, JsonHelper.Serialize(session));
         }
 
         public bool RemoveOneSession(string id)
         {
-            using (var _client = RedisManager.GetClient())
-            {
-                long count = _client.HDel(SessionContainerKey, id);
-                return count >= 1;
-            }
+            var db = _redis.GetDatabase();
+            return db.HashDelete(SessionContainerKey, id);
         }
 
         #region singleton
@@ -173,7 +153,7 @@ namespace ChargingPileService
         }
         private SessionServiceConfig()
         {
-            //_client = RedisManager.GetClient();
+            _redis = RedisManager.GetClient();
         }
         private static SessionServiceConfig _instance;
         #endregion

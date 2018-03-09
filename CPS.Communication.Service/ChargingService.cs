@@ -17,13 +17,14 @@ namespace CPS.Communication.Service
     using RabbitMQ.Client;
     using RabbitMQ.Client.Events;
     using Soaring.WebMonter.DB;
-    using CSRedis;
     using Infrastructure.Redis;
+    using StackExchange.Redis;
 
     public partial class ChargingService : /*IChargingPileService,*/ IDisposable
     {
         SystemDbContext SysDbContext = new SystemDbContext();
         public Server MyServer { get; set; }
+        private ConnectionMultiplexer _redis = null;
 
         #region 【singleton】
 
@@ -45,6 +46,7 @@ namespace CPS.Communication.Service
             //{ IsBackground = true }
             //.Start();
 
+            _redis = RedisManager.GetClient();
             RegisterMQService();
         }
 
@@ -104,10 +106,8 @@ namespace CPS.Communication.Service
                         return;
                     try
                     {
-                        using (var redis = RedisManager.GetClient())
-                        {
-                            redis.Publish(PubChannel, data.GetUniversalData().ToJson());
-                        }
+                        var sub = _redis.GetSubscriber();
+                        sub.Publish(PubChannel, data.GetUniversalData().ToJson());
                     }
                     catch (Exception ex)
                     {
@@ -122,7 +122,7 @@ namespace CPS.Communication.Service
         #region 【注册消息队列服务】
 
         IMqManager MqManager = null;
-        private static readonly string[] Channels = new string[] { ConfigHelper.Message_From_Http_Channel };
+        private static readonly RedisChannel[] Channels = new RedisChannel[] { ConfigHelper.Message_From_Http_Channel };
         private void RegisterMQService()
         {
             try
@@ -158,15 +158,14 @@ namespace CPS.Communication.Service
                     break;
             }
 
-            if (!result)
+            //if (!result)
             {
                 UniversalData rdata = new UniversalData();
                 rdata.SetValue("id", id);
-                rdata.SetValue("result", false);
-                using (var redis = RedisManager.GetClient())
-                {
-                    redis.Publish(PubChannel, rdata.ToJson());
-                }
+                rdata.SetValue("result", true);
+
+                var sub = _redis.GetSubscriber();
+                sub.PublishAsync(PubChannel, rdata.ToJson());
             }
         }
 

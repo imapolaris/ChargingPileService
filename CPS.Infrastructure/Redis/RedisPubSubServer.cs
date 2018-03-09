@@ -1,5 +1,4 @@
-﻿using CSRedis;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,14 +7,17 @@ using System.Threading.Tasks;
 
 namespace CPS.Infrastructure.Redis
 {
+    using StackExchange.Redis;
+
     public class RedisPubSubServer : IDisposable
     {
         private bool _disposed = false;
-        private RedisClient _redisClient;
-        private string[] _channel;
-        private Action<string, string> _onMessage;
+        private ConnectionMultiplexer _redisClient;
+        private ISubscriber subscriber;
+        private RedisChannel[] _channel;
+        private Action<RedisChannel, RedisValue> _onMessage;
 
-        public RedisPubSubServer(RedisClient client, string[] channel, Action<string, string> onMessage)
+        public RedisPubSubServer(ConnectionMultiplexer client, RedisChannel[] channel, Action<RedisChannel, RedisValue> onMessage)
         {
             _redisClient = client;
             _channel = channel;
@@ -24,25 +26,23 @@ namespace CPS.Infrastructure.Redis
 
         public void Start()
         {
-            _redisClient.SubscriptionChanged += (sender, args) => Console.WriteLine($"Channel name:{args.Response.Channel}, Active subscriptions:{args.Response.Count}");
-            _redisClient.SubscriptionReceived += _redisClient_SubscriptionReceived;
-            Task.Run(() => _redisClient.Subscribe(_channel));
+            subscriber = _redisClient.GetSubscriber();
+            foreach (var item in _channel)
+            {
+                subscriber.Subscribe(item, _redisClient_SubscriptionReceived);
+            }
         }
 
-        private void _redisClient_SubscriptionReceived(object sender, RedisSubscriptionReceivedEventArgs e)
+        private void _redisClient_SubscriptionReceived(RedisChannel sender, RedisValue e)
         {
-            this._onMessage?.Invoke(e.Message.Channel, e.Message.Body);
+            this._onMessage?.Invoke(sender, e);
         }
 
         public void Stop()
         {
             if (_redisClient != null)
             {
-                Task.Run(() =>
-                {
-                    _redisClient.Unsubscribe(_channel);
-                    _redisClient.SubscriptionReceived -= _redisClient_SubscriptionReceived;
-                });
+                subscriber.UnsubscribeAll();
             }
         }
 
@@ -57,11 +57,8 @@ namespace CPS.Infrastructure.Redis
         {
             if (!this._disposed)
             {
-                if (disposing)
-                {
-                    Stop();
-                    _redisClient?.Dispose(); 
-                }
+                Stop();
+                _redisClient?.Dispose();
                 _redisClient = null;
                 _disposed = true;
             }

@@ -11,9 +11,9 @@ using System.Threading.Tasks;
 
 namespace CPS.CacheDaemon.Cache
 {
-    using CSRedis;
     using Infrastructure.Redis;
     using System.Timers;
+    using StackExchange.Redis;
 
     [Export(typeof(ICacheManager))]
     internal class StationCacheManager : CacheManagerBase
@@ -50,10 +50,13 @@ namespace CPS.CacheDaemon.Cache
                         DCIdle = 0,
                     }).ToDictionary(_ => _.Id, _ => JsonHelper.Serialize(_));
 
-                    using (var client = RedisManager.GetClient())
+                    var db = _redis.GetDatabase();
+                    List<HashEntry> list = new List<HashEntry>();
+                    foreach (var item in data)
                     {
-                        client.HMSet(StationContainer, data);
+                        list.Add(new HashEntry(item.Key, item.Value));
                     }
+                    db.HashSet(StationContainer, list.ToArray());
                 }
                 catch (Exception ex)
                 {
@@ -87,34 +90,38 @@ namespace CPS.CacheDaemon.Cache
         private void _timer_Elapsed(object sender, ElapsedEventArgs e)
         {
             Logger.Info($"start inspect station data at {DateTime.Now}");
-            using (var client = RedisManager.GetClient())
+
+            var db = _redis.GetDatabase();
+            var fields = db.HashKeys(StationContainer);
+
+            if (fields == null || fields.Count() <= 0)
+                return;
+
+            var SysDbContext = new SystemDbContext();
+            var data = SysDbContext.Stations.Where(_ => !fields.Contains(_.Id));
+            if (data == null || data.Count() <= 0) return;
+            var newd = data.Select(_ => new StationCache()
             {
-                var fields = client.HKeys(StationContainer);
+                Id = _.Id,
+                Name = _.Name,
+                Address = _.Address,
+                Longitude = _.Lon,
+                Latitude = _.Lat,
+                ElecPrice = 0,
+                DetailId = _.DetailId,
+                Distance = 0,
+                ACAll = SysDbContext.ChargingPiles.Count(cp => cp.StationId == _.Id && cp.Cpcategory == 0),
+                ACIdle = 0,
+                DCAll = SysDbContext.ChargingPiles.Count(cp => cp.StationId == _.Id && cp.Cpcategory == 1),
+                DCIdle = 0,
+            }).ToDictionary(_ => _.Id, _ => JsonHelper.Serialize(_));
 
-                if (fields == null || fields.Count() <= 0)
-                    return;
-
-                var SysDbContext = new SystemDbContext();
-                var data = SysDbContext.Stations.Where(_ => !fields.Contains(_.Id));
-                if (data == null || data.Count() <= 0) return;
-                var newd = data.Select(_ => new StationCache()
-                {
-                    Id = _.Id,
-                    Name = _.Name,
-                    Address = _.Address,
-                    Longitude = _.Lon,
-                    Latitude = _.Lat,
-                    ElecPrice = 0,
-                    DetailId = _.DetailId,
-                    Distance = 0,
-                    ACAll = SysDbContext.ChargingPiles.Count(cp => cp.StationId == _.Id && cp.Cpcategory == 0),
-                    ACIdle = 0,
-                    DCAll = SysDbContext.ChargingPiles.Count(cp => cp.StationId == _.Id && cp.Cpcategory == 1),
-                    DCIdle = 0,
-                }).ToDictionary(_ => _.Id, _ => JsonHelper.Serialize(_));
-
-                client.HMSet(StationContainer, newd);
+            List<HashEntry> list = new List<HashEntry>();
+            foreach (var item in newd)
+            {
+                list.Add(new HashEntry(item.Key, item.Value));
             }
+            db.HashSet(StationContainer, list.ToArray());
             Logger.Info("inspect station data completed...");
         }
     }

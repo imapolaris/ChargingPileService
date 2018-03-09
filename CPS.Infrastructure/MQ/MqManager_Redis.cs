@@ -7,19 +7,19 @@ namespace CPS.Infrastructure.MQ
 {
     using CPS.Infrastructure.Redis;
     using CPS.Infrastructure.Utils;
-    using CSRedis;
     using Models;
     using System.Threading;
+    using StackExchange.Redis;
 
     public delegate void MessageReceivedHandler(string msg);
 
     public class MqManager_Redis : IDisposable, IMqManager
     {
         protected RedisPubSubServer PubSubServer { get; set; }
-        private RedisClient _client = RedisManager.GetClient();
+        private ConnectionMultiplexer _client = RedisManager.GetClient();
 
 
-        public MqManager_Redis(string[] channel)
+        public MqManager_Redis(RedisChannel[] channel)
         {
             PubSubServer = new RedisPubSubServer(_client, channel, ReceiveMsg);
         }
@@ -34,7 +34,7 @@ namespace CPS.Infrastructure.MQ
             PubSubServer?.Stop();
         }
 
-        private void ReceiveMsg(string channel, string msg)
+        private void ReceiveMsg(RedisChannel channel, RedisValue msg)
         {
             OnMessageReceived(msg);
         }
@@ -43,7 +43,7 @@ namespace CPS.Infrastructure.MQ
 
         public event MessageReceivedHandler MessageReceived;
 
-        private void OnMessageReceived(string msg)
+        private void OnMessageReceived(RedisValue msg)
         {
             var handler = MessageReceived;
             if (handler != null)

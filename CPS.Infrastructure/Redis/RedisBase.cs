@@ -1,5 +1,4 @@
-﻿using CSRedis;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,9 +6,11 @@ using System.Threading.Tasks;
 
 namespace CPS.Infrastructure.Redis
 {
+    using StackExchange.Redis;
+
     public abstract class RedisBase : IDisposable
     {
-        protected virtual  RedisClient Client { get; private set; }
+        protected virtual ConnectionMultiplexer Client { get; private set; }
         private bool _disposed = false;
         protected RedisBase()
         {
@@ -31,20 +32,6 @@ namespace CPS.Infrastructure.Redis
         {
             Dispose(true);
             GC.SuppressFinalize(this);
-        }
-        /// <summary>
-        /// 保存数据DB文件到硬盘
-        /// </summary>
-        public void Save()
-        {
-            Client.Save();
-        }
-        /// <summary>
-        /// 异步保存数据DB文件到硬盘
-        /// </summary>
-        public void SaveAsync()
-        {
-            Client.SaveAsync();
         }
     }
 }

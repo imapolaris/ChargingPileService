@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 
 namespace CPS.Infrastructure.Redis
 {
+    using StackExchange.Redis;
+
     public sealed class RedisConfiguration : ConfigurationSection
     {
         public static RedisConfiguration GetConfig()
@@ -17,23 +19,9 @@ namespace CPS.Infrastructure.Redis
             return section;
         }
 
-        public IPEndPoint AnalyseHost(ref string pwd)
+        public string AnalyseHost(ref string pwd)
         {
-            IPEndPoint result = null;
-            var host = this.ServerHost.Trim();
-            if (host.IndexOf("@") > -1)
-            {
-                var hostParts = host.Split('@');
-                pwd = hostParts[0];
-                var ip = hostParts[1].Split(':');
-                result = new IPEndPoint(IPAddress.Parse(ip[0]), int.Parse(ip[1]));
-            }
-            else
-            {
-                var hostParts = host.Split(':');
-                result = new IPEndPoint(IPAddress.Parse(hostParts[0]), int.Parse(hostParts[1]));
-            }
-            return result;
+            return null;
         }
 
         public static RedisConfiguration GetConfig(string sectionName)
