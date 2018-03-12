@@ -1,4 +1,5 @@
-﻿using CPS.Infrastructure.Utils;
+﻿using CPS.Infrastructure.Enums;
+using CPS.Infrastructure.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;

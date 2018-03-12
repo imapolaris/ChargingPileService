@@ -12,13 +12,14 @@ namespace CPS.Communication.Service
 {
     using Infrastructure.Redis;
     using Soaring.WebMonter.Contract.Cache;
+    using Infrastructure.Enums;
 
     /// <summary>
     /// 无卡充电
     /// </summary>
     public partial class ChargingService
     {
-        private static readonly string ChargingPileContainer = ConfigHelper.ChargingPileContainerKey;
+        private static readonly string ChargingPileContainer = Constants.ChargingPileContainerKey;
 
         private async void ChargingPileState(Client client, PacketBase packet)
         {
@@ -90,17 +91,34 @@ namespace CPS.Communication.Service
         {
             string id = data.GetStringValue("id");
             string sn = data.GetStringValue("sn");
-            long transSN = data.GetLongValue("transSn");
-            byte port = data.GetByteValue("port");
             ActionTypeEnum ate = (ActionTypeEnum)data.GetIntValue("oper");
-            int money = data.GetIntValue("money");
+            long transSN = 0;
+            byte port = data.GetByteValue("port");
+            int money = 0;
+            if (ate == ActionTypeEnum.Startup) // 启动充电
+            {
+                try
+                {
+                    transSN = CreateTransactionSerialNumber();
+                }
+                catch (ArgumentException ae)
+                {
+                    Logger.Error(ae);
+                    return false;
+                }
+                money = data.GetIntValue("money");
+            }
+            else // 停止充电
+            {
+                transSN = data.GetLongValue("transSn");
+            }
             SetChargingPacket packet = new SetChargingPacket()
             {
                 SerialNumber = sn,
                 OperType = OperTypeEnum.SetChargingOper,
                 TransactionSN = transSN,
                 QPort = port,
-                ActionEnum = ate,
+                Action = (byte)ate,
                 Money = money,
             };
 
@@ -117,9 +135,16 @@ namespace CPS.Communication.Service
         /// <summary>
         /// 充电桩上报实时充电数据
         /// </summary>
-        private void RealDataOfCharging(Client client, PacketBase packet)
+        private async void RealDataOfCharging(Client client, PacketBase packet)
         {
+            var p = packet as RealDataOfChargingPacket;
+            if (p == null) return;
 
+            await Task.Run(() =>
+            {
+                var db = _redis.GetDatabase();
+                db.HashSet(Constants.ChargingRealtimeDataContainerKey, packet.SerialNumber, p.GetUniversalData().ToJson());
+            });
         }
 
         /// <summary>

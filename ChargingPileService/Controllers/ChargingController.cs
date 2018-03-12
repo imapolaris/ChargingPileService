@@ -36,9 +36,8 @@ namespace ChargingPileService.Controllers
                 Session session = SessionService.StartOneSession();
                 UniversalData data = new UniversalData();
                 data.SetValue("id", session.Id);
-                data.SetValue("oper", MQMessageType.StartCharging);
+                data.SetValue("oper", ActionTypeEnum.Startup);
                 data.SetValue("sn", sn);
-                data.SetValue("transSn", 1);
                 data.SetValue("port", 0);
                 data.SetValue("money", 0);
                 CallAsync(data.ToJson());
@@ -46,31 +45,30 @@ namespace ChargingPileService.Controllers
                 var status = await session.WaitSessionCompleted();
                 if (status)
                 {
-                    var result = session.GetSessionResult()?.GetBooleanValue("result") ?? false;
-                    var record = new ChargRecord()
+                    var sessionResult = session.GetSessionResult();
+                    var result = (ResultTypeEnum)sessionResult?.GetByteValue("result");
+                    if (result == ResultTypeEnum.Succeed)
                     {
-                        CustomerId = userId,
-                        ChargingDate = DateTime.Now,
-                        CPSerialNumber = sn,
-                        StartDate = DateTime.Now,
-                        Cost = 0,
-                        Kwhs = 0,
-                        IsSucceed = result,
-                    };
+                        var record = new ChargRecord()
+                        {
+                            CustomerId = userId,
+                            ChargingDate = DateTime.Now,
+                            CPSerialNumber = sn,
+                            StartDate = DateTime.Now,
+                            Transactionsn = sessionResult?.GetLongValue("transSn").ToString() ?? "0",
+                            IsSucceed = result == ResultTypeEnum.Succeed,
+                        };
 
-                    // 防止操作数据库期间发生错误，而此时已经开始充电，APP却得到错误的状态。
-                    try
-                    {
-                        HisDbContext.ChargingRecords.Add(record);
-                        HisDbContext.SaveChangesAsync();
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Error(ex);
-                    }
-
-                    if (result)
-                    {
+                        // 防止操作数据库期间发生错误，而此时已经开始充电，APP却得到错误的状态。
+                        try
+                        {
+                            HisDbContext.ChargingRecords.Add(record);
+                            HisDbContext.SaveChangesAsync();
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Error(ex);
+                        }
                         return Ok(Models.SingleResult<ChargRecord>.Succeed("已开始充电！", record));
                     }
                     else
@@ -102,7 +100,7 @@ namespace ChargingPileService.Controllers
 
                 string userId = obj.userId;
                 string sn = obj.sn;
-                string recordId = "123";//obj.recordId;
+                string transSn = obj.transSn;
 
                 if (!ValidSerialNumber(sn))
                 {
@@ -112,22 +110,22 @@ namespace ChargingPileService.Controllers
                 Session session = SessionService.StartOneSession();
                 UniversalData data = new UniversalData();
                 data.SetValue("id", session.Id);
-                data.SetValue("oper", MQMessageType.StopCharging);
+                data.SetValue("oper", ActionTypeEnum.Shutdown);
                 data.SetValue("sn", sn);
-                data.SetValue("transSn", 1);
+                data.SetValue("transSn", transSn);
                 data.SetValue("port", 0);
                 CallAsync(data.ToJson());
 
                 var status = await session.WaitSessionCompleted();
                 if (status)
                 {
-                    var result = session.GetSessionResult()?.GetBooleanValue("result") ?? false;
-                    if (result)
+                    var result = (ResultTypeEnum)session.GetSessionResult()?.GetByteValue("result");
+                    if (result == ResultTypeEnum.Succeed)
                     {
                         // 防止操作数据库期间发生错误，而此时已经结束充电，APP却得到错误的状态。
                         try
                         {
-                            var record = HisDbContext.ChargingRecords.Where(_ => _.Id == recordId).FirstOrDefault();
+                            var record = HisDbContext.ChargingRecords.Where(_ => _.CPSerialNumber == sn && _.Transactionsn == transSn).FirstOrDefault();
                             // 如果开始充电时没有记录到数据库，在这里补充一条记录。
                             if (record == null)
                             {
@@ -179,7 +177,7 @@ namespace ChargingPileService.Controllers
 
         [HttpGet]
         [Route("status")]
-        public async Task<IHttpActionResult> RequestChargingStatus(string sn)
+        public IHttpActionResult RequestChargingStatus(string sn, string transSn)
         {
             if (!ValidSerialNumber(sn))
             {
@@ -188,29 +186,15 @@ namespace ChargingPileService.Controllers
 
             try
             {
-                Session session = SessionService.StartOneSession();
-                UniversalData data = new UniversalData();
-                data.SetValue("id", session.Id);
-                data.SetValue("oper", MQMessageType.GetChargingPileState);
-                data.SetValue("sn", sn);
-
-                var status = await session.WaitSessionCompleted();
-                if (status)
+                var db = _redis.GetDatabase();
+                var rtData = db.HashGet(Constants.ChargingRealtimeDataContainerKey, sn);
+                if (!rtData.IsNullOrEmpty)
                 {
-                    var result = session.GetSessionResult()?.GetBooleanValue("result") ?? false;
-                    if (result)
-                    {
-                        return Ok(SimpleResult.Succeed("查询成功！"));
-                    }
-                    else
-                    {
-                        Logger.Info("查询充电桩状态失败：充电桩没有反馈！");
-                        return Ok(SimpleResult.Failed("查询充电桩状态失败！"));
-                    }
+                    return Ok(Models.SingleResult<string>.Succeed("查询成功！", rtData));
                 }
                 else
                 {
-                    Logger.Info("查询充电桩状态失败：超时！");
+                    Logger.Info("查询充电桩状态失败：充电桩没有反馈！");
                     return Ok(SimpleResult.Failed("查询充电桩状态失败！"));
                 }
             }

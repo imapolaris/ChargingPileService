@@ -18,7 +18,6 @@ namespace ChargingPileService
         private static readonly RedisChannel[] Channels = new RedisChannel[] { ConfigHelper.Message_From_Tcp_Channel };
         private IMqManager MqManager { get; set; }
         private bool _registered = false;
-        private const string SessionContainerKey = "SessionContainer";
         private ConnectionMultiplexer _redis = null;
 
         public void Register()
@@ -60,7 +59,7 @@ namespace ChargingPileService
 
         Thread ThreadSessionStateDetection;
         private bool stopSessionStateDetection = false;
-        private int SessionStateDetectionInterval = 60 * 1000;
+        private int SessionStateDetectionInterval = 3000 * 1000;
 
         /// <summary>
         /// 轮询会话状态
@@ -79,7 +78,7 @@ namespace ChargingPileService
                             break;
 
                         var db = _redis.GetDatabase();
-                        var sessions = db.HashValues(SessionContainerKey);
+                        var sessions = db.HashValues(Constants.SessionContainerKey);
                         if (sessions != null && sessions.Length > 0)
                         {
                             foreach (var item in sessions)
@@ -87,7 +86,7 @@ namespace ChargingPileService
                                 var session = JsonHelper.Deserialize<Session>(item);
                                 if (session.Outdated)
                                 {
-                                    db.HashDelete(SessionContainerKey, session.Id);
+                                    db.HashDelete(Constants.SessionContainerKey, session.Id);
                                 }
                             }
                         }
@@ -108,7 +107,7 @@ namespace ChargingPileService
         {
             var db = _redis.GetDatabase();
             Session session = new Session(timeout);
-            bool success = db.HashSet(SessionContainerKey, session.Id, JsonHelper.Serialize(session));
+            bool success = db.HashSet(Constants.SessionContainerKey, session.Id, JsonHelper.Serialize(session));
             if (success)
                 return session;
             else
@@ -118,7 +117,7 @@ namespace ChargingPileService
         public Session GetSession(string id)
         {
             var db = _redis.GetDatabase();
-            string json = db.HashGet(SessionContainerKey, id);
+            string json = db.HashGet(Constants.SessionContainerKey, id);
             if (string.IsNullOrEmpty(json))
                 return null;
             else
@@ -130,13 +129,13 @@ namespace ChargingPileService
         public bool UpdateSession(Session session)
         {
             var db = _redis.GetDatabase();
-            return db.HashSet(SessionContainerKey, session.Id, JsonHelper.Serialize(session));
+            return db.HashSet(Constants.SessionContainerKey, session.Id, JsonHelper.Serialize(session));
         }
 
         public bool RemoveOneSession(string id)
         {
             var db = _redis.GetDatabase();
-            return db.HashDelete(SessionContainerKey, id);
+            return db.HashDelete(Constants.SessionContainerKey, id);
         }
 
         #region singleton

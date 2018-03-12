@@ -13,11 +13,12 @@ namespace CPS.CacheDaemon.Cache
 {
     using Infrastructure.Redis;
     using StackExchange.Redis;
+    using Infrastructure.Utils;
 
     [Export(typeof(ICacheManager))]
     internal class ChargingPileCacheManager : CacheManagerBase
     {
-        private static readonly string ChargingPileContainer = ConfigHelper.ChargingPileContainerKey;
+        private static readonly string ChargingPileContainer = Constants.ChargingPileContainerKey;
 
         public ChargingPileCacheManager() : base()
         {
@@ -88,7 +89,7 @@ namespace CPS.CacheDaemon.Cache
             Logger.Info($"start inspect charging pile data at {DateTime.Now}");
 
             var db = _redis.GetDatabase();
-            var fields = db.HashKeys(ChargingPileContainer);
+            var fields = db.HashKeys(ChargingPileContainer).ToStringArray();
 
             if (fields == null || fields.Count() <= 0)
                 return;

@@ -127,22 +127,6 @@ namespace CPS.Infrastructure.Utils
             }
         }
 
-        public static string StationContainerKey
-        {
-            get
-            {
-                return ConfigurationManager.AppSettings["StationContainerKey"];
-            }
-        }
-
-        public static string ChargingPileContainerKey
-        {
-            get
-            {
-                return ConfigurationManager.AppSettings["ChargingPileContainerKey"];
-            }
-        }
-
         #endregion 【属性】
 
         #region 【接口】

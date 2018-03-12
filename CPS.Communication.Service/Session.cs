@@ -18,6 +18,8 @@ namespace CPS.Communication.Service
         public OperPacketBase MyPacket { get; set; }
         public bool IsCompleted { get; set; }
         public object Result { get; set; }
+        public DateTime StartDate { get; set; }
+        public int Timeout { get; set; } = 10 * 1000;
 
         public Session(string id, Client client, OperPacketBase packet)
         {
@@ -32,6 +34,9 @@ namespace CPS.Communication.Service
                 return false;
 
             if (!MyClient.Equals(client))
+                return false;
+
+            if (packet.SerialNumber != MyPacket.SerialNumber)
                 return false;
 
             switch (MyPacket.Command)
@@ -225,9 +230,18 @@ namespace CPS.Communication.Service
 
         private AutoResetEvent _arEvent = new AutoResetEvent(true);
 
+        private Timer _timer = null;
         public SessionCollection()
         {
             _sessions = new List<Session>();
+
+            _timer = new Timer((state)=>
+            {
+                var now = DateTime.Now;
+                _arEvent.Reset();
+                this._sessions.RemoveAll(_ => (now - _.StartDate).TotalMilliseconds > _.Timeout);
+                _arEvent.Set();
+            }, null, 5000, 300*1000);
         }
 
         public int Count
@@ -258,13 +272,17 @@ namespace CPS.Communication.Service
 
         public Session MatchSession(Client client, OperPacketBase packet)
         {
+            List<Session> list = new List<Session>();
             for (int i = 0; i < _sessions.Count; i++)
             {
                 var item = this._sessions[i];
                 if (item.IsMatch(client, packet))
-                    return item;
+                    list.Add(item);
             }
-            return null;
+            if (list.Count <= 0)
+                return null;
+            else
+                return list[list.Count - 1];
         }
 
         public void Clear()

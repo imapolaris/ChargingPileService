@@ -4,10 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CPS.Infrastructure.Models;
 
 namespace CPS.Communication.Service.DataPackets
 {
-    public class RealDataOfChargingPacket : PacketBase
+    public class RealDataOfChargingPacket : PacketBase, IUniversal
     {
         public RealDataOfChargingPacket() : base(PacketTypeEnum.RealDataOfCharging)
         {
@@ -320,6 +321,36 @@ namespace CPS.Communication.Service.DataPackets
             start += 4;
             this._vin = EncodeHelper.GetString(buffer, start, 17);
             return this;
+        }
+
+        public UniversalData GetUniversalData()
+        {
+            UniversalData data = new UniversalData();
+            data.SetValue("transSn", this._transactionSN);
+            data.SetValue("port", this._qport);
+            data.SetValue("chargingElec", this._totalElec);
+            data.SetValue("sharpElec", this._sharpElec);
+            data.SetValue("peakElec", this._peakElec);
+            data.SetValue("flatElec", this._flatElec);
+            data.SetValue("valleyElec", this._valleyElec);
+            data.SetValue("elecMoney", this._elecMoney);
+            data.SetValue("serviceMoney", this._serviceMoney);
+            data.SetValue("costTime", this._costTime);
+            data.SetValue("cpState", this._cpState);
+            data.SetValue("stopReason", this._stopReason);
+            data.SetValue("soc", this._soc);
+            data.SetValue("restTime", this._surplusTime);
+            data.SetValue("voltage", this._outputV);
+            data.SetValue("electric", this._outputA);
+            data.SetValue("minTemp", this._minTemp);
+            data.SetValue("maxTemp", this._maxTemp);
+            data.SetValue("timestamp", this._timestamp);
+            data.SetValue("vin", this._vin);
+
+            data.SetValue("progress", this._soc);
+            data.SetValue("costMoney", this._elecMoney + this._serviceMoney);
+
+            return data;
         }
     }
 }

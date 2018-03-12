@@ -14,8 +14,7 @@ namespace ChargingPileService
     {
         private static readonly int VCodeValidityDuration = ConfigHelper.VCodeValidityDuration;
         private bool registered = false;
-
-        private const string SMSContainerKey = "SMSContainer";
+        
         private ManualResetEvent _manualEvent = new ManualResetEvent(true);
         private ConnectionMultiplexer _redis = null;
 
@@ -53,7 +52,7 @@ namespace ChargingPileService
         public bool ValidateVCode(string phoneNumber, string vcode)
         {
             var db = _redis.GetDatabase();
-            var json = db.HashGet(SMSContainerKey, phoneNumber);
+            var json = db.HashGet(Constants.SMSContainerKey, phoneNumber);
             if (string.IsNullOrEmpty(json))
                 return false;
             var entity = JsonHelper.Deserialize<SmsEntity>(json);
@@ -65,7 +64,7 @@ namespace ChargingPileService
         public void AppendVCode(string phoneNumber, string vcode)
         {
             var db = _redis.GetDatabase();
-            db.HashSet(SMSContainerKey,
+            db.HashSet(Constants.SMSContainerKey,
                 phoneNumber,
                 JsonHelper.Serialize(
                     new SmsEntity()
@@ -94,7 +93,7 @@ namespace ChargingPileService
 
                         var db = _redis.GetDatabase();
                         var now = DateTime.Now;
-                        var collection = db.HashValues(SMSContainerKey);
+                        var collection = db.HashValues(Constants.SMSContainerKey);
                         if (collection != null && collection.Length > 0)
                         {
                             foreach (var item in collection)
@@ -102,7 +101,7 @@ namespace ChargingPileService
                                 var entity = JsonHelper.Deserialize<SmsEntity>(item);
                                 if ((now - entity.RegisterDate).TotalSeconds >= VCodeValidityDuration)
                                 {
-                                    db.HashDelete(SMSContainerKey, entity.PhoneNumber);
+                                    db.HashDelete(Constants.SMSContainerKey, entity.PhoneNumber);
                                 }
                             }
                         }

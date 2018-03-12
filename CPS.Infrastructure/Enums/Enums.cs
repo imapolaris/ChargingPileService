@@ -6,11 +6,16 @@ using System.Threading.Tasks;
 
 namespace CPS.Infrastructure.Enums
 {
-    public enum MQMessageType
+    public enum ActionTypeEnum : byte
     {
-        StartCharging = 0x01,
-        StopCharging,
-
+        Startup = 0x01,
+        Shutdown,
         GetChargingPileState,
+    }
+
+    public enum ResultTypeEnum : byte
+    {
+        Succeed = 0x01,
+        Failed,
     }
 }

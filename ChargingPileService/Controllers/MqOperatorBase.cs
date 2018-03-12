@@ -13,7 +13,7 @@ namespace ChargingPileService.Controllers
     {
         private static readonly string Call_Channel = ConfigHelper.Message_From_Http_Channel;
         protected SessionServiceConfig SessionService = SessionServiceConfig.Instance;
-        private ConnectionMultiplexer _redis = null;
+        protected ConnectionMultiplexer _redis = null;
 
         public MqOperatorBase()
         {

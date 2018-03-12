@@ -229,18 +229,6 @@ namespace CPS.Communication.Service.DataPackets
         B,
     }
 
-    public enum ActionTypeEnum : byte
-    {
-        Startup=0x01,
-        Shutdown,
-    }
-
-    public enum ResultTypeEnum : byte
-    {
-        Succeed=0x01,
-        Failed,
-    }
-
     /// <summary>
     /// 失败原因
     /// </summary>

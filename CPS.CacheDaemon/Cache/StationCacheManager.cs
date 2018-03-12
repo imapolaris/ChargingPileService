@@ -14,11 +14,12 @@ namespace CPS.CacheDaemon.Cache
     using Infrastructure.Redis;
     using System.Timers;
     using StackExchange.Redis;
+    using Infrastructure.Utils;
 
     [Export(typeof(ICacheManager))]
     internal class StationCacheManager : CacheManagerBase
     {
-        private static readonly string StationContainer = ConfigHelper.StationContainerKey;
+        private static readonly string StationContainer = Constants.StationContainerKey;
         
         public StationCacheManager() : base()
         {
@@ -92,7 +93,7 @@ namespace CPS.CacheDaemon.Cache
             Logger.Info($"start inspect station data at {DateTime.Now}");
 
             var db = _redis.GetDatabase();
-            var fields = db.HashKeys(StationContainer);
+            var fields = db.HashKeys(StationContainer).ToStringArray();
 
             if (fields == null || fields.Count() <= 0)
                 return;

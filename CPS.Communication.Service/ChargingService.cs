@@ -19,6 +19,7 @@ namespace CPS.Communication.Service
     using Soaring.WebMonter.DB;
     using Infrastructure.Redis;
     using StackExchange.Redis;
+    using Soaring.WebMonter.Contract.Manager;
 
     public partial class ChargingService : /*IChargingPileService,*/ IDisposable
     {
@@ -107,12 +108,16 @@ namespace CPS.Communication.Service
                     try
                     {
                         var sub = _redis.GetSubscriber();
-                        sub.Publish(PubChannel, data.GetUniversalData().ToJson());
+                        var universal = data.GetUniversalData();
+                        universal.SetValue("id", matched.Id);
+                        sub.Publish(PubChannel, universal.ToJson());
                     }
                     catch (Exception ex)
                     {
                         Logger.Error(ex);
                     }
+
+                    Sessions.RemoveSession(matched);
                 }
             }));
         }
@@ -143,26 +148,26 @@ namespace CPS.Communication.Service
             data.FromJson(msg);
             var id = data.GetStringValue("id");
             if (string.IsNullOrEmpty(id)) return;
-            var oper = (MQMessageType)data.GetIntValue("oper");
+            var oper = (ActionTypeEnum)data.GetIntValue("oper");
             var result = false;
             switch (oper)
             {
-                case MQMessageType.StartCharging:
-                case MQMessageType.StopCharging:
+                case ActionTypeEnum.Startup:
+                case ActionTypeEnum.Shutdown:
                     result = SetCharging(data);
                     break;
-                case MQMessageType.GetChargingPileState:
+                case ActionTypeEnum.GetChargingPileState:
                     result = GetChargingPileState(data);
                     break;
                 default:
                     break;
             }
 
-            //if (!result)
+            if (!result)
             {
                 UniversalData rdata = new UniversalData();
                 rdata.SetValue("id", id);
-                rdata.SetValue("result", true);
+                rdata.SetValue("result", ResultTypeEnum.Failed);
 
                 var sub = _redis.GetSubscriber();
                 sub.PublishAsync(PubChannel, rdata.ToJson());
@@ -257,6 +262,9 @@ namespace CPS.Communication.Service
                     SessionCompleted(client, packet as OperPacketBase);
                     ChargingPileState(client, packet);
                     break;
+                case PacketTypeEnum.RealDataOfCharging:
+                    RealDataOfCharging(client, packet);
+                    break;
                 case PacketTypeEnum.RecordOfCharging:
                     SessionCompleted(client, packet as OperPacketBase);
                     RecordOfCharging(client, packet as RecordOfChargingPacket);
@@ -267,6 +275,36 @@ namespace CPS.Communication.Service
                 default:
                     break;
             }
+        }
+
+        private long CreateTransactionSerialNumber()
+        {
+            long transSn = 0;
+            long initSn = 10000001;
+            var configs = SysDbContext.Sys_SettingConfigs.Where(_ => _.ItemName == Constants.TransactionSerialNumberKey).FirstOrDefault();
+            if (configs == null)
+            {
+                SysDbContext.Sys_SettingConfigs.Add(new Sys_SettingConfig()
+                {
+                    SettingType = Constants.CPServiceKey,
+                    ItemName = Constants.TransactionSerialNumberKey,
+                    ItemValue = initSn.ToString(),
+                });
+                transSn = initSn;
+            }
+            else
+            {
+                long sn = long.Parse(configs.ItemValue);
+                sn += 1;
+                transSn = sn;
+                configs.ItemValue = sn.ToString();
+            }
+
+            int result = SysDbContext.SaveChanges();
+            if (result > 0)
+                return transSn;
+            else
+                throw new ArgumentException();
         }
 
         #region 【支持dispose】

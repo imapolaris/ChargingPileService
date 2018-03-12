@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CPS.Infrastructure.Utils;
+using CPS.Infrastructure.Enums;
 
 namespace CPS.Communication.Service.DataPackets
 {
