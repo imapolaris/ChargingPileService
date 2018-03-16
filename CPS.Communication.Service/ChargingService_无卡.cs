@@ -13,6 +13,7 @@ namespace CPS.Communication.Service
     using Infrastructure.Redis;
     using Soaring.WebMonter.Contract.Cache;
     using Infrastructure.Enums;
+    using Soaring.WebMonter.DB;
 
     /// <summary>
     /// 无卡充电
@@ -157,14 +158,20 @@ namespace CPS.Communication.Service
                 if (client == null || packet == null)
                     return;
 
+                var sn = packet.SerialNumber;
                 ConfirmRecordOfChargingPacket confirmPacket = new ConfirmRecordOfChargingPacket()
                 {
-                    SerialNumber = packet.SerialNumber,
+                    SerialNumber = sn,
                     HasCard = packet.HasCard,
                     TransactionSN = packet.TransactionSN,
                     QPort = packet.QPort,
                     CardNo = packet.CardNoVal,
                 };
+
+                // 结账计费
+                var dbContext = new HistoryDbContext();
+                var record = dbContext.ChargingRecords.Where(_ => _.Transactionsn == sn).FirstOrDefault();
+                
 
                 client.Send(confirmPacket);
             }));

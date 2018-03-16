@@ -39,6 +39,21 @@ namespace ChargingPileService.Controllers
                         }));
                     }
                 }
+                else
+                {
+                    var gcustomer = SysDbContext.GroupCustomers.Where(_ => _.Telephone == telephone).FirstOrDefault();
+                    if (gcustomer != null)
+                    {
+                        return Ok(new Models.SingleResult<GroupCustomer>(true, "登录成功！", new GroupCustomer
+                        {
+                            Id = gcustomer.Id,
+                            Telephone = gcustomer.Telephone,
+                            Sex = gcustomer.Sex,
+                            Avatar = gcustomer.Avatar,
+                            NickName = gcustomer.NickName,
+                        }));
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -71,9 +86,10 @@ namespace ChargingPileService.Controllers
                     Password = pwd,
                     NickName = telephone,
                 });
-                SysDbContext.SaveChanges();
+                int result = SysDbContext.SaveChanges();
 
-                return Ok(SimpleResult.Succeed("注册成功，请登录！"));
+                if (result > 0)
+                    return Ok(SimpleResult.Succeed("注册成功，请登录！"));
             }
 
             return Ok(SimpleResult.Failed("注册失败！"));
@@ -98,11 +114,25 @@ namespace ChargingPileService.Controllers
             {
                 try
                 {
-                    var theCustomer = SysDbContext.PersonalCustomers.Where(_ => _.Telephone == telephone).First();
-                    theCustomer.Password = pwd;
-                    SysDbContext.SaveChanges();
+                    var theCustomer = SysDbContext.PersonalCustomers.Where(_ => _.Telephone == telephone).FirstOrDefault();
+                    if (theCustomer != null)
+                    {
+                        theCustomer.Password = pwd;
+                        SysDbContext.SaveChanges();
 
-                    return Ok(SimpleResult.Succeed("重置成功！"));
+                        return Ok(SimpleResult.Succeed("重置成功！"));
+                    }
+                    else
+                    {
+                        var theGCustomer = SysDbContext.GroupCustomers.Where(_ => _.Telephone == telephone).FirstOrDefault();
+                        if (theGCustomer != null)
+                        {
+                            theGCustomer.Password = pwd;
+                            SysDbContext.SaveChanges();
+
+                            return Ok(SimpleResult.Succeed("重置成功！"));
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -121,16 +151,37 @@ namespace ChargingPileService.Controllers
             string userId = obj.userId;
             try
             {
-                var customer = SysDbContext.PersonalCustomers.Where(_ => _.Id == userId).First();
-
-                return Ok(new Models.SingleResult<PersonalCustomer>(true, "", new PersonalCustomer
+                var customer = SysDbContext.PersonalCustomers.Where(_ => _.Id == userId).FirstOrDefault();
+                if (customer != null)
                 {
-                    Id = customer.Id,
-                    NickName = customer.NickName,
-                    Sex = customer.Sex,
-                    Avatar = customer.Avatar,
-                    Telephone = customer.Telephone,
-                }));
+                    return Ok(new Models.SingleResult<PersonalCustomer>(true, "操作完成！", new PersonalCustomer
+                    {
+                        Id = customer.Id,
+                        NickName = customer.NickName,
+                        Sex = customer.Sex,
+                        Avatar = customer.Avatar,
+                        Telephone = customer.Telephone,
+                    }));
+                }
+                else
+                {
+                    var gcustomer = SysDbContext.GroupCustomers.Where(_ => _.Id == userId).FirstOrDefault();
+                    if (gcustomer != null)
+                    {
+                        return Ok(new Models.SingleResult<GroupCustomer>(true, "操作完成！", new GroupCustomer
+                        {
+                            Id = customer.Id,
+                            NickName = customer.NickName,
+                            Sex = customer.Sex,
+                            Avatar = customer.Avatar,
+                            Telephone = customer.Telephone,
+                        }));
+                    }
+                    else
+                    {
+                        throw new KeyNotFoundException();
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -152,23 +203,41 @@ namespace ChargingPileService.Controllers
 
             try
             {
-                var theCustomer = SysDbContext.PersonalCustomers.Where(_ => _.Id == customer.Id).First();
-                theCustomer.Avatar = customer.Avatar;
-                theCustomer.NickName = customer.NickName;
-                theCustomer.Sex = customer.Sex;
-                SysDbContext.SaveChanges();
+                var theCustomer = SysDbContext.PersonalCustomers.Where(_ => _.Id == customer.Id).FirstOrDefault();
+                if (theCustomer != null)
+                {
+                    theCustomer.Avatar = customer.Avatar;
+                    theCustomer.NickName = customer.NickName;
+                    theCustomer.Sex = customer.Sex;
+                    SysDbContext.SaveChanges();
 
-                return Ok(SimpleResult.Succeed("修改成功！"));
+                    return Ok(SimpleResult.Succeed("修改成功！"));
+                }
+                else
+                {
+                    var theGCustomer = SysDbContext.GroupCustomers.Where(_ => _.Id == customer.Id).FirstOrDefault();
+                    if (theGCustomer != null)
+                    {
+                        theGCustomer.Avatar = customer.Avatar;
+                        theGCustomer.NickName = customer.NickName;
+                        theGCustomer.Sex = customer.Sex;
+                        SysDbContext.SaveChanges();
+
+                        return Ok(SimpleResult.Succeed("修改成功！"));
+                    }
+                }
             }
             catch (Exception ex)
             {
                 Logger.Error(ex);
-                return Ok(SimpleResult.Failed("修改失败！"));
             }
+
+            return Ok(SimpleResult.Failed("修改失败！"));
         }
 
         [HttpPost]
         [Route("change")]
+        [Obsolete]
         public IHttpActionResult ChangePwd(dynamic obj)
         {
             string userId = obj.id;

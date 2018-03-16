@@ -277,34 +277,38 @@ namespace CPS.Communication.Service
             }
         }
 
+        private object locker = new object();
         private long CreateTransactionSerialNumber()
         {
-            long transSn = 0;
-            long initSn = 10000001;
-            var configs = SysDbContext.Sys_SettingConfigs.Where(_ => _.ItemName == Constants.TransactionSerialNumberKey).FirstOrDefault();
-            if (configs == null)
+            lock (locker)
             {
-                SysDbContext.Sys_SettingConfigs.Add(new Sys_SettingConfig()
+                long transSn = 0;
+                long initSn = 10000001;
+                var configs = SysDbContext.Sys_SettingConfigs.Where(_ => _.ItemName == Constants.TransactionSerialNumberKey).FirstOrDefault();
+                if (configs == null)
                 {
-                    SettingType = Constants.CPServiceKey,
-                    ItemName = Constants.TransactionSerialNumberKey,
-                    ItemValue = initSn.ToString(),
-                });
-                transSn = initSn;
-            }
-            else
-            {
-                long sn = long.Parse(configs.ItemValue);
-                sn += 1;
-                transSn = sn;
-                configs.ItemValue = sn.ToString();
-            }
+                    SysDbContext.Sys_SettingConfigs.Add(new Sys_SettingConfig()
+                    {
+                        SettingType = Constants.CPServiceKey,
+                        ItemName = Constants.TransactionSerialNumberKey,
+                        ItemValue = initSn.ToString(),
+                    });
+                    transSn = initSn;
+                }
+                else
+                {
+                    long sn = long.Parse(configs.ItemValue);
+                    sn += 1;
+                    transSn = sn;
+                    configs.ItemValue = sn.ToString();
+                }
 
-            int result = SysDbContext.SaveChanges();
-            if (result > 0)
-                return transSn;
-            else
-                throw new ArgumentException();
+                int result = SysDbContext.SaveChanges();
+                if (result > 0)
+                    return transSn;
+                else
+                    throw new ArgumentException();
+            }
         }
 
         #region 【支持dispose】

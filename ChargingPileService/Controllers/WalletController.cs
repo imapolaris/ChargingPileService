@@ -27,7 +27,10 @@ namespace ChargingPileService.Controllers
             try
             {
                 var theWallet = SysDbContext.Wallets.Where(_ => _.CustomerId == userId).FirstOrDefault();
-                return Ok(Models.SingleResult<double>.Succeed("查询成功！", theWallet.Remaining));
+                var remaining = 0.0;
+                if (theWallet != null)
+                    remaining = theWallet.Remaining;
+                return Ok(Models.SingleResult<double>.Succeed("查询成功！", remaining));
             }
             catch (Exception ex)
             {
