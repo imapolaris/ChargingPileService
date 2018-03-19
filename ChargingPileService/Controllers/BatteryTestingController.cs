@@ -1,8 +1,10 @@
 ﻿using ChargingPileService.Models;
 using CPS.Infrastructure.Utils;
 using Soaring.WebMonter.Contract.History;
+using Soaring.WebMonter.Contract.Procedure;
 using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -56,9 +58,16 @@ namespace ChargingPileService.Controllers
 
         [HttpGet]
         [Route("summary")]
-        public IHttpActionResult GetBatteryTestingSummary()
+        public IHttpActionResult GetBatteryTestingSummary(string userId)
         {
-            return null;
+            SqlParameter[] sqlParms = new SqlParameter[1];
+            sqlParms[0] = new SqlParameter("@userId", userId);
+            var result = HisDbContext.Database.SqlQuery<BatteryTestingSummary>("exec sp_customerBatteryTestingDataStatistics @userId", sqlParms).Cast<BatteryTestingSummary>().FirstOrDefault();
+
+            if (result == null)
+                return Ok(SimpleResult.Failed("查询失败！"));
+            else
+                return Ok(Models.SingleResult<BatteryTestingSummary>.Succeed("查询成功！", result));
         }
 
         [HttpGet]

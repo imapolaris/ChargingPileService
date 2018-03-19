@@ -24,6 +24,7 @@ namespace CPS.Communication.Service
     public partial class ChargingService : /*IChargingPileService,*/ IDisposable
     {
         SystemDbContext SysDbContext = new SystemDbContext();
+        HistoryDbContext hisDbContext = new HistoryDbContext();
         public Server MyServer { get; set; }
         private ConnectionMultiplexer _redis = null;
 

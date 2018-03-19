@@ -14,6 +14,7 @@ namespace CPS.Communication.Service
     using Soaring.WebMonter.Contract.Cache;
     using Infrastructure.Enums;
     using Soaring.WebMonter.DB;
+    using Soaring.WebMonter.Contract.History;
 
     /// <summary>
     /// 无卡充电
@@ -145,6 +146,38 @@ namespace CPS.Communication.Service
             {
                 var db = _redis.GetDatabase();
                 db.HashSet(Constants.ChargingRealtimeDataContainerKey, packet.SerialNumber, p.GetUniversalData().ToJson());
+
+                // 保存充电明细账到数据库
+                try
+                {
+                    hisDbContext.ChargingDetailedRecords.Add(new ChargingDetailedRecord
+                    {
+                        TransactionSN = p.TransactionSN,
+                        CostTime = p.CostTime,
+                        CpState = p.CpState,
+                        ElecMoney = p.ElecMoney,
+                        FlatElec = p.FlatElec,
+                        MaxTemp = p.MaxTemp,
+                        MinTemp = p.MinTemp,
+                        OutputA = p.OutputA,
+                        OutputV = p.OutputV,
+                        PeakElec = p.PeakElec,
+                        QPort = p.QPort,
+                        RestTime = p.SurplusTime,
+                        ServiceMoney = p.ServiceMoney,
+                        SharpElec = p.SharpElec,
+                        SOC = p.SOC,
+                        TimeStamp = p.TimeStamp,
+                        TotalElec = p.TotalElec,
+                        ValleyElec = p.ValleyElec,
+                        Vin = p.Vin,
+                    });
+                    hisDbContext.SaveChangesAsync();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(ex);
+                }
             });
         }
 
@@ -169,8 +202,7 @@ namespace CPS.Communication.Service
                 };
 
                 // 结账计费
-                var dbContext = new HistoryDbContext();
-                var record = dbContext.ChargingRecords.Where(_ => _.Transactionsn == sn).FirstOrDefault();
+                var record = hisDbContext.ChargingRecords.Where(_ => _.Transactionsn == sn).FirstOrDefault();
                 
 
                 client.Send(confirmPacket);

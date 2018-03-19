@@ -13,6 +13,8 @@ namespace ChargingPileService.Controllers
     using CPS.Infrastructure.Enums;
     using CPS.Infrastructure.Models;
     using CPS.Infrastructure.Utils;
+    using Soaring.WebMonter.Contract.Procedure;
+    using System.Data.SqlClient;
 
     [RoutePrefix("api/charging")]
     public class ChargingController : MqOperatorBase
@@ -245,7 +247,14 @@ namespace ChargingPileService.Controllers
         [Route("summary")]
         public IHttpActionResult GetChargingSummary(string userId)
         {
-            return null;
+            var sqlParms = new SqlParameter[1];
+            sqlParms[0] = new SqlParameter("@userId", userId);
+            var result = HisDbContext.Database.SqlQuery(typeof(ChargingSummary), "exec sp_customerChargingDataStatistics @userId", sqlParms).Cast<ChargingSummary>().FirstOrDefault();
+
+            if (result == null)
+                return Ok(SimpleResult.Failed("查询失败！"));
+            else
+                return Ok(Models.SingleResult<ChargingSummary>.Succeed("查询成功！", result));
         }
 
         [HttpGet]
