@@ -1,4 +1,5 @@
-﻿using ChargingPileService.Models;
+﻿using ChargingPileService.Common;
+using ChargingPileService.Models;
 using CPS.Infrastructure.Utils;
 using Soaring.WebMonter.Contract.History;
 using Soaring.WebMonter.Contract.Procedure;
@@ -37,8 +38,24 @@ namespace ChargingPileService.Controllers
 
         [HttpPost]
         [Route("start")]
-        public IHttpActionResult StartBatteryTesting()
+        public IHttpActionResult StartBatteryTesting(dynamic obj)
         {
+            string sn = obj.sn;
+            string userId = obj.userId;
+            string vehicleNo = obj.vehicleNo;
+
+            var transSn = ToolUtil.CreateTransactionSerialNumber();
+
+            HisDbContext.BatteryCheckRecords.Add(new BatteryCheckRecord
+            {
+                CustomerId = userId,
+                CPSerialNumber = sn,
+                StartDate = DateTime.Now,
+                PlateNo = vehicleNo,
+                Transactionsn = transSn,
+            });
+            HisDbContext.SaveChanges();
+
             return Ok();
         }
 

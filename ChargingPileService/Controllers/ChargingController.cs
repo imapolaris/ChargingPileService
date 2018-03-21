@@ -10,6 +10,7 @@ using System.Web.Http;
 
 namespace ChargingPileService.Controllers
 {
+    using Common;
     using CPS.Infrastructure.Enums;
     using CPS.Infrastructure.Models;
     using CPS.Infrastructure.Utils;
@@ -67,6 +68,8 @@ namespace ChargingPileService.Controllers
                 UniversalData data = new UniversalData();
                 data.SetValue("id", session.Id);
                 data.SetValue("oper", ActionTypeEnum.Startup);
+                var transSn = ToolUtil.CreateTransactionSerialNumber();
+                data.SetValue("transSn", transSn);
                 data.SetValue("sn", sn);
                 data.SetValue("port", 0);
                 data.SetValue("money", 0);
@@ -85,7 +88,7 @@ namespace ChargingPileService.Controllers
                             ChargingDate = DateTime.Now,
                             CPSerialNumber = sn,
                             StartDate = DateTime.Now,
-                            Transactionsn = sessionResult?.GetLongValue("transSn").ToString() ?? "0",
+                            Transactionsn = transSn,
                             IsSucceed = result == ResultTypeEnum.Succeed,
                         };
 
@@ -128,7 +131,7 @@ namespace ChargingPileService.Controllers
             {
                 string userId = obj.userId;
                 string sn = obj.sn;
-                string transSn = obj.transSn;
+                long transSn = obj.transSn;
 
                 if (!ValidSerialNumber(sn))
                 {
@@ -163,10 +166,7 @@ namespace ChargingPileService.Controllers
                                     ChargingDate = DateTime.Now,
                                     CPSerialNumber = sn,
                                     //StartDate = DateTime.Now,
-                                    Cost = 0,
-                                    Kwhs = 0,
-                                    IsSucceed = true,
-                                    EndDate = DateTime.Now,
+                                    //EndDate = DateTime.Now,
                                 };
                                 HisDbContext.ChargingRecords.Add(record);
                                 HisDbContext.SaveChangesAsync();

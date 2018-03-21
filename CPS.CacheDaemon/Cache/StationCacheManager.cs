@@ -30,7 +30,7 @@ namespace CPS.CacheDaemon.Cache
         {
             Logger.Info("start loading station data into the cache...");
 
-            var result = await Task.Run(() =>
+            await Task.Run(() =>
             {
                 try
                 {
@@ -62,20 +62,11 @@ namespace CPS.CacheDaemon.Cache
                 catch (Exception ex)
                 {
                     Logger.Error(ex);
-                    return false;
+                    Logger.Warn("fail to load station data into cache.");
                 }
 
-                return true;
-            });
-
-            if (result)
-            {
                 Logger.Info("succeed to load station data.");
-            }
-            else
-            {
-                Logger.Info("fail to load station data into cache.");
-            }
+            });
 
             // start to insepect.
             Inspector();

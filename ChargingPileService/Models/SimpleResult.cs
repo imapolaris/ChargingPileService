@@ -22,5 +22,11 @@ namespace ChargingPileService.Models
         {
             return new SimpleResult(false, message);
         }
+
+        public SimpleResult SetFailReason(object failReason)
+        {
+            this.FailReason = failReason;
+            return this;
+        }
     }
 }

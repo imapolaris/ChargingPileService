@@ -43,7 +43,7 @@ namespace ChargingPileService.Controllers
         [Route("records")]
         public IEnumerable<PayRecord> GetRechargeRecords(string userId)
         {
-            return HisDbContext.PayRecords.Where(_=>_.CustomerId == userId && _.IsValid == true);
+            return HisDbContext.PayRecords.Where(_=>_.CustomerId == userId && _.IsValid == true).OrderByDescending(_=>_.PayDate);
         }
 
         [HttpDelete]
@@ -78,35 +78,50 @@ namespace ChargingPileService.Controllers
                 string userId = obj.userId;
                 double money = obj.money;
                 string payway = obj.payway;
+                string tradeno = obj.tradeno;
 
-                var theWallet = SysDbContext.Wallets.Where(_ => _.CustomerId == userId).FirstOrDefault();
-                if (theWallet == null)
+                // 检查账单是否已存在（支付结果会异步通知）
+                var record = HisDbContext.PayRecords.Where(_ => _.DealNo == tradeno).FirstOrDefault();
+                if (record != null)
                 {
-                    SysDbContext.Wallets.Add(new Sys_Wallet()
-                    {
-                        CustomerId = userId,
-                        Remaining = money,
-                    });
+                    var theWallet = SysDbContext.Wallets.Where(_ => _.CustomerId == userId).FirstOrDefault();
+                    return Ok(new Models.SingleResult<double>(true, "充值成功！", theWallet.Remaining));
                 }
                 else
                 {
-                    theWallet.Remaining += money;
+                    var theWallet = SysDbContext.Wallets.Where(_ => _.CustomerId == userId).FirstOrDefault();
+                    if (theWallet == null)
+                    {
+                        SysDbContext.Wallets.Add(new Sys_Wallet()
+                        {
+                            CustomerId = userId,
+                            Remaining = money,
+                        });
+                    }
+                    else
+                    {
+                        theWallet.Remaining += money;
+                    }
+
+                    int result = SysDbContext.SaveChanges();
+                    if (result > 0)
+                    {
+                        // 添加充值账单记录
+                        HisDbContext.PayRecords.Add(new PayRecord()
+                        {
+                            PayDate = DateTime.Now,
+                            PayWay = payway,
+                            PayMoney = money,
+                            CustomerId = userId,
+                            DealNo = tradeno,
+                        });
+
+                        HisDbContext.SaveChanges();
+
+                        var returnVal = new Models.SingleResult<double>(true, "充值成功！", theWallet.Remaining);
+                        return Ok(returnVal);
+                    }
                 }
-
-                SysDbContext.SaveChanges();
-
-                HisDbContext.PayRecords.Add(new PayRecord()
-                {
-                    PayDate = DateTime.Now,
-                    PayWay = payway,
-                    PayMoney = money,
-                    CustomerId = userId,
-                });
-                
-                HisDbContext.SaveChanges();
-
-                var returnVal = new Models.SingleResult<double>(true, "充值成功！", theWallet.Remaining);
-                return Ok(returnVal);
             }
             catch (Exception ex)
             {
@@ -160,20 +175,24 @@ namespace ChargingPileService.Controllers
         {
             try
             {
-                double money = obj.money;
+                string userId = obj.userId;
+                double money = obj.money; // 单位分
                 money *= 100;
-                money = 1;
 
+                var trade_no = WxPayApi.GenerateOutTradeNo();
                 //统一下单
                 WxPayData data = new WxPayData();
                 data.SetValue("body", ProductDesc);//商品描述
                 data.SetValue("attach", ProductDesc + "-微信支付");//附加数据
-                data.SetValue("out_trade_no", WxPayApi.GenerateOutTradeNo());//随机字符串
+                data.SetValue("out_trade_no", trade_no);//随机字符串
                 data.SetValue("total_fee", money.ToString());//总金额（单位为【分】）
                 data.SetValue("time_start", DateTime.Now.ToString("yyyyMMddHHmmss"));//交易起始时间
                 data.SetValue("time_expire", DateTime.Now.AddMinutes(10).ToString("yyyyMMddHHmmss"));//交易结束时间
                 data.SetValue("goods_tag", "wx-cp");//商品标记
                 data.SetValue("trade_type", "APP");//交易类型
+
+                data.SetValue("notify_url", Common.WxPayConfig.NOTIFY_URL); //异步通知url
+                data.SetValue("attach", userId);//附加数据，在查询API和支付通知中原样返回
 
                 WxPayData result = WxPayApi.UnifiedOrder(data);//调用统一下单接口
                 var returnCode = result.GetValue("return_code").ToString();
@@ -190,6 +209,7 @@ namespace ChargingPileService.Controllers
                 payObject.SetValue("noncestr", WxPayApi.GenerateNonceStr());
                 payObject.SetValue("timestamp", DateTime.Now.ConvertToTimeStampX().ToString());
                 payObject.SetValue("sign", payObject.MakeSign());
+                payObject.SetValue("tradeno", trade_no); // 商家订单号，对账单进行追踪
 
                 return Ok(Models.SingleResult<string>.Succeed("预支付完成！", payObject.ToJson()));
             }

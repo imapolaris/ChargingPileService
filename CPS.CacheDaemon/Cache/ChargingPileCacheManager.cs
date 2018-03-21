@@ -29,7 +29,7 @@ namespace CPS.CacheDaemon.Cache
         {
             Logger.Info("start loading charging piles data into the cache...");
 
-            var result = await Task.Run(() =>
+            await Task.Run(() =>
             {
                 try
                 {
@@ -57,20 +57,11 @@ namespace CPS.CacheDaemon.Cache
                 catch (Exception ex)
                 {
                     Logger.Error(ex);
-                    return false;
+                    Logger.Warn("fail to load charging pile data into the cache.");
                 }
 
-                return true;
-            });
-
-            if (result)
-            {
                 Logger.Info("succeed to load charing pile data into the cache.");
-            }
-            else
-            {
-                Logger.Info("fail to load charging pile data into the cache.");
-            }
+            });
 
             // start inspect.
             Inspector();
@@ -95,7 +86,7 @@ namespace CPS.CacheDaemon.Cache
                 return;
 
             var SysDbContext = new SystemDbContext();
-            var data = SysDbContext.ChargingPiles.Where(_ => !fields.Contains(_.Id));
+            var data = SysDbContext.ChargingPiles.Where(_ => !fields.Contains(_.SerialNumber));
             if (data == null || data.Count() <= 0) return;
             var newd = data.Select(_ => new ChargingPileCache()
             {

@@ -13,6 +13,6 @@ namespace ChargingPileService.Common
         public const string ALIPAY_PUBLIC_KEY = @"MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvStlrbYUILe6QVQNpZvQm2AIrLad92HCRawDrQT6lVSyssKE4jYep10vJeyOG9U2dQLVD/0ZANnIzeeER2RrFmOIEOcwCucRQGtgI7j/SCGlo2YT9MIUWWngx913cDtqvvE7DiMIOY9miKdjwNViSjVkVrSfv4oQxQ07ZKkNYGvwxglgtGnOhoBMTRmeF3qqKu+SY5Atip3M5VAaoLs6Rq6dlFaKyeVlhxaksHQvsfDNAsMA1uPZbGimg/sUhApJZkQ4QSjFz9XMChyCzxDMvVZYXWtaxaRqCOxZ6FYsL4F7Hdyw/51hLQIOcasABJ7jSCEUhRuE1/z4/20g5OQQSQIDAQAB";
         public const string CHARSET = @"utf-8";
 
-        public const string NOTIFY_URL = "";
+        public const string NOTIFY_URL = "http://39.104.66.176/Views/WxPay/ResultNotifyPage.aspx";
     }
 }

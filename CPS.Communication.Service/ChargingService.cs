@@ -278,40 +278,6 @@ namespace CPS.Communication.Service
             }
         }
 
-        private object locker = new object();
-        private long CreateTransactionSerialNumber()
-        {
-            lock (locker)
-            {
-                long transSn = 0;
-                long initSn = 10000001;
-                var configs = SysDbContext.Sys_SettingConfigs.Where(_ => _.ItemName == Constants.TransactionSerialNumberKey).FirstOrDefault();
-                if (configs == null)
-                {
-                    SysDbContext.Sys_SettingConfigs.Add(new Sys_SettingConfig()
-                    {
-                        SettingType = Constants.CPServiceKey,
-                        ItemName = Constants.TransactionSerialNumberKey,
-                        ItemValue = initSn.ToString(),
-                    });
-                    transSn = initSn;
-                }
-                else
-                {
-                    long sn = long.Parse(configs.ItemValue);
-                    sn += 1;
-                    transSn = sn;
-                    configs.ItemValue = sn.ToString();
-                }
-
-                int result = SysDbContext.SaveChanges();
-                if (result > 0)
-                    return transSn;
-                else
-                    throw new ArgumentException();
-            }
-        }
-
         #region 【支持dispose】
 
         private bool disposed = false;

@@ -32,5 +32,8 @@ namespace ChargingPileService.Models
             get { return message; }
             set { message = value; }
         }
+
+        [JsonProperty(PropertyName ="failReason")]
+        public object FailReason { get; set; }
     }
 }

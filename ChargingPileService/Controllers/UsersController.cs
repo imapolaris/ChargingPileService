@@ -80,16 +80,27 @@ namespace ChargingPileService.Controllers
             var valid = SmsServiceConfig.Instance.ValidateVCode(telephone, vcode);
             if (valid)
             {
-                SysDbContext.PersonalCustomers.Add(new PersonalCustomer
+                var customer = new PersonalCustomer
                 {
                     Telephone = telephone,
                     Password = pwd,
                     NickName = telephone,
-                });
+                };
+                SysDbContext.PersonalCustomers.Add(customer);
                 int result = SysDbContext.SaveChanges();
 
                 if (result > 0)
+                {
+                    // 添加钱包信息
+                    SysDbContext.Wallets.Add(new Sys_Wallet
+                    {
+                        CustomerId = customer.Id,
+                        Remaining = 0,
+                    });
+                    SysDbContext.SaveChangesAsync();
+
                     return Ok(SimpleResult.Succeed("注册成功，请登录！"));
+                }
             }
 
             return Ok(SimpleResult.Failed("注册失败！"));

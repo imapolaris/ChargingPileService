@@ -15,6 +15,7 @@ namespace CPS.Communication.Service
     using Infrastructure.Enums;
     using Soaring.WebMonter.DB;
     using Soaring.WebMonter.Contract.History;
+    using Soaring.WebMonter.Contract.Manager;
 
     /// <summary>
     /// 无卡充电
@@ -94,25 +95,12 @@ namespace CPS.Communication.Service
             string id = data.GetStringValue("id");
             string sn = data.GetStringValue("sn");
             ActionTypeEnum ate = (ActionTypeEnum)data.GetIntValue("oper");
-            long transSN = 0;
+            long transSN = data.GetLongValue("transSn");
             byte port = data.GetByteValue("port");
             int money = 0;
             if (ate == ActionTypeEnum.Startup) // 启动充电
             {
-                try
-                {
-                    transSN = CreateTransactionSerialNumber();
-                }
-                catch (ArgumentException ae)
-                {
-                    Logger.Error(ae);
-                    return false;
-                }
                 money = data.GetIntValue("money");
-            }
-            else // 停止充电
-            {
-                transSN = data.GetLongValue("transSn");
             }
             SetChargingPacket packet = new SetChargingPacket()
             {
@@ -172,11 +160,37 @@ namespace CPS.Communication.Service
                         ValleyElec = p.ValleyElec,
                         Vin = p.Vin,
                     });
-                    hisDbContext.SaveChangesAsync();
+                    hisDbContext.SaveChanges();
                 }
                 catch (Exception ex)
                 {
                     Logger.Error(ex);
+                }
+
+                // 检查充电金额是否超出钱包余额
+                var costMoney = p.ElecMoney + p.ServiceMoney;
+                var record = hisDbContext.ChargingRecords.Where(_ => _.Transactionsn == p.TransactionSN).FirstOrDefault();
+                if (record != null)
+                {
+                    var customerId = record.CustomerId;
+                    var wallet = SysDbContext.Wallets.Where(_ => _.CustomerId == customerId).FirstOrDefault();
+                    if (wallet != null)
+                    {
+                        // 钱包余额不足时，停止充电。
+                        if (wallet.Remaining <= costMoney)
+                        {
+                            SetChargingPacket stopPacket = new SetChargingPacket()
+                            {
+                                SerialNumber = p.SerialNumber,
+                                OperType = OperTypeEnum.SetChargingOper,
+                                TransactionSN = p.TransactionSN,
+                                QPort = 0,
+                                Action = (byte)ActionTypeEnum.Shutdown,
+                                Money = 0,
+                            };
+                            client.Send(stopPacket);
+                        }
+                    }
                 }
             });
         }
@@ -201,9 +215,68 @@ namespace CPS.Communication.Service
                     CardNo = packet.CardNoVal,
                 };
 
-                // 结账计费
-                var record = hisDbContext.ChargingRecords.Where(_ => _.Transactionsn == sn).FirstOrDefault();
-                
+                try
+                {
+                    // 结账计费
+                    var record = hisDbContext.ChargingRecords.Where(_ => _.Transactionsn == packet.TransactionSN).FirstOrDefault();
+                    if (record == null)
+                    {
+                        hisDbContext.ChargingRecords.Add(new ChargRecord
+                        {
+                            CPPort = packet.QPort,
+                            CPSerialNumber = packet.SerialNumber,
+                            BeforeElec = packet.BeforeElec,
+                            AfterElec = packet.AfterElec,
+                            CostMoney = packet.CostMoney,
+                            Duration = packet.CostTime,
+                            Kwhs = packet.AfterElec - packet.BeforeElec,
+                            ServiceMoney = packet.ServiceMoney,
+                            StopReason = packet.StopReason,
+                            //EndDate = packet.StopTime,
+                            SOC = packet.SOC,
+                            Transactionsn = packet.TransactionSN,
+                        });
+                    }
+                    else
+                    {
+                        record.CPPort = packet.QPort;
+                        record.CPSerialNumber = packet.SerialNumber;
+                        record.BeforeElec = packet.BeforeElec;
+                        record.AfterElec = packet.AfterElec;
+                        record.CostMoney = packet.CostMoney;
+                        record.Duration = packet.CostTime;
+                        record.Kwhs = packet.AfterElec - packet.BeforeElec;
+                        record.ServiceMoney = packet.ServiceMoney;
+                        record.StopReason = packet.StopReason;
+                        //EndDate = packet.StopTime;
+                        record.SOC = packet.SOC;
+                        record.Transactionsn = packet.TransactionSN;
+                    }
+
+                    // 钱包中扣除充电费用
+                    var costMoney = packet.CostMoney + packet.ServiceMoney;
+                    var customerId = record.CustomerId;
+                    var wallet = SysDbContext.Wallets.Where(_ => _.CustomerId == customerId).FirstOrDefault();
+                    if (wallet == null)
+                    {
+                        SysDbContext.Wallets.Add(new Sys_Wallet
+                        {
+                            CustomerId = customerId,
+                            Remaining = -costMoney,
+                        });
+                    }
+                    else
+                    {
+                        wallet.Remaining -= costMoney;
+                    }
+
+                    hisDbContext.SaveChanges();
+                    SysDbContext.SaveChanges();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(ex);
+                }
 
                 client.Send(confirmPacket);
             }));

@@ -150,6 +150,7 @@
     <Content Include="Views\testqrcode.html" />
     <Content Include="Views\download\weixinTip-jq.html" />
     <Content Include="Views\download\weixinTip-jq_html.html" />
+    <Content Include="Views\WxPay\ResultNotifyPage.aspx" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
@@ -157,6 +158,8 @@
     <Compile Include="App_Start\SmsServiceConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Common\AliPayConfig.cs" />
+    <Compile Include="Common\ResultNotify.cs" />
+    <Compile Include="Common\ToolUtil.cs" />
     <Compile Include="Common\WxPayConfig.cs" />
     <Compile Include="Controllers\BatteryTestingController.cs" />
     <Compile Include="Controllers\ChargingController.cs" />
@@ -185,6 +188,13 @@
     </Compile>
     <Compile Include="Views\downloadapp.aspx.designer.cs">
       <DependentUpon>downloadapp.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Views\WxPay\ResultNotifyPage.aspx.cs">
+      <DependentUpon>ResultNotifyPage.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Views\WxPay\ResultNotifyPage.aspx.designer.cs">
+      <DependentUpon>ResultNotifyPage.aspx</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
