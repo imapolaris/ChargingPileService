@@ -5,7 +5,7 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using System.Text;
 
-namespace ChargingPileService.Views.WxPay
+namespace ChargingPileService.Views.AliPay
 {
     using ChargingPileService.Common;
 
@@ -13,7 +13,7 @@ namespace ChargingPileService.Views.WxPay
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-            WxPayResultNotify resultNotify = new WxPayResultNotify(this);
+            AliPayResultNotify resultNotify = new AliPayResultNotify(this);
             resultNotify.ProcessNotify();
         }       
     }

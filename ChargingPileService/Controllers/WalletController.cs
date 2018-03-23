@@ -138,26 +138,31 @@ namespace ChargingPileService.Controllers
             try
             {
                 double money = obj.money;
+                string userId = obj.userId;
 
                 IAopClient client = new DefaultAopClient(AliPayConfig.ServerUrl, AliPayConfig.APPID, AliPayConfig.APP_PRIVATE_KEY,
-                    "json", "1.0", "RSA2", AliPayConfig.ALIPAY_PUBLIC_KEY, AliPayConfig.CHARSET, false);
+                    "json", "1.0", AliPayConfig.SIGNTYPE, AliPayConfig.ALIPAY_PUBLIC_KEY, AliPayConfig.CHARSET, false);
                 AlipayTradeAppPayRequest request = new AlipayTradeAppPayRequest();
 
+                var outtradeno = Guid.NewGuid().ToString();
                 AlipayTradeAppPayModel model = new AlipayTradeAppPayModel();
                 model.Subject = ProductDesc;
                 model.Body = ProductDesc + "-支付宝支付";
                 model.TotalAmount = money.ToString();
                 model.ProductCode = "QUICK_MSECURITY_PAY";
-                model.OutTradeNo = Guid.NewGuid().ToString();
+                model.OutTradeNo = outtradeno;
                 model.TimeoutExpress = "10m";
+                model.PassbackParams = userId;
+
                 //model.SellerId = "";
 
                 request.SetBizModel(model);
-                //request.SetNotifyUrl("");
+                request.SetNotifyUrl(AliPayConfig.NOTIFY_URL);
 
                 AlipayTradeAppPayResponse response = client.SdkExecute(request);
+                response.OutTradeNo = outtradeno;
 
-                return Ok(Models.SingleResult<string>.Succeed("订单预生成成功！", response.Body));
+                return Ok(Models.SingleResult<AlipayTradeAppPayResponse>.Succeed("订单预生成成功！", response));
             }
             catch (Exception ex)
             {

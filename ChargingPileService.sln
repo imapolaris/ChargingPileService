@@ -30,6 +30,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProductsApp", "ProductsApp\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChargingPileWCFService", "ChargingPileWCFService\ChargingPileWCFService.csproj", "{21752F18-BAEC-4345-B341-93C6F03C942F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AliPayAPI", "AliPayAPI\AliPayAPI.csproj", "{61BB540E-E267-4030-9968-0C1468B614E6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -76,6 +78,10 @@ Global
 		{21752F18-BAEC-4345-B341-93C6F03C942F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{21752F18-BAEC-4345-B341-93C6F03C942F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{21752F18-BAEC-4345-B341-93C6F03C942F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61BB540E-E267-4030-9968-0C1468B614E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61BB540E-E267-4030-9968-0C1468B614E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61BB540E-E267-4030-9968-0C1468B614E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61BB540E-E267-4030-9968-0C1468B614E6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

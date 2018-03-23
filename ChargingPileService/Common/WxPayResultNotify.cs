@@ -18,9 +18,9 @@ namespace ChargingPileService.Common
     /// 支付结果通知回调处理类
     /// 负责接收微信支付后台发送的支付结果并对订单有效性进行验证，将验证结果反馈给微信支付后台
     /// </summary>
-    public class ResultNotify:Notify
+    public class WxPayResultNotify:Notify
     {
-        public ResultNotify(Page page):base(page)
+        public WxPayResultNotify(Page page):base(page)
         {
         }
 
@@ -29,6 +29,8 @@ namespace ChargingPileService.Common
             Logger.Info("收到微信支付结果异步通知");
 
             WxPayData notifyData = GetNotifyData();
+
+            Log.Info(this.GetType().ToString(), "微信支付通知信息："+notifyData.ToJson());
 
             //检查支付结果中transaction_id是否存在
             if (!notifyData.IsSet("transaction_id"))
@@ -112,7 +114,7 @@ namespace ChargingPileService.Common
                             WxPayData resu = new WxPayData();
                             resu.SetValue("return_code", "SUCCESS");
                             resu.SetValue("return_msg", "OK");
-                            Log.Info(this.GetType().ToString(), "order query success : " + resu.ToXml());
+                            Log.Info(this.GetType().ToString(), "order succeed : " + resu.ToXml());
                             page.Response.Write(resu.ToXml());
                             page.Response.End();
                         }
@@ -134,7 +136,7 @@ namespace ChargingPileService.Common
                     WxPayData res = new WxPayData();
                     res.SetValue("return_code", "SUCCESS");
                     res.SetValue("return_msg", "OK");
-                    Log.Info(this.GetType().ToString(), "order query success : " + res.ToXml());
+                    Log.Info(this.GetType().ToString(), "order had finished : " + res.ToXml());
                     page.Response.Write(res.ToXml());
                     page.Response.End();
                 }

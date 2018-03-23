@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Web;
 using System.IO;
 
-namespace WxPayAPI
+namespace AliPayAPI
 {
     public class Log
     {
@@ -19,7 +19,7 @@ namespace WxPayAPI
          */
         public static void Debug(string className, string content)
         {
-            if(WxPayConfig.LOG_LEVENL >= 3)
+            if(AliPayConfig.LOG_LEVENL >= 3)
             {
                 WriteLog("DEBUG", className, content);
             }
@@ -32,7 +32,7 @@ namespace WxPayAPI
         */
         public static void Info(string className, string content)
         {
-            if (WxPayConfig.LOG_LEVENL >= 2)
+            if (AliPayConfig.LOG_LEVENL >= 2)
             {
                 WriteLog("INFO", className, content);
             }
@@ -45,7 +45,7 @@ namespace WxPayAPI
         */
         public static void Error(string className, string content)
         {
-            if(WxPayConfig.LOG_LEVENL >= 1)
+            if(AliPayConfig.LOG_LEVENL >= 1)
             {
                 WriteLog("ERROR", className, content);
             }
