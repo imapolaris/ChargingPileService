@@ -19,21 +19,29 @@ namespace CPS.Communication.Service
         {
             ThreadPool.QueueUserWorkItem(new WaitCallback((state) =>
             {
+                // 设置为后台线程
+                Thread.CurrentThread.IsBackground = true;
+
                 if (client == null || args == null) return;
 
-                string sn = args.SerialNumber;
-                string username = args.Username;
-                string pwd = args.Pwd;
+                string sn = args.SerialNumber.TrimEnd0();
+                string username = args.Username.TrimEnd0();
+                string pwd = args.Pwd.TrimEnd0();
 
+                LoginResultPacket packet = new LoginResultPacket();
+
+                // 数据不正确
                 if (string.IsNullOrEmpty(sn)
                     || string.IsNullOrEmpty(username)
                     || string.IsNullOrEmpty(pwd))
-                    ;//throw new ArgumentNullException("参数不正确");
-
-                LoginResultPacket packet = new LoginResultPacket()
                 {
-                    SerialNumber = sn,
-                };
+                    packet.ResultEnum = LoginResultTypeEnum.Others;
+                    client.Send(packet);
+                    Logger.Info("充电桩登录包数据不正确");
+                    return;
+                }
+
+                packet.SerialNumber = sn;
 
                 try
                 {
@@ -44,6 +52,13 @@ namespace CPS.Communication.Service
                     }
                     else
                     {
+                        // 新的客户端，移除旧的连接
+                        var c = MyServer.FindClientBySerialNumber(sn);
+                        if (c != null)
+                        {
+                            MyServer.Clients.RemoveClient(c);
+                        }
+
                         try
                         {
                             var data = SysDbContext.ChargingPiles.Where(_ => _.SerialNumber == sn);
@@ -64,7 +79,9 @@ namespace CPS.Communication.Service
                                     client.HasLogined = packet.HasLogined;
                                 }
                                 else // 用户名或密码不正确
+                                {
                                     packet.ResultEnum = LoginResultTypeEnum.SecretKeyFailed;
+                                }
                             }
                         }
                         catch (Exception ex)
@@ -83,8 +100,8 @@ namespace CPS.Communication.Service
                 }
 
                 // for test.
-                client.SerialNumber = sn;
-                client.HasLogined = packet.HasLogined;
+                //client.SerialNumber = sn;
+                //client.HasLogined = packet.HasLogined;
 
                 var now = DateTime.Now;
                 packet.TimeStamp = now.ConvertToTimeStampX();

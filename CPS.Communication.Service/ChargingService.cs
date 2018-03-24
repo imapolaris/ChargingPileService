@@ -32,7 +32,7 @@ namespace CPS.Communication.Service
 
         private ChargingService()
         {
-            ThreadPool.SetMaxThreads(200, 500);
+            ThreadPool.SetMaxThreads(1000, 500);
 
             Sessions = new SessionCollection();
 

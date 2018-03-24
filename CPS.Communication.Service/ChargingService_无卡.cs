@@ -119,6 +119,7 @@ namespace CPS.Communication.Service
                 return false;
             }
 
+            Logger.Info($"启停充电桩：{packet}");
             return StartSession(id, client, packet);
         }
 

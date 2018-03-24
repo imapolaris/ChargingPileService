@@ -85,6 +85,7 @@
     <Compile Include="Utils\DateHelper.cs" />
     <Compile Include="Utils\EncryptHelper.cs" />
     <Compile Include="Utils\EncodeHelper.cs" />
+    <Compile Include="Utils\ExtendMethodHelper.cs" />
     <Compile Include="Utils\JsonHelper.cs" />
     <Compile Include="Utils\Logger.cs" />
     <Compile Include="Utils\MapHelper.cs" />
