@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace CPS.CacheDaemon
 {
+    using Infrastructure.Utils;
     using System.Threading;
     using Topshelf;
 
@@ -15,6 +16,9 @@ namespace CPS.CacheDaemon
 
         static void Main(string[] args)
         {
+            // 捕获全局异常
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+
             bool createdNew;
             Mutex _mutext = new Mutex(true, InstanceName, out createdNew);
             if (!createdNew)
@@ -42,6 +46,15 @@ namespace CPS.CacheDaemon
 
                 x.SetHelpTextPrefix("topshelf--");
             });
+        }
+
+        private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            Logger.Error(e.ExceptionObject);
+            if (e.IsTerminating)
+            {
+                Logger.Warn("缓存系统即将终止运行...");
+            }
         }
     }
 }

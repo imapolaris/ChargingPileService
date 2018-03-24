@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CPS.Infrastructure.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -17,6 +18,13 @@ namespace ChargingPileService
 
             // 注册并启动消息队列服务
             SessionServiceConfig.Instance.Register();
+        }
+
+        protected void Application_Error(object sender, EventArgs e)
+        {
+            Exception ex = Server.GetLastError();
+            Logger.Error(ex);
+            Server.ClearError();
         }
     }
 }

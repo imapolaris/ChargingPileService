@@ -16,6 +16,9 @@ namespace CPS.Communication.Service
     {
         static void Main(string[] args)
         {
+            // 捕获全局异常
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+
             HostFactory.Run(x =>
             {
                 x.Service<CommunicationServer>(s =>
@@ -32,6 +35,15 @@ namespace CPS.Communication.Service
 
                 x.UseLog4Net("./log4net.config", true);
             });
+        }
+
+        private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            Logger.Error(e.ExceptionObject);
+            if (e.IsTerminating)
+            {
+                Logger.Warn("通信服务即将终止...");
+            }
         }
     }
 
