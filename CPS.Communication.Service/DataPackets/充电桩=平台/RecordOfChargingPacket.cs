@@ -4,10 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CPS.Infrastructure.Models;
 
 namespace CPS.Communication.Service.DataPackets
 {
-    public class RecordOfChargingPacket : OperPacketBase
+    public class RecordOfChargingPacket : OperPacketBase, IUniversal
     {
         public RecordOfChargingPacket() : base(PacketTypeEnum.RecordOfCharging)
         {
@@ -601,6 +602,22 @@ namespace CPS.Communication.Service.DataPackets
             this._stopTime = BitConverter.ToInt32(buffer, start);
 
             return this;
+        }
+
+        public UniversalData GetUniversalData()
+        {
+            UniversalData data = new UniversalData();
+            data.SetValue("sn", this.SerialNumber);
+            data.SetValue("transSn", this._transactionSN);
+            data.SetValue("port", this._qport);
+            data.SetValue("soc", this._soc);
+            data.SetValue("costTime", this._costTime);
+            data.SetValue("costMoney", this._costMoney+this._serviceMoney);
+            data.SetValue("startTime", this._startTime);
+            data.SetValue("stopTime", this._stopTime);
+            data.SetValue("elec", this._afterElec - this._beforeElec);
+
+            return data;
         }
     }
 }

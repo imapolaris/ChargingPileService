@@ -111,6 +111,7 @@ namespace CPS.Communication.Service
                         var sub = _redis.GetSubscriber();
                         var universal = data.GetUniversalData();
                         universal.SetValue("id", matched.Id);
+                        universal.SetValue("actionstatus", ActionResultTypeEnum.Succeed);
                         sub.Publish(PubChannel, universal.ToJson());
                     }
                     catch (Exception ex)
@@ -160,6 +161,9 @@ namespace CPS.Communication.Service
                 case ActionTypeEnum.GetChargingPileState:
                     result = GetChargingPileState(data);
                     break;
+                case ActionTypeEnum.QueryChargingBilling:
+                    result = GetRecordOfCharging(data);
+                    break;
                 default:
                     break;
             }
@@ -168,7 +172,7 @@ namespace CPS.Communication.Service
             {
                 UniversalData rdata = new UniversalData();
                 rdata.SetValue("id", id);
-                rdata.SetValue("result", ResultTypeEnum.Failed);
+                rdata.SetValue("actionstatus", ActionResultTypeEnum.Failed);
 
                 var sub = _redis.GetSubscriber();
                 sub.PublishAsync(PubChannel, rdata.ToJson());

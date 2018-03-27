@@ -11,11 +11,19 @@ namespace CPS.Infrastructure.Enums
         Startup = 0x01,
         Shutdown,
         GetChargingPileState,
+        QueryChargingBilling,
     }
 
     public enum ResultTypeEnum : byte
     {
         Succeed = 0x01,
         Failed,
+    }
+
+    public enum ActionResultTypeEnum : byte
+    {
+        Succeed = 0x01,
+        Failed,
+        Timeout,
     }
 }

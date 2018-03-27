@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CPS.Infrastructure.Models;
 
 namespace CPS.Communication.Service.DataPackets
 {
-    public class ChargingPileStatePacket : PacketBase
+    public class ChargingPileStatePacket : PacketBase, IUniversal
     {
         public ChargingPileStatePacket() : base(PacketTypeEnum.ChargingPileState)
         {
@@ -367,6 +368,14 @@ namespace CPS.Communication.Service.DataPackets
             start += 1;
             this._timestamp = BitConverter.ToInt32(buffer, start);
             return this;
+        }
+
+        public UniversalData GetUniversalData()
+        {
+            UniversalData data = new UniversalData();
+
+
+            return data;
         }
     }
 }

@@ -79,35 +79,43 @@ namespace ChargingPileService.Controllers
                 if (status)
                 {
                     var sessionResult = session.GetSessionResult();
-                    var result = (ResultTypeEnum)sessionResult?.GetByteValue("result");
-                    if (result == ResultTypeEnum.Succeed)
+                    var actionstatus = (ActionResultTypeEnum)sessionResult?.GetByteValue("actionstatus");
+                    if (actionstatus == ActionResultTypeEnum.Succeed)
                     {
-                        var record = new ChargRecord()
+                        var result = (ResultTypeEnum)sessionResult?.GetByteValue("result");
+                        if (result == ResultTypeEnum.Succeed)
                         {
-                            CustomerId = userId,
-                            ChargingDate = DateTime.Now,
-                            CPSerialNumber = sn,
-                            StartDate = DateTime.Now,
-                            Transactionsn = transSn,
-                            IsSucceed = result == ResultTypeEnum.Succeed,
-                        };
+                            var record = new ChargRecord()
+                            {
+                                CustomerId = userId,
+                                ChargingDate = DateTime.Now,
+                                CPSerialNumber = sn,
+                                StartDate = DateTime.Now,
+                                Transactionsn = transSn,
+                                IsSucceed = result == ResultTypeEnum.Succeed,
+                            };
 
-                        // 防止操作数据库期间发生错误，而此时已经开始充电，APP却得到错误的状态。
-                        try
-                        {
-                            HisDbContext.ChargingRecords.Add(record);
-                            HisDbContext.SaveChangesAsync();
+                            // 防止操作数据库期间发生错误，而此时已经开始充电，APP却得到错误的状态。
+                            try
+                            {
+                                HisDbContext.ChargingRecords.Add(record);
+                                HisDbContext.SaveChangesAsync();
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Error(ex);
+                            }
+                            return Ok(Models.SingleResult<ChargRecord>.Succeed("已开始充电！", record));
                         }
-                        catch (Exception ex)
+                        else
                         {
-                            Logger.Error(ex);
+                            Logger.Error("启动充电失败！");
+                            return Ok(SimpleResult.Failed("启动充电失败！"));
                         }
-                        return Ok(Models.SingleResult<ChargRecord>.Succeed("已开始充电！", record));
                     }
                     else
                     {
-                        Logger.Error("启动充电失败！");
-                        return Ok(SimpleResult.Failed("启动充电失败！"));
+                        return Ok(SimpleResult.Failed("启动充电失败，请求失败！"));
                     }
                 }
                 else
@@ -150,44 +158,53 @@ namespace ChargingPileService.Controllers
                 var status = await session.WaitSessionCompleted();
                 if (status)
                 {
-                    var result = (ResultTypeEnum)session.GetSessionResult()?.GetByteValue("result");
-                    if (result == ResultTypeEnum.Succeed)
+                    var sessionResult = session.GetSessionResult();
+                    var actionstatus = (ActionResultTypeEnum)sessionResult?.GetByteValue("actionstatus");
+                    if (actionstatus == ActionResultTypeEnum.Succeed)
                     {
-                        // 防止操作数据库期间发生错误，而此时已经结束充电，APP却得到错误的状态。
-                        try
+                        var result = (ResultTypeEnum)sessionResult?.GetByteValue("result");
+                        if (result == ResultTypeEnum.Succeed)
                         {
-                            var record = HisDbContext.ChargingRecords.Where(_ => _.CPSerialNumber == sn && _.Transactionsn == transSn).FirstOrDefault();
-                            // 如果开始充电时没有记录到数据库，在这里补充一条记录。
-                            if (record == null)
+                            // 防止操作数据库期间发生错误，而此时已经结束充电，APP却得到错误的状态。
+                            try
                             {
-                                record = new ChargRecord()
+                                var record = HisDbContext.ChargingRecords.Where(_ => _.CPSerialNumber == sn && _.Transactionsn == transSn).FirstOrDefault();
+                                // 如果开始充电时没有记录到数据库，在这里补充一条记录。
+                                if (record == null)
                                 {
-                                    CustomerId = userId,
-                                    ChargingDate = DateTime.Now,
-                                    CPSerialNumber = sn,
-                                    //StartDate = DateTime.Now,
-                                    //EndDate = DateTime.Now,
-                                };
-                                HisDbContext.ChargingRecords.Add(record);
-                                HisDbContext.SaveChangesAsync();
+                                    record = new ChargRecord()
+                                    {
+                                        CustomerId = userId,
+                                        ChargingDate = DateTime.Now,
+                                        CPSerialNumber = sn,
+                                        //StartDate = DateTime.Now,
+                                        //EndDate = DateTime.Now,
+                                    };
+                                    HisDbContext.ChargingRecords.Add(record);
+                                    HisDbContext.SaveChangesAsync();
+                                }
+                                else
+                                {
+                                    record.EndDate = DateTime.Now;
+                                    HisDbContext.SaveChangesAsync();
+                                }
                             }
-                            else
+                            catch (Exception ex)
                             {
-                                record.EndDate = DateTime.Now;
-                                HisDbContext.SaveChangesAsync();
+                                Logger.Error(ex);
                             }
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Error(ex);
-                        }
 
-                        return Ok(SimpleResult.Succeed("已结束充电！"));
+                            return Ok(SimpleResult.Succeed("已结束充电！"));
+                        }
+                        else
+                        {
+                            Logger.Error("结束充电失败！");
+                            return Ok(SimpleResult.Failed("结束充电失败！"));
+                        }
                     }
                     else
                     {
-                        Logger.Error("结束充电失败！");
-                        return Ok(SimpleResult.Failed("结束充电失败！"));
+                        return Ok(SimpleResult.Failed("结束充电失败，请求失败！"));
                     }
                 }
                 else
@@ -262,6 +279,51 @@ namespace ChargingPileService.Controllers
         public IEnumerable<ChargRecord> GetChargingRecords(string userId)
         {
             return HisDbContext.ChargingRecords.Where(_=>_.CustomerId == userId).OrderByDescending(_=>_.StartDate);
+        }
+
+        [HttpGet]
+        [Route("billing")]
+        public async Task<IHttpActionResult> GetCurrentChargingBilling(string sn, string transSn)
+        {
+            // 检查充电桩编号是否合法
+            if (!ValidSerialNumber(sn))
+            {
+                return Ok(SimpleResult.Failed("充电桩编号不存在！"));
+            }
+
+            // 查询充电账单
+            Session session = SessionService.StartOneSession();
+            UniversalData data = new UniversalData();
+            data.SetValue("id", session.Id);
+            data.SetValue("oper", ActionTypeEnum.QueryChargingBilling);
+            data.SetValue("transSn", transSn);
+            data.SetValue("sn", sn);
+            CallAsync(data.ToJson());
+
+            try
+            {
+                var status = await session.WaitSessionCompleted();
+                if (status)
+                {
+                    var sessionResult = session.GetSessionResult();
+                    var actionstatus = (ActionResultTypeEnum)sessionResult?.GetByteValue("actionstatus");
+                    // 请求成功
+                    if (actionstatus == ActionResultTypeEnum.Succeed)
+                    {
+                        return Ok(Models.SingleResult<string>.Succeed("请求成功！", sessionResult.ToJson()));
+                    }
+                }
+                else
+                {
+                    return Ok(SimpleResult.Failed("请求失败，超时！"));
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex);
+            }
+
+            return Ok(SimpleResult.Failed("请求失败！"));
         }
 
         [NonAction]
