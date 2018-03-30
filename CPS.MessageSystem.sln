@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CPS.PushService.WebClient",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CPS.Infrastructure", "CPS.Infrastructure\CPS.Infrastructure.csproj", "{099D33EE-0E51-41B8-BED7-0C6272B38327}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CPS.PushSMSService", "CPS.PushSMSService\CPS.PushSMSService.csproj", "{A830A7E5-F3A2-4141-944F-2FD04C0B244D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{099D33EE-0E51-41B8-BED7-0C6272B38327}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{099D33EE-0E51-41B8-BED7-0C6272B38327}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{099D33EE-0E51-41B8-BED7-0C6272B38327}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A830A7E5-F3A2-4141-944F-2FD04C0B244D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A830A7E5-F3A2-4141-944F-2FD04C0B244D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A830A7E5-F3A2-4141-944F-2FD04C0B244D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A830A7E5-F3A2-4141-944F-2FD04C0B244D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -92,7 +92,7 @@ namespace ChargingPileService.Controllers
                                 CPSerialNumber = sn,
                                 StartDate = DateTime.Now,
                                 Transactionsn = transSn,
-                                IsSucceed = result == ResultTypeEnum.Succeed,
+                                //IsSucceed = result == ResultTypeEnum.Succeed, // 充电完成后，设置为成功状态。
                             };
 
                             // 防止操作数据库期间发生错误，而此时已经开始充电，APP却得到错误的状态。
@@ -283,7 +283,7 @@ namespace ChargingPileService.Controllers
 
         [HttpGet]
         [Route("billing")]
-        public async Task<IHttpActionResult> GetCurrentChargingBilling(string sn, string transSn)
+        public async Task<IHttpActionResult> GetCurrentChargingBilling(string sn, long transSn)
         {
             // 检查充电桩编号是否合法
             if (!ValidSerialNumber(sn))
@@ -291,36 +291,46 @@ namespace ChargingPileService.Controllers
                 return Ok(SimpleResult.Failed("充电桩编号不存在！"));
             }
 
-            // 查询充电账单
-            Session session = SessionService.StartOneSession();
-            UniversalData data = new UniversalData();
-            data.SetValue("id", session.Id);
-            data.SetValue("oper", ActionTypeEnum.QueryChargingBilling);
-            data.SetValue("transSn", transSn);
-            data.SetValue("sn", sn);
-            CallAsync(data.ToJson());
-
-            try
+            // 首先，查询数据库中是否已存在完成账单
+            var records = HisDbContext.ChargingRecords.Where(_ => _.CPSerialNumber == sn && _.Transactionsn == transSn && _.IsSucceed);
+            if (records != null && records.Count() > 0)
             {
-                var status = await session.WaitSessionCompleted();
-                if (status)
+                var record = records.FirstOrDefault();
+                return Ok(Models.SingleResult<string>.Succeed("请求成功！", JsonHelper.Serialize(record)));
+            }
+            else
+            {
+                // 向充电桩请求充电账单
+                Session session = SessionService.StartOneSession();
+                UniversalData data = new UniversalData();
+                data.SetValue("id", session.Id);
+                data.SetValue("oper", ActionTypeEnum.QueryChargingBilling);
+                data.SetValue("transSn", transSn);
+                data.SetValue("sn", sn);
+                CallAsync(data.ToJson());
+
+                try
                 {
-                    var sessionResult = session.GetSessionResult();
-                    var actionstatus = (ActionResultTypeEnum)sessionResult?.GetByteValue("actionstatus");
-                    // 请求成功
-                    if (actionstatus == ActionResultTypeEnum.Succeed)
+                    var status = await session.WaitSessionCompleted();
+                    if (status)
                     {
-                        return Ok(Models.SingleResult<string>.Succeed("请求成功！", sessionResult.ToJson()));
+                        var sessionResult = session.GetSessionResult();
+                        var actionstatus = (ActionResultTypeEnum)sessionResult?.GetByteValue("actionstatus");
+                        // 请求成功
+                        if (actionstatus == ActionResultTypeEnum.Succeed)
+                        {
+                            return Ok(Models.SingleResult<string>.Succeed("请求成功！", sessionResult.ToJson()));
+                        }
+                    }
+                    else
+                    {
+                        return Ok(SimpleResult.Failed("请求失败，超时！"));
                     }
                 }
-                else
+                catch (Exception ex)
                 {
-                    return Ok(SimpleResult.Failed("请求失败，超时！"));
+                    Logger.Error(ex);
                 }
-            }
-            catch (Exception ex)
-            {
-                Logger.Error(ex);
             }
 
             return Ok(SimpleResult.Failed("请求失败！"));

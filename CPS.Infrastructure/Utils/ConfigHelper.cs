@@ -127,6 +127,22 @@ namespace CPS.Infrastructure.Utils
             }
         }
 
+        public static string PushAppKey
+        {
+            get
+            {
+                return ConfigurationManager.AppSettings["pushAppKey"];
+            }
+        }
+
+        public static string PushMasterSecret
+        {
+            get
+            {
+                return ConfigurationManager.AppSettings["pushMasterSecret"];
+            }
+        }
+
         #endregion 【属性】
 
         #region 【接口】

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CPS.Infrastructure.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -46,7 +47,7 @@ namespace CPS.PushService.Client
 
         private void PushNofication_Click(object sender, RoutedEventArgs e)
         {
-            PushMessage.Instance.PushNotification();
+            PushMessage.Instance.PushNotification(PlatformTypeEnum.All, "推送测试", new Dictionary<string, object> { { "url", "http://wwww.baidu.com"} });
         }
     }
 }

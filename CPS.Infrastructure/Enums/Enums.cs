@@ -26,4 +26,30 @@ namespace CPS.Infrastructure.Enums
         Failed,
         Timeout,
     }
+
+    #region 【推送消息】
+
+    public enum PlatformTypeEnum
+    {
+        All = 0x00,
+        Android,
+        IOS,
+    }
+
+    /// <summary>
+    /// 富媒体消息类型
+    /// </summary>
+    public enum RichMediaTypeEnum
+    {
+        /// <summary>
+        /// 模板
+        /// </summary>
+        Template,
+        /// <summary>
+        /// URL
+        /// </summary>
+        Url,
+    }
+
+    #endregion 【推送消息】
 }

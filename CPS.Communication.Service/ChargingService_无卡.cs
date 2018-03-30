@@ -236,6 +236,7 @@ namespace CPS.Communication.Service
                             //EndDate = packet.StopTime,
                             SOC = packet.SOC,
                             Transactionsn = packet.TransactionSN,
+                            IsSucceed = true,
                         });
                     }
                     else
@@ -252,6 +253,7 @@ namespace CPS.Communication.Service
                         //EndDate = packet.StopTime;
                         record.SOC = packet.SOC;
                         record.Transactionsn = packet.TransactionSN;
+                        record.IsSucceed = true;
                     }
 
                     // 钱包中扣除充电费用

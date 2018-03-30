@@ -165,5 +165,38 @@ namespace ChargingPileService.Controllers
         }
 
         #endregion 【收藏电站】
+
+        #region 【下发配置】
+
+        /// <summary>
+        /// 下发电价/服务费
+        /// </summary>
+        [HttpPost]
+        [Route("setting")]
+        public IHttpActionResult SetPrices(dynamic obj)
+        {
+            string stationId = obj.stationId;
+            int priceType = obj.priceType;
+
+            // 0--电价
+            if (priceType == 0)
+            {
+                var list = SysDbContext.ChargingStandards.Where(_ => _.StationId == stationId && _.IsValid).ToList();
+                if (list == null || list.Count <= 0) return NotFound();
+
+            }
+            else if (priceType == 1) // 1--服务费
+            {
+                var list = SysDbContext.ServiceDefines.Where(_ => _.StationId == stationId && _.IsValid).ToList();
+            }
+            else
+            {
+                return NotFound();
+            }
+
+            return Ok();
+        }
+
+        #endregion
     }
 }
