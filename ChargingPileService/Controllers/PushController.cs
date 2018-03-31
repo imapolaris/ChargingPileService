@@ -25,11 +25,11 @@ namespace ChargingPileService.Controllers
             PlatformTypeEnum platform = obj.platform;
             string title = obj.title;
             string content = obj.content;
-            string extrasStr = obj.extras;
+            object extrasObj = obj.extras;
             Dictionary<string, object> extras = null;
-            if (!string.IsNullOrEmpty(extrasStr))
+            if (extrasObj != null)
             {
-                extras = JsonHelper.Deserialize<Dictionary<string, object>>(extrasStr);
+                extras = JsonHelper.Deserialize<Dictionary<string, object>>(extrasObj.ToString());
             }
 
             var result = PushMessage.Instance.PushNotification(platform, title, content, extras);
