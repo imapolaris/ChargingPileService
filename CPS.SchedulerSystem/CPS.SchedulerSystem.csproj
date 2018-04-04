@@ -70,6 +70,7 @@
     <Compile Include="Common\Enums.cs" />
     <Compile Include="JobManager.cs" />
     <Compile Include="Jobs\CommonJob.cs" />
+    <Compile Include="Jobs\HttpJob.cs" />
     <Compile Include="Jobs\JobBase.cs" />
     <Compile Include="Jobs\SubscribeJob.cs" />
     <Compile Include="Program.cs" />

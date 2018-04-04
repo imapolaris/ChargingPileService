@@ -1,6 +1,7 @@
 ﻿using CPS.Communication.Service.DataPackets;
 using CPS.Infrastructure.Models;
 using CPS.Infrastructure.Utils;
+using Soaring.WebMonter.DB;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -61,6 +62,7 @@ namespace CPS.Communication.Service
 
                         try
                         {
+                            var SysDbContext = new SystemDbContext();
                             var data = SysDbContext.ChargingPiles.Where(_ => _.SerialNumber == sn);
                             if (data == null || data.Count() <= 0)
                             {
@@ -127,6 +129,7 @@ namespace CPS.Communication.Service
             var client = MyServer.FindClientBySerialNumber(sn);
             if (client == null)
             {
+                Logger.Error($"{sn}客户端尚未连接...");
                 return false;
             }
 

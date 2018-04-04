@@ -8,5 +8,6 @@ namespace CPS.PushSMSService
 {
     public class Class1
     {
+
     }
 }

@@ -133,9 +133,12 @@ namespace CPS.Communication.Service
 
             await Task.Run(() =>
             {
+                Thread.CurrentThread.IsBackground = true;
+
                 var db = _redis.GetDatabase();
                 db.HashSet(Constants.ChargingRealtimeDataContainerKey, packet.SerialNumber, p.GetUniversalData().ToJson());
 
+                var hisDbContext = new HistoryDbContext();
                 // 保存充电明细账到数据库
                 try
                 {
@@ -174,6 +177,7 @@ namespace CPS.Communication.Service
                 if (record != null)
                 {
                     var customerId = record.CustomerId;
+                    var SysDbContext = new SystemDbContext();
                     var wallet = SysDbContext.Wallets.Where(_ => _.CustomerId == customerId).FirstOrDefault();
                     if (wallet != null)
                     {
@@ -203,43 +207,41 @@ namespace CPS.Communication.Service
         {
             ThreadPool.QueueUserWorkItem(new WaitCallback((state) =>
             {
+                // 转为后台线程，防止线程内出现异常导致服务挂掉。
+                Thread.CurrentThread.IsBackground = true;
+
                 if (client == null || packet == null)
                     return;
 
-                var sn = packet.SerialNumber;
-                ConfirmRecordOfChargingPacket confirmPacket = new ConfirmRecordOfChargingPacket()
-                {
-                    SerialNumber = sn,
-                    HasCard = packet.HasCard,
-                    TransactionSN = packet.TransactionSN,
-                    QPort = packet.QPort,
-                    CardNo = packet.CardNoVal,
-                };
-
                 try
                 {
+                    var hisDbContext = new HistoryDbContext();
+
                     // 结账计费
                     var record = hisDbContext.ChargingRecords.Where(_ => _.Transactionsn == packet.TransactionSN).FirstOrDefault();
                     if (record == null)
                     {
-                        hisDbContext.ChargingRecords.Add(new ChargRecord
-                        {
-                            CPPort = packet.QPort,
-                            CPSerialNumber = packet.SerialNumber,
-                            BeforeElec = packet.BeforeElec,
-                            AfterElec = packet.AfterElec,
-                            CostMoney = packet.CostMoney,
-                            Duration = packet.CostTime,
-                            Kwhs = packet.AfterElec - packet.BeforeElec,
-                            ServiceMoney = packet.ServiceMoney,
-                            StopReason = packet.StopReason,
-                            //EndDate = packet.StopTime,
-                            SOC = packet.SOC,
-                            Transactionsn = packet.TransactionSN,
-                            IsSucceed = true,
-                        });
+                        Logger.Error($"{packet.SerialNumber}，TSN：{packet.TransactionSN}充电记录不存在！");
+                        return;
+                    }
+
+                    // 钱包中扣除充电费用
+                    var costMoney = packet.CostMoney + packet.ServiceMoney;
+                    var customerId = record.CustomerId;
+                    var SysDbContext = new SystemDbContext();
+                    var wallet = SysDbContext.Wallets.Where(_ => _.CustomerId == customerId).FirstOrDefault();
+                    if (wallet == null)
+                    {
+                        Logger.Error($"客户Id：{customerId} 钱包信息不存在！");
+                        return;
                     }
                     else
+                    {
+                        wallet.Remaining -= costMoney;
+                    }
+
+                    int result = SysDbContext.SaveChanges();
+                    if (result > 0) // 保存账单信息
                     {
                         record.CPPort = packet.QPort;
                         record.CPSerialNumber = packet.SerialNumber;
@@ -254,34 +256,30 @@ namespace CPS.Communication.Service
                         record.SOC = packet.SOC;
                         record.Transactionsn = packet.TransactionSN;
                         record.IsSucceed = true;
-                    }
 
-                    // 钱包中扣除充电费用
-                    var costMoney = packet.CostMoney + packet.ServiceMoney;
-                    var customerId = record.CustomerId;
-                    var wallet = SysDbContext.Wallets.Where(_ => _.CustomerId == customerId).FirstOrDefault();
-                    if (wallet == null)
-                    {
-                        SysDbContext.Wallets.Add(new Sys_Wallet
+                        hisDbContext.SaveChanges();
+
+                        // 回复账单确认信息
+                        var sn = packet.SerialNumber;
+                        ConfirmRecordOfChargingPacket confirmPacket = new ConfirmRecordOfChargingPacket()
                         {
-                            CustomerId = customerId,
-                            Remaining = -costMoney,
-                        });
+                            SerialNumber = sn,
+                            HasCard = packet.HasCard,
+                            TransactionSN = packet.TransactionSN,
+                            QPort = packet.QPort,
+                            CardNo = packet.CardNoVal,
+                        };
+                        client.Send(confirmPacket);
                     }
                     else
                     {
-                        wallet.Remaining -= costMoney;
-                    }
-
-                    hisDbContext.SaveChanges();
-                    SysDbContext.SaveChanges();
+                        Logger.Error($"SN：{packet.SerialNumber}， TSN：{packet.TransactionSN} 保存交易记录失败！");
+                    }            
                 }
                 catch (Exception ex)
                 {
                     Logger.Error(ex);
                 }
-
-                client.Send(confirmPacket);
             }));
         }
 

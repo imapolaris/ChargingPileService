@@ -13,6 +13,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CPS.Infrastructure", "CPS.I
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CPS.PushSMSService", "CPS.PushSMSService\CPS.PushSMSService.csproj", "{A830A7E5-F3A2-4141-944F-2FD04C0B244D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "aliyun-net-sdk-core", "aliyun-net-sdk-core\aliyun-net-sdk-core.csproj", "{BB84CECB-295D-4772-A669-3726E511CCFA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "aliyun-net-sdk-dysmsapi", "aliyun-net-sdk-dysmsapi\aliyun-net-sdk-dysmsapi.csproj", "{5012802C-DA46-44C8-8F40-741022E5BBD7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +43,14 @@ Global
 		{A830A7E5-F3A2-4141-944F-2FD04C0B244D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A830A7E5-F3A2-4141-944F-2FD04C0B244D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A830A7E5-F3A2-4141-944F-2FD04C0B244D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB84CECB-295D-4772-A669-3726E511CCFA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB84CECB-295D-4772-A669-3726E511CCFA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB84CECB-295D-4772-A669-3726E511CCFA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB84CECB-295D-4772-A669-3726E511CCFA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5012802C-DA46-44C8-8F40-741022E5BBD7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5012802C-DA46-44C8-8F40-741022E5BBD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5012802C-DA46-44C8-8F40-741022E5BBD7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5012802C-DA46-44C8-8F40-741022E5BBD7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

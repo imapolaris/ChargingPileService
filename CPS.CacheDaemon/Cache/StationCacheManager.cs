@@ -89,8 +89,10 @@ namespace CPS.CacheDaemon.Cache
             if (fields == null || fields.Count() <= 0)
                 return;
 
+            // TODO：要考虑下移除的站点如何处理
+
             var SysDbContext = new SystemDbContext();
-            var data = SysDbContext.Stations.Where(_ => !fields.Contains(_.Id));
+            var data = SysDbContext.Stations.Where(_ => !fields.Contains(_.Id)); // 新添加的站点
             if (data == null || data.Count() <= 0) return;
             var newd = data.Select(_ => new StationCache()
             {

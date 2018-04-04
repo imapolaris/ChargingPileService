@@ -345,17 +345,20 @@ namespace CPS.Communication.Service
                 // 解析数据包
                 PacketBase packet = PacketAnalyzer.AnalysePacket(args.ReceivedBytes);
 
-                DateTime now = DateTime.Now;
-                if (packet.Command == PacketTypeEnum.HeartBeatClient)
+                if (packet != null)
                 {
-                    if (client != null)
+                    DateTime now = DateTime.Now;
+                    if (packet.Command == PacketTypeEnum.HeartBeatClient)
                     {
-                        client.ActiveDate = now;
+                        if (client != null)
+                        {
+                            client.ActiveDate = now;
+                        }
                     }
-                }
-                else
-                {
-                    MyChargingService.ServiceFactory(client, packet);
+                    else
+                    {
+                        MyChargingService.ServiceFactory(client, packet);
+                    }
                 }
             }
             catch (SocketException se)
@@ -383,7 +386,7 @@ namespace CPS.Communication.Service
             var data = this._clients.Where(_ => _.SerialNumber == serialNumber);
             if (data == null || data.Count() <= 0)
             {
-                Logger.Warn($"充电桩{serialNumber}不存在");
+                //Logger.Warn($"充电桩{serialNumber}不存在");
                 return null;
             }
             else
