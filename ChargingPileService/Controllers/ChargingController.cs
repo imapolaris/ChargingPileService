@@ -244,6 +244,7 @@ namespace ChargingPileService.Controllers
                     }
                     else // 充电是否已结束？
                     {
+
                         return Ok(SimpleResult.Failed("查询充电桩状态失败！"));
                     }
                 }
@@ -324,6 +325,7 @@ namespace ChargingPileService.Controllers
                     }
                     else
                     {
+                        Logger.Error("请求失败，超时！");
                         return Ok(SimpleResult.Failed("请求失败，超时！"));
                     }
                 }
@@ -333,6 +335,7 @@ namespace ChargingPileService.Controllers
                 }
             }
 
+            Logger.Info($"查询账单失败：SN：{sn}，TSN：{transSn}");
             return Ok(SimpleResult.Failed("请求失败！"));
         }
 

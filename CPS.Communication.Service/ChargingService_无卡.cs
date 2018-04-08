@@ -31,11 +31,15 @@ namespace CPS.Communication.Service
 
             await Task.Run(() =>
             {
+                Thread.CurrentThread.IsBackground = true;
+
                 var db = _redis.GetDatabase();
                 var sn = p.SerialNumber;
                 var data = db.HashGet(ChargingPileContainer, sn);
                 if (string.IsNullOrEmpty(data))
+                {
                     return;
+                }
                 else
                 {
                     var cache = JsonHelper.Deserialize<ChargingPileCache>(data);

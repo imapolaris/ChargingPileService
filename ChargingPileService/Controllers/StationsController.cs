@@ -17,6 +17,7 @@ namespace ChargingPileService.Controllers
     {
         public IEnumerable<Sys_Station> GetAllStations()
         {
+            // TODO：电站数据改成从缓存中获取。
             return SysDbContext.Stations;
         }
 

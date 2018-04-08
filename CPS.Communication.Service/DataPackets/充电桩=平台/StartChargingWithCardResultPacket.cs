@@ -8,13 +8,14 @@ using System.Threading.Tasks;
 
 namespace CPS.Communication.Service.DataPackets
 {
-    public class StartChargingWithCardResultPacket : PacketBase
+    public class StartChargingWithCardResultPacket : SetChargingResultPacket // : PacketBase
     {
         public StartChargingWithCardResultPacket() : base(PacketTypeEnum.StartChargingWithCardResult)
         {
-            BodyLen = 1 + CardNoLen + 1 + 1 + 8 + 4;
+            //BodyLen = 1 + 11 + 1 + 1 + 8 + 4;
         }
 
+        /*
         private byte _qport;
 
         public byte QPort
@@ -23,12 +24,14 @@ namespace CPS.Communication.Service.DataPackets
             set { _qport = value; }
         }
 
-        private string _cardNo;
-
-        public string CardNo
+        /// <summary>
+        /// 用户名，11位
+        /// </summary>
+        private string _userName;
+        public string UserName
         {
-            get { return _cardNo; }
-            set { _cardNo = value; }
+            get { return _userName; }
+            set { _userName = value; }
         }
 
         private byte _cardState;
@@ -129,9 +132,9 @@ namespace CPS.Communication.Service.DataPackets
             int start = 0;
             body[start] = this._qport;
             start += 1;
-            byte[] temp = EncodeHelper.GetBytes(this._cardNo);
+            byte[] temp = EncodeHelper.GetBytes(this._userName);
             Array.Copy(temp, 0, body, start, temp.Length);
-            start += CardNoLen;
+            start += 11;
             body[start] = this._cardState;
             start += 1;
             body[start] = this._result;
@@ -150,8 +153,8 @@ namespace CPS.Communication.Service.DataPackets
             int start = 0;
             this._qport = buffer[start];
             start += 1;
-            this._cardNo = EncodeHelper.GetString(buffer, start, CardNoLen);
-            start += CardNoLen;
+            this._userName = EncodeHelper.GetString(buffer, start, 11);
+            start += 11;
             this._cardState = buffer[start];
             start += 1;
             this._result = buffer[start];
@@ -161,5 +164,6 @@ namespace CPS.Communication.Service.DataPackets
             this._curElecMeter = BitConverter.ToInt32(buffer, start);
             return this;
         }
+        */
     }
 }

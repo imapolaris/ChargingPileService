@@ -111,7 +111,10 @@
     <Compile Include="ChargingService_Generic.cs" />
     <Compile Include="Client.cs" />
     <Compile Include="DataPackets\IUniversal.cs" />
+    <Compile Include="DataPackets\充电桩=平台\StopChargingWithCardPacket.cs" />
     <Compile Include="DataPackets\充电桩=平台\UpgradeSoftwareReplyPacket.cs" />
+    <Compile Include="DataPackets\公共\ChargingWithCard.cs" />
+    <Compile Include="DataPackets\平台=充电桩\StopChargingWithCardReplyPacket.cs" />
     <Compile Include="DataPackets\平台=充电桩\UpgradeSoftwarePacket.cs" />
     <Compile Include="DataPackets\平台=充电桩\StartChargingWithCardResultReplyPacket.cs" />
     <Compile Include="DataPackets\充电桩=平台\StartChargingWithCardResultPacket.cs" />

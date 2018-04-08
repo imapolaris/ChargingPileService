@@ -14,6 +14,11 @@ namespace CPS.Communication.Service.DataPackets
             BodyLen = OperPacketBodyLen + 8 + 1 + 1 + 4;
         }
 
+        public SetChargingPacket(PacketTypeEnum pte) : base(pte)
+        {
+            BodyLen = OperPacketBodyLen + 8 + 1 + 1 + 4;
+        }
+
         private long _transactionSN;
         /// <summary>
         /// 交易流水号

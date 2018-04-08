@@ -5,17 +5,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CPS.Communication.Service.DataPackets
+namespace CPS.Communication.Service.DataPackets.充电桩_平台
 {
-    public class StartChargingWithCardPacket : PacketBase
+    public class StopChargingWithCardPacket : SetChargingPacket// : PacketBase
     {
-        public StartChargingWithCardPacket() : base(PacketTypeEnum.StartChargingWithCard)
+        public StopChargingWithCardPacket() : base(PacketTypeEnum.StopChargingWithCard)
         {
-            BodyLen = 1 + 11 + 20 + 8;
+            //BodyLen = 1 + 11 + 1 + 8 + 1;
         }
 
-        public StartChargingWithCardPacket(PacketTypeEnum pte) : base(pte) { }
-
+        /*
         private byte _qport;
 
         public byte QPort
@@ -34,14 +33,14 @@ namespace CPS.Communication.Service.DataPackets
             set { _userName = value; }
         }
 
+        private byte _cardState;
         /// <summary>
-        /// 密码，20位
+        /// 卡号状态
         /// </summary>
-        private string _pwd;
-        public string Pwd
+        public byte CardState
         {
-            get { return _pwd; }
-            set { _pwd = value; }
+            get { return _cardState; }
+            set { _cardState = value; }
         }
 
         private long _transactionSN;
@@ -50,6 +49,14 @@ namespace CPS.Communication.Service.DataPackets
         {
             get { return _transactionSN; }
             set { _transactionSN = value; }
+        }
+
+        private byte _stopReason;
+
+        public byte StopReason
+        {
+            get { return _stopReason; }
+            set { _stopReason = value; }
         }
 
         public override byte[] EncodeBody()
@@ -61,11 +68,12 @@ namespace CPS.Communication.Service.DataPackets
             byte[] temp = EncodeHelper.GetBytes(this._userName);
             Array.Copy(temp, 0, body, start, temp.Length);
             start += 11;
-            temp = EncodeHelper.GetBytes(this._pwd);
-            Array.Copy(temp, 0, body, start, temp.Length);
-            start += 20;
+            body[start] = this._cardState;
+            start += 1;
             temp = BitConverter.GetBytes(this._transactionSN);
             Array.Copy(temp, 0, body, start, temp.Length);
+            start += 8;
+            body[start] = this._stopReason;
             return body;
         }
 
@@ -77,10 +85,13 @@ namespace CPS.Communication.Service.DataPackets
             start += 1;
             this._userName = EncodeHelper.GetString(buffer, start, 11);
             start += 11;
-            this._pwd = EncodeHelper.GetString(buffer, start, 20);
-            start += 20;
+            this._cardState = buffer[start];
+            start += 1;
             this._transactionSN = BitConverter.ToInt64(buffer, start);
+            start += 8;
+            this._stopReason = buffer[start];
             return this;
         }
+        */
     }
 }

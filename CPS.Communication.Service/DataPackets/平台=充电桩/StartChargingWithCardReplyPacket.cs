@@ -12,7 +12,7 @@ namespace CPS.Communication.Service.DataPackets
     {
         public StartChargingWithCardReplyPacket() : base(PacketTypeEnum.StartChargingWithCardReply)
         {
-            BodyLen = 1 + CardNoLen + 8 + 1 + 4;
+            BodyLen = 1 + 11 + 8 + 1 + 4;
         }
 
         private byte _qport;
@@ -23,12 +23,24 @@ namespace CPS.Communication.Service.DataPackets
             set { _qport = value; }
         }
 
+        /*
         private string _cardNo;
 
         public string CardNo
         {
             get { return _cardNo; }
             set { _cardNo = value; }
+        }
+        */
+
+        /// <summary>
+        /// 用户名，11位
+        /// </summary>
+        private string _userName;
+        public string UserName
+        {
+            get { return _userName; }
+            set { _userName = value; }
         }
 
         private long _transactionSN;
@@ -71,11 +83,24 @@ namespace CPS.Communication.Service.DataPackets
         }
 
         private int _remaining;
-
+        /// <summary>
+        /// 单位：分
+        /// </summary>
         public int Remaining
         {
             get { return _remaining; }
             set { _remaining = value; }
+        }
+
+        /// <summary>
+        /// 单位：元
+        /// </summary>
+        public string RemainingStr
+        {
+            get
+            {
+                return (this._remaining / 100.0).ToString() + "元";
+            }
         }
 
         public override byte[] EncodeBody()
@@ -84,9 +109,9 @@ namespace CPS.Communication.Service.DataPackets
             int start = 0;
             body[start] = this._qport;
             start += 1;
-            byte[] temp = EncodeHelper.GetBytes(this._cardNo);
+            byte[] temp = EncodeHelper.GetBytes(this._userName);
             Array.Copy(temp, 0, body, start, temp.Length);
-            start += CardNoLen;
+            start += 11;
             temp = BitConverter.GetBytes(this._transactionSN);
             Array.Copy(temp, 0, body, start, temp.Length);
             start += 8;
@@ -103,8 +128,8 @@ namespace CPS.Communication.Service.DataPackets
             int start = 0;
             this._qport = buffer[start];
             start += 1;
-            this._cardNo = EncodeHelper.GetString(buffer, start, CardNoLen);
-            start += CardNoLen;
+            this._userName = EncodeHelper.GetString(buffer, start, 11);
+            start += 11;
             this._transactionSN = BitConverter.ToInt64(buffer, start);
             start += 8;
             this._result = buffer[start];

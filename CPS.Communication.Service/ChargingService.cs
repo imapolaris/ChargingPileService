@@ -273,7 +273,13 @@ namespace CPS.Communication.Service
                     RecordOfCharging(client, packet as RecordOfChargingPacket);
                     break;
                 case PacketTypeEnum.StartChargingWithCard:
-                    StartChargingWithCardReply(client, packet as StartChargingWithCardPacket);
+                    StartChargingWithCard(client, packet as StartChargingWithCardPacket);
+                    break;
+                case PacketTypeEnum.StartChargingWithCardResult:
+                    StartChargingWithCardResult(client, packet as StartChargingWithCardResultPacket);
+                    break;
+                case PacketTypeEnum.RealDataOfChargingWithCard:
+                    RealDataOfCharging(client, packet);
                     break;
                 default:
                     break;
