@@ -34,13 +34,16 @@ namespace CPS.Communication.Service
             resPacket.TransactionSN = packet.TransactionSN;
             resPacket.Remaining = 0;
 
+            var username = packet.UserName.TrimEnd0();
+            var pwd = packet.Pwd.TrimEnd0();
+
             // 检查用户名和密码是否存在
             var systemDbContext = new SystemDbContext();
-            var customer = systemDbContext.PersonalCustomers.Where(_ => _.Telephone == packet.UserName && _.Password == packet.Pwd).FirstOrDefault();
+            var customer = systemDbContext.PersonalCustomers.Where(_ => _.Telephone == username && _.Password == pwd).FirstOrDefault();
             string userId = "";
             if (customer == null)
             {
-                var gcustomer = systemDbContext.GroupCustomers.Where(_ => _.Telephone == packet.UserName && _.Password == packet.Pwd).FirstOrDefault();
+                var gcustomer = systemDbContext.GroupCustomers.Where(_ => _.Telephone == username && _.Password == pwd).FirstOrDefault();
                 if (gcustomer == null)
                 {
                     resPacket.Result = 2;
@@ -50,11 +53,13 @@ namespace CPS.Communication.Service
                 }
                 else
                 {
+                    resPacket.Result = 1;
                     userId = gcustomer.Id;
                 }
             }
             else
             {
+                resPacket.Result = 1;
                 userId = customer.Id;
             }
 

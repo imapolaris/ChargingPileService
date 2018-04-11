@@ -106,10 +106,10 @@ namespace CPS.Communication.Service
                 //client.HasLogined = packet.HasLogined;
 
                 var now = DateTime.Now;
+                Logger.Info($"----客户端 {client.ID} 于{now} 登录： {packet.ResultString}!");
+                
                 packet.TimeStamp = now.ConvertToTimeStampX();
                 client.Send(packet);
-
-                Logger.Info($"----客户端 {client.ID} 于{now} 登录： {packet.ResultString}!");
             }));
         }
 

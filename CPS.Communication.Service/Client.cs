@@ -299,8 +299,19 @@ namespace CPS.Communication.Service
 
         private void processReceived(Queue<ReceiveState> stateQueue, ReceiveState state, byte[] buffer, int start, int byteLen)
         {
+            if (buffer != null || buffer.Length <= 0)
+                return;
+
             if (state.IsNew)
             {
+                // 初步校验包的合法性，包括检查包的版本信息等
+                byte ver = buffer[0];
+                if (ver != 0x68)
+                {
+                    Logger.Warn("协议版本号不正确...");
+                    return;
+                }
+
                 if (byteLen >= PacketBase.HeaderLen)
                 {
                     int len = BitConverter.ToInt32(buffer, PacketBase.BodyLenIndex);

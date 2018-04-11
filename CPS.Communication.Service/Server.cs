@@ -435,6 +435,8 @@ namespace CPS.Communication.Service
             return info;
         }
 
+        #region 【支持IDisposable】
+
         public void Dispose()
         {
             Dispose(true);
@@ -465,6 +467,8 @@ namespace CPS.Communication.Service
                 disposed = true;
             }
         }
+
+        #endregion 【支持IDisposable】
 
         #region 【事件定义】
         public event ErrorOccurredHandler ErrorOccurred;

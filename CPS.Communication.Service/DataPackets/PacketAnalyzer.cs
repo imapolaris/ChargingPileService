@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CPS.Infrastructure.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,7 +16,9 @@ namespace CPS.Communication.Service.DataPackets
                 PacketHeader header = new PacketHeader();
                 PacketTypeEnum command = header.Decode(buffer);
                 if (!header.VerifyPacket())
-                    throw new ArgumentException("报文异常...");
+                {
+                    throw new ArgumentException($"报文异常：数据包{ command.ToString() }校验不通过");
+                }
 
                 PacketBase packet = null;
                 switch (command)
@@ -123,12 +126,16 @@ namespace CPS.Communication.Service.DataPackets
                     case PacketTypeEnum.WarnMessageReply:
                         break;
                     case PacketTypeEnum.StartChargingWithCard:
+                        packet = new StartChargingWithCardPacket();
                         break;
                     case PacketTypeEnum.StartChargingWithCardReply:
+                        packet = new StartChargingWithCardReplyPacket();
                         break;
                     case PacketTypeEnum.StartChargingWithCardResult:
+                        packet = new StartChargingWithCardResultPacket();
                         break;
                     case PacketTypeEnum.StartChargingWithCardResultReply:
+                        packet = new StartChargingWithCardResultReplyPacket();
                         break;
                     case PacketTypeEnum.RealDataOfChargingWithCard:
                         break;
@@ -186,15 +193,15 @@ namespace CPS.Communication.Service.DataPackets
             }
             catch (ArgumentOutOfRangeException ex)
             {
-                Console.WriteLine(ex.Message);
+                Logger.Error(ex.Message);
             }
             catch (ArgumentException ae)
             {
-                Console.WriteLine(ae.Message);
+                Logger.Error(ae.Message);
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Logger.Error(ex.Message);
             }
 
             return null;
