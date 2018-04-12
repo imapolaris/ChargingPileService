@@ -26,8 +26,8 @@ namespace CPS.Communication.Service
         private ChargingService MyChargingService;
 
         #region 心跳检测
-        private const int HeartBeatInterval = 30; // 心跳间隔30秒
-        private const int HeartBeatCheckInterval = 15; // 心跳检测间隔60秒
+        private const int HeartBeatServerInterval = 30; // 服务端发送心跳包时间间隔
+        private const int HeartBeatCheckInterval = 100; // 监测客户端心跳时间间隔
         private object heartbeatCheckLocker = new object();
         private bool stopHeartbeatCheck = false;
         private object heartbeatServerLocker = new object();
@@ -67,8 +67,8 @@ namespace CPS.Communication.Service
             MyChargingService.MyServer = this;
             _clients = new ClientCollection();
 
-            //StartHeartbeatCheck();
-            //SendHeartbeatFromServer();
+            StartHeartbeatCheck();
+            SendHeartbeatFromServer();
         }
 
         public void Listen(int port)
@@ -158,10 +158,11 @@ namespace CPS.Communication.Service
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine(ex.Message);
+                            Logger.Error(ex.Message);
                         }
                     }
-                    Thread.Sleep(HeartBeatCheckInterval * 1000);
+
+                    Thread.Sleep(HeartBeatCheckInterval * 500);
                 }
             })
             { IsBackground = true };
@@ -191,11 +192,12 @@ namespace CPS.Communication.Service
                                 packet.SerialNumber = item.SerialNumber;
 
                                 item.Send(packet);
+                                Logger.Info($"向客户端{item.SerialNumber}发送心跳包");
                             }
                         }
                     }
 
-                    Thread.Sleep(HeartBeatInterval * 1000);
+                    Thread.Sleep(HeartBeatServerInterval * 1000);
                 }
             })
             { IsBackground = true };
@@ -374,6 +376,11 @@ namespace CPS.Communication.Service
         private void Client_ClientClosed(object sender, ClientClosedEventArgs args)
         {
             Logger.Info($"----客户端 {args.Id} 断开连接!");
+            if (this._clients != null)
+            {
+                var client = sender as Client;
+                this._clients.RemoveClient(client);
+            }
         }
 
         private void handleSocketException(SocketException se, ErrorTypes eType)

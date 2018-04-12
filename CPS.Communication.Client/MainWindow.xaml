@@ -21,7 +21,7 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="60"/>
             </Grid.ColumnDefinitions>
-            <TextBox Name="txtIP" Height="30" VerticalContentAlignment="Center">0.0.0.0</TextBox>
+            <TextBox Name="txtIP" Height="30" VerticalContentAlignment="Center">127.0.0.1</TextBox>
             <TextBox Name="txtPort" Grid.Column="1" VerticalContentAlignment="Center" Height="30">2222</TextBox>
             <Button Grid.Column="2" Name="btnConnect" Click="btnConnect_Click">连接</Button>
         </Grid>
@@ -49,6 +49,8 @@
             <Button Name="rtData" Click="rtData_Click">实时数据</Button>
             <Button Name="bill" Click="bill_Click">账单</Button>
             <Button Name="upgrade" Click="upgrade_Click">确认升级</Button>
+            <Button Name="contine" Click="contine_Click">连续发包</Button>
+            <Button Name="stopcontine" Click="stopcontine_Click">停止连发</Button>
         </WrapPanel>
         <RichTextBox Grid.Row="3" Name="document">
             

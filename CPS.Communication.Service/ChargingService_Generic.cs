@@ -18,32 +18,29 @@ namespace CPS.Communication.Service
         /// </summary>
         private void LoginIn(Client client, LoginPacket args)
         {
+            if (client == null || args == null) return;
+
+            string sn = args.SerialNumber.TrimEnd0();
+            string username = args.Username.TrimEnd0();
+            string pwd = args.Pwd.TrimEnd0();
+
+            LoginResultPacket packet = new LoginResultPacket();
+
+            // 数据不正确
+            if (string.IsNullOrEmpty(sn)
+                || string.IsNullOrEmpty(username)
+                || string.IsNullOrEmpty(pwd))
+            {
+                packet.ResultEnum = LoginResultTypeEnum.Others;
+                client.Send(packet);
+                Logger.Info("充电桩登录包数据不正确...");
+                return;
+            }
+
+            packet.SerialNumber = sn;
+
             ThreadPool.QueueUserWorkItem(new WaitCallback((state) =>
             {
-                // 设置为后台线程
-                Thread.CurrentThread.IsBackground = true;
-
-                if (client == null || args == null) return;
-
-                string sn = args.SerialNumber.TrimEnd0();
-                string username = args.Username.TrimEnd0();
-                string pwd = args.Pwd.TrimEnd0();
-
-                LoginResultPacket packet = new LoginResultPacket();
-
-                // 数据不正确
-                if (string.IsNullOrEmpty(sn)
-                    || string.IsNullOrEmpty(username)
-                    || string.IsNullOrEmpty(pwd))
-                {
-                    packet.ResultEnum = LoginResultTypeEnum.Others;
-                    client.Send(packet);
-                    Logger.Info("充电桩登录包数据不正确");
-                    return;
-                }
-
-                packet.SerialNumber = sn;
-
                 try
                 {
                     // 已经登录

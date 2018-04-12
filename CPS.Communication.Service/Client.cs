@@ -142,7 +142,10 @@ namespace CPS.Communication.Service
             try
             {
                 if (!IsConnected)
-                    throw new UnConnectException("充电桩未连接");
+                {
+                    Logger.Warn($"无法发送数据，客户端{SerialNumber}未连接");
+                    throw new UnConnectException("...");
+                }
 
                 WorkSocket.BeginSend(buffer, 0, buffer.Length, SocketFlags.None, sendCallback, state);
                 return true;
@@ -299,21 +302,30 @@ namespace CPS.Communication.Service
 
         private void processReceived(Queue<ReceiveState> stateQueue, ReceiveState state, byte[] buffer, int start, int byteLen)
         {
-            if (buffer != null || buffer.Length <= 0)
+            if (buffer == null || buffer.Length <= 0)
                 return;
 
             if (state.IsNew)
             {
                 // 初步校验包的合法性，包括检查包的版本信息等
+                // 当包不合法时，因为无法判断应该接收的包的长度，会丢掉当前收到的所有数据（有造成多个数据包丢失的风险）
                 byte ver = buffer[0];
                 if (ver != 0x68)
                 {
-                    Logger.Warn("协议版本号不正确...");
+                    Console.WriteLine("协议版本号不正确...");
                     return;
                 }
 
                 if (byteLen >= PacketBase.HeaderLen)
                 {
+                    PacketHeader header = new PacketHeader();
+                    PacketTypeEnum command = header.Decode(buffer);
+                    if (!header.VerifyPacket())
+                    {
+                        Logger.Error($"报文异常：数据包{ command.ToString() }初步校验不通过，丢弃该包");
+                        return;
+                    }
+
                     int len = BitConverter.ToInt32(buffer, PacketBase.BodyLenIndex);
                     state.TotalBytes = len + PacketBase.HeaderLen;
                 }
@@ -511,13 +523,22 @@ namespace CPS.Communication.Service
 
         public IEnumerator<Client> GetEnumerator()
         {
-            return this._clients.GetEnumerator();
+            _mEventClients.Reset();
+
+            foreach (var item in _clients)
+            {
+                yield return item;
+            }
+
+            _mEventClients.Set();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return this._clients.GetEnumerator();
+            return this.GetEnumerator();
         }
+
+        #region 【支持IDisposal接口】
 
         public void Dispose()
         {
@@ -538,5 +559,7 @@ namespace CPS.Communication.Service
                 disposed = true;
             }
         }
+
+        #endregion 【支持IDisposal接口】
     }
 }

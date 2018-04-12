@@ -144,10 +144,10 @@ namespace CPS.Communication.Client
         {
             LoginPacket packet = new LoginPacket()
             {
-                SerialNumber = "1234567890AbcBCa",
+                SerialNumber = "1110000001001001",
                 TimeStamp = DateTime.Now.ConvertToTimeStampX(),
-                Username = "alex",
-                Pwd = "123"
+                Username = "admin",
+                Pwd = "12345678"
             };
             client.Send(PacketAnalyzer.GeneratePacket(packet));
 
@@ -292,6 +292,43 @@ namespace CPS.Communication.Client
         private void upgrade_Click(object sender, RoutedEventArgs e)
         {
 
+        }
+
+        public bool StopContineSend { get; set; } = false;
+        /// <summary>
+        /// 连续发包，测试粘包情况
+        /// </summary>
+        private void contine_Click(object sender, RoutedEventArgs e)
+        {
+            HeartBeatPacket packet = new HeartBeatPacket(PacketTypeEnum.HeartBeatClient)
+            {
+                SerialNumber = "1110000001001001",
+                TimeStamp = DateTime.Now.ConvertToTimeStampX(),
+            };
+
+            StopContineSend = false;
+
+            new Thread(() =>
+            {
+                while (true)
+                {
+                    if (StopContineSend)
+                        break;
+
+                    for (int i = 0; i < 10; i++)
+                    {
+                        client.Send(packet);
+                    }
+
+                    Thread.Sleep(5000);
+                }
+            })
+            { IsBackground = true }.Start();
+        }
+
+        private void stopcontine_Click(object sender, RoutedEventArgs e)
+        {
+            StopContineSend = true;
         }
 
         private void heartBeatServer_Click(object sender, RoutedEventArgs e)

@@ -31,43 +31,48 @@ namespace CPS.Communication.Service
 
             await Task.Run(() =>
             {
-                Thread.CurrentThread.IsBackground = true;
-
-                var db = _redis.GetDatabase();
-                var sn = p.SerialNumber;
-                var data = db.HashGet(ChargingPileContainer, sn);
-                if (string.IsNullOrEmpty(data))
+                try
                 {
-                    return;
+                    var db = _redis.GetDatabase();
+                    var sn = p.SerialNumber;
+                    var data = db.HashGet(ChargingPileContainer, sn);
+                    if (string.IsNullOrEmpty(data))
+                    {
+                        return;
+                    }
+                    else
+                    {
+                        var cache = JsonHelper.Deserialize<ChargingPileCache>(data);
+                        if (cache == null) return;
+
+                        cache.AA = p.APhaseA;
+                        cache.BA = p.BPhaseA;
+                        cache.CA = p.CPhaseA;
+                        cache.AV = p.APhaseV;
+                        cache.BV = p.BPhaseV;
+                        cache.CV = p.CPhaseV;
+                        cache.CarPortStatus = p.CarPortState;
+                        cache.CurrentTime = p.TimeStamp;
+                        cache.EMP = p.EMP;
+                        cache.EMQ = p.EMQ;
+                        cache.FaultCode = p.FaultCode;
+                        cache.OutputA = p.OutputA;
+                        cache.OutputV = p.OutputV;
+                        cache.OutputRelayStatus = p.OutputRelayState;
+                        cache.P = p.P;
+                        cache.Q = p.Q;
+                        cache.PortConnectStatus = p.ConnectState;
+                        cache.PortWorkStatus = p.WorkingState;
+                        cache.SOC = p.SOC;
+                        cache.RTTemp = p.RtTemp;
+                        cache.WPGWorkStatus = p.WpgWorkingState;
+
+                        db.HashSet(ChargingPileContainer, sn, JsonHelper.Serialize(cache));
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    var cache = JsonHelper.Deserialize<ChargingPileCache>(data);
-                    if (cache == null) return;
-
-                    cache.AA = p.APhaseA;
-                    cache.BA = p.BPhaseA;
-                    cache.CA = p.CPhaseA;
-                    cache.AV = p.APhaseV;
-                    cache.BV = p.BPhaseV;
-                    cache.CV = p.CPhaseV;
-                    cache.CarPortStatus = p.CarPortState;
-                    cache.CurrentTime = p.TimeStamp;
-                    cache.EMP = p.EMP;
-                    cache.EMQ = p.EMQ;
-                    cache.FaultCode = p.FaultCode;
-                    cache.OutputA = p.OutputA;
-                    cache.OutputV = p.OutputV;
-                    cache.OutputRelayStatus = p.OutputRelayState;
-                    cache.P = p.P;
-                    cache.Q = p.Q;
-                    cache.PortConnectStatus = p.ConnectState;
-                    cache.PortWorkStatus = p.WorkingState;
-                    cache.SOC = p.SOC;
-                    cache.RTTemp = p.RtTemp;
-                    cache.WPGWorkStatus = p.WpgWorkingState;
-
-                    db.HashSet(ChargingPileContainer, sn, JsonHelper.Serialize(cache));
+                    Logger.Error(ex);
                 }
             });
         }
@@ -209,14 +214,11 @@ namespace CPS.Communication.Service
         /// </summary>
         private void RecordOfCharging(Client client, RecordOfChargingPacket packet)
         {
+            if (client == null || packet == null)
+                return;
+
             ThreadPool.QueueUserWorkItem(new WaitCallback((state) =>
             {
-                // 转为后台线程，防止线程内出现异常导致服务挂掉。
-                Thread.CurrentThread.IsBackground = true;
-
-                if (client == null || packet == null)
-                    return;
-
                 try
                 {
                     var hisDbContext = new HistoryDbContext();

@@ -187,7 +187,8 @@ namespace CPS.Communication.Service.DataPackets
                 packet.Decode(body);
                 packet.Header = header;
 
-                Console.WriteLine($"接收到的报文内容：{packet}");
+                //Console.WriteLine($"接收到的报文内容：{packet}");
+                Logger.Info($"接收到的报文内容：{packet}");
 
                 return packet;
             }
