@@ -308,7 +308,7 @@ namespace CPS.Communication.Service
         {
             if (args != null)
             {
-                Logger.Info($"####{args.ToString()}");
+                Logger.Info($"{args.ToString()}");
             }
         }
 

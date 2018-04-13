@@ -7,13 +7,26 @@ using System.Threading.Tasks;
 namespace CPS.DaemonService
 {
     using Topshelf;
-    using Topshelf.Logging;
     using CPS.Infrastructure.Utils;
+    using System.Diagnostics;
+    using System.IO;
 
     class Program
     {
         static void Main(string[] args)
         {
+            // 检测守护进程是否已启动
+            var fullPath = typeof(Program).Assembly.ManifestModule.FullyQualifiedName;
+            var processName = Process.GetCurrentProcess().ProcessName;
+
+            var processes = Process.GetProcesses();
+            var result = processes.Where(_ => _.ProcessName == processName && _.MainModule.FileName == fullPath);
+            if (result != null && result.Count() > 1)
+            {
+                Logger.Info("守护进程已经启动！");
+                Environment.Exit(0);
+            }
+
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
             HostFactory.Run(x =>
@@ -29,9 +42,13 @@ namespace CPS.DaemonService
                 x.SetDescription("进程守护服务");
                 x.SetDisplayName("CPS.DaemonService");
                 x.SetServiceName("CPS.DaemonService");
+                //x.StartAutomatically();
+                x.StartAutomaticallyDelayed();
 
                 x.UseLog4Net("./log4net.config", true);
             });
+
+            Console.Read();
         }
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)

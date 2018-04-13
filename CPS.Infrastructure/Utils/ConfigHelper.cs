@@ -170,6 +170,13 @@ namespace CPS.Infrastructure.Utils
             return configuration.GetSection(section);
         }
 
+        public static ConfigurationSectionCollection GetSectionCollection(string configFile, string sectionGroup)
+        {
+            var configuration = GetConfiguration(configFile);
+            var group = configuration.GetSectionGroup(sectionGroup);
+            return group?.Sections;
+        }
+
         static string GetConfigFileName(Assembly assembly)
         {
             var fileName = assembly.ManifestModule.FullyQualifiedName + ".config";

@@ -3,7 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CPS.DaemonService", "CPS.DaemonService.csproj", "{78FEA887-AC0D-4CCC-9B29-779BF9C2EF29}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CPS.DaemonService", "CPS.DaemonService\CPS.DaemonService.csproj", "{78FEA887-AC0D-4CCC-9B29-779BF9C2EF29}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CPS.Infrastructure", "CPS.Infrastructure\CPS.Infrastructure.csproj", "{099D33EE-0E51-41B8-BED7-0C6272B38327}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CPS.DaemonService.Startup", "CPS.DaemonService.Startup\CPS.DaemonService.Startup.csproj", "{219898FD-A82F-4F80-B693-7169275AE4C6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +19,14 @@ Global
 		{78FEA887-AC0D-4CCC-9B29-779BF9C2EF29}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{78FEA887-AC0D-4CCC-9B29-779BF9C2EF29}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{78FEA887-AC0D-4CCC-9B29-779BF9C2EF29}.Release|Any CPU.Build.0 = Release|Any CPU
+		{099D33EE-0E51-41B8-BED7-0C6272B38327}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{099D33EE-0E51-41B8-BED7-0C6272B38327}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{099D33EE-0E51-41B8-BED7-0C6272B38327}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{099D33EE-0E51-41B8-BED7-0C6272B38327}.Release|Any CPU.Build.0 = Release|Any CPU
+		{219898FD-A82F-4F80-B693-7169275AE4C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{219898FD-A82F-4F80-B693-7169275AE4C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{219898FD-A82F-4F80-B693-7169275AE4C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{219898FD-A82F-4F80-B693-7169275AE4C6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

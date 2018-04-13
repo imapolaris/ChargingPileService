@@ -185,10 +185,16 @@ namespace ChargingPileService.Controllers
                 var list = SysDbContext.ChargingStandards.Where(_ => _.StationId == stationId && _.IsValid).ToList();
                 if (list == null || list.Count <= 0) return NotFound();
 
+                // 向该电站中所有充电桩下发电价
+
             }
             else if (priceType == 1) // 1--服务费
             {
                 var list = SysDbContext.ServiceDefines.Where(_ => _.StationId == stationId && _.IsValid).ToList();
+                if (list == null || list.Count <= 0) return NotFound();
+
+                // 向该电站中所有充电桩下发服务费
+
             }
             else
             {

@@ -98,10 +98,6 @@ namespace CPS.Communication.Service
                     Logger.Error(ex.Message);
                 }
 
-                // for test.
-                //client.SerialNumber = sn;
-                //client.HasLogined = packet.HasLogined;
-
                 var now = DateTime.Now;
                 Logger.Info($"----客户端 {client.ID} 于{now} 登录： {packet.ResultString}!");
                 

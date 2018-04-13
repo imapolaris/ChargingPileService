@@ -54,7 +54,14 @@ namespace CPS.Communication.Service
         {
             get
             {
-                return _socket.RemoteEndPoint;
+                if (_socket != null && _socket.Connected)
+                {
+                    return _socket.RemoteEndPoint;
+                }
+                else
+                {
+                    return null;
+                }
             }
         }
 
@@ -312,7 +319,7 @@ namespace CPS.Communication.Service
                 byte ver = buffer[0];
                 if (ver != 0x68)
                 {
-                    Console.WriteLine("协议版本号不正确...");
+                    //Console.WriteLine("协议版本号不正确...");
                     return;
                 }
 
