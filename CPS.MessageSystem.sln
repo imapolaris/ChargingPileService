@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CPS.PushService.WebClient",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CPS.Infrastructure", "CPS.Infrastructure\CPS.Infrastructure.csproj", "{099D33EE-0E51-41B8-BED7-0C6272B38327}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CPS.PushSMSService", "CPS.PushSMSService\CPS.PushSMSService.csproj", "{A830A7E5-F3A2-4141-944F-2FD04C0B244D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CPS.MessageSystem", "CPS.PushSMSService\CPS.MessageSystem.csproj", "{A830A7E5-F3A2-4141-944F-2FD04C0B244D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "aliyun-net-sdk-core", "aliyun-net-sdk-core\aliyun-net-sdk-core.csproj", "{BB84CECB-295D-4772-A669-3726E511CCFA}"
 EndProject

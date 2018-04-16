@@ -466,6 +466,14 @@ namespace CPS.Communication.Service
             _clients = new List<Client>();
         }
 
+        public Client this[int index]
+        {
+            get
+            {
+                return this._clients[index];
+            }
+        }
+
         protected List<Client> Clients { get { return _clients; } }
         public void CloseClient(Client client)
         {

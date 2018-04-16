@@ -25,5 +25,16 @@ namespace CPS.Infrastructure.Utils
         {
             return now.ToString("yyyyMMdd HHmmss");
         }
+
+        /// <summary>
+        /// 是否超时
+        /// </summary>
+        /// <param name="timestamp">时间戳</param>
+        /// <param name="timeout">超时时间，单位：秒</param>
+        /// <returns></returns>
+        public static bool IsTimeout(int timestamp, int timeout)
+        {
+            return (DateTime.Now - DateHelper.ConvertToDateX(timestamp)).TotalSeconds > timeout;
+        }
     }
 }

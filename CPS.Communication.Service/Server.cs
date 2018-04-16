@@ -184,16 +184,24 @@ namespace CPS.Communication.Service
                     lock (heartbeatServerLocker)
                     {
                         HeartBeatPacket packet = new HeartBeatPacket(PacketTypeEnum.HeartBeatServer);
-                        foreach (var item in this._clients)
+                        try
                         {
-                            if (item != null)
+                            for (int i = 0; i < this._clients.Count; ++i)
                             {
-                                packet.TimeStamp = DateTime.Now.ConvertToTimeStampX();
-                                packet.SerialNumber = item.SerialNumber;
+                                var item = this._clients[i];
+                                if (item != null)
+                                {
+                                    packet.TimeStamp = DateTime.Now.ConvertToTimeStampX();
+                                    packet.SerialNumber = item.SerialNumber;
 
-                                item.Send(packet);
-                                Logger.Info($"向客户端{item.SerialNumber}发送心跳包");
+                                    item.Send(packet);
+                                    Logger.Info($"向客户端{item.SerialNumber}发送心跳包");
+                                }
                             }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Error(ex);
                         }
                     }
 

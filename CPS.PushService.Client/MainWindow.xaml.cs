@@ -47,7 +47,7 @@ namespace CPS.PushService.Client
 
         private void PushNofication_Click(object sender, RoutedEventArgs e)
         {
-            PushMessage.Instance.PushNotification(PlatformTypeEnum.All, "推送测试", new Dictionary<string, object> { { "url", "http://wwww.baidu.com"} });
+            PushMessage.Instance.PushNotification(PlatformTypeEnum.All, "EV堡", "推送测试", new Dictionary<string, object> { { "url", "http://wwww.baidu.com"} });
         }
     }
 }
