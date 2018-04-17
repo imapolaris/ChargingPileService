@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CPS.MonitorSystem", "CPS.MonitorSystem.csproj", "{7D8CA5A0-CB6C-4D12-99D9-11917B8E699B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CPS.MonitorSystem", "CPS.MonitorSystem\CPS.MonitorSystem.csproj", "{7D8CA5A0-CB6C-4D12-99D9-11917B8E699B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CPS.Infrastructure", "CPS.Infrastructure\CPS.Infrastructure.csproj", "{099D33EE-0E51-41B8-BED7-0C6272B38327}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{7D8CA5A0-CB6C-4D12-99D9-11917B8E699B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7D8CA5A0-CB6C-4D12-99D9-11917B8E699B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7D8CA5A0-CB6C-4D12-99D9-11917B8E699B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{099D33EE-0E51-41B8-BED7-0C6272B38327}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{099D33EE-0E51-41B8-BED7-0C6272B38327}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{099D33EE-0E51-41B8-BED7-0C6272B38327}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{099D33EE-0E51-41B8-BED7-0C6272B38327}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -123,7 +123,7 @@ namespace CPS.DaemonService
             Process process = new Process();
             ProcessStartInfo startInfo = new ProcessStartInfo();
             startInfo.FileName = this.StartupPath;
-            startInfo.Arguments = "fromDeamon"; // 表示由守护进程启动
+            //startInfo.Arguments = "fromDeamon"; // 表示由守护进程启动
             startInfo.CreateNoWindow = true;
             startInfo.ErrorDialog = true;
             //startInfo.UseShellExecute = true;

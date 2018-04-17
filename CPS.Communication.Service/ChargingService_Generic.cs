@@ -99,6 +99,7 @@ namespace CPS.Communication.Service
                 }
 
                 var now = DateTime.Now;
+                client.ActiveDate = now;
                 Logger.Info($"----客户端 {client.ID} 于{now} 登录： {packet.ResultString}!");
                 
                 packet.TimeStamp = now.ConvertToTimeStampX();
