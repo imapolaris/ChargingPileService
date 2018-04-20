@@ -181,6 +181,7 @@ namespace CPS.Communication.Service
                 }
 
                 // 检查充电金额是否超出钱包余额
+                /*
                 var costMoney = p.ElecMoney + p.ServiceMoney;
                 var record = hisDbContext.ChargingRecords.Where(_ => _.Transactionsn == p.TransactionSN).FirstOrDefault();
                 if (record != null)
@@ -191,7 +192,7 @@ namespace CPS.Communication.Service
                     if (wallet != null)
                     {
                         // 钱包余额不足时，停止充电。
-                        if (wallet.Remaining <= costMoney)
+                        if (wallet.Remaining <= costMoney / 100.0)
                         {
                             SetChargingPacket stopPacket = new SetChargingPacket()
                             {
@@ -206,6 +207,7 @@ namespace CPS.Communication.Service
                         }
                     }
                 }
+                */
             });
         }
 
@@ -243,7 +245,7 @@ namespace CPS.Communication.Service
                     }
                     else
                     {
-                        wallet.Remaining -= costMoney;
+                        wallet.Remaining -= costMoney / 100.0; // 转换成单位：元
                     }
 
                     int result = SysDbContext.SaveChanges();

@@ -9,11 +9,13 @@ using ChargingPileService.Models;
 using Soaring.WebMonter.Contract.Manager;
 using CPS.Infrastructure.Models;
 using Soaring.WebMonter.Contract.History;
+using CPS.Infrastructure.Enums;
+using Newtonsoft.Json.Linq;
 
 namespace ChargingPileService.Controllers
 {
     [RoutePrefix("api/stations")]
-    public class StationsController : OperatorBase
+    public class StationsController : MqOperatorBase
     {
         public IEnumerable<Sys_Station> GetAllStations()
         {
@@ -173,35 +175,76 @@ namespace ChargingPileService.Controllers
         /// 下发电价/服务费
         /// </summary>
         [HttpPost]
-        [Route("setting")]
+        [Route("setting/price")]
         public IHttpActionResult SetPrices(dynamic obj)
         {
             string stationId = obj.stationId;
-            int priceType = obj.priceType;
-
-            // 0--电价
-            if (priceType == 0)
+            if (string.IsNullOrEmpty(stationId))
             {
-                var list = SysDbContext.ChargingStandards.Where(_ => _.StationId == stationId && _.IsValid).ToList();
-                if (list == null || list.Count <= 0) return NotFound();
-
-                // 向该电站中所有充电桩下发电价
-
-            }
-            else if (priceType == 1) // 1--服务费
-            {
-                var list = SysDbContext.ServiceDefines.Where(_ => _.StationId == stationId && _.IsValid).ToList();
-                if (list == null || list.Count <= 0) return NotFound();
-
-                // 向该电站中所有充电桩下发服务费
-
-            }
-            else
-            {
-                return NotFound();
+                Logger.Info("下发费率，站点Id不能为空。");
+                return Ok(SimpleResult.Failed("设置失败！"));
             }
 
-            return Ok();
+            int priceType = obj.priceType; // 0-电价，1-服务费
+            int sr = obj.sr;
+            int pr = obj.pr;
+            int fr = obj.fr;
+            int vr = obj.vr;
+
+            UniversalData data = new UniversalData();
+            data.SetValue("id", Guid.NewGuid().ToString());
+            data.SetValue("oper", priceType == 0 ? ActionTypeEnum.SetElecPrice : ActionTypeEnum.SetServicePrice);
+            data.SetValue("stationId", stationId);
+            data.SetValue("priceType", priceType);
+            data.SetValue("sr", sr);
+            data.SetValue("pr", pr);
+            data.SetValue("fr", fr);
+            data.SetValue("vr", vr);
+            CallAsync(data.ToJson());
+
+            return Ok(SimpleResult.Succeed("设置成功！"));
+        }
+
+
+        /// <summary>
+        /// 下发尖峰平谷时间段
+        /// </summary>
+        [HttpPost]
+        [Route("setting/period")]
+        public IHttpActionResult SetPeriod(dynamic obj)
+        {
+            string stationId = obj.stationId;
+            if (string.IsNullOrEmpty(stationId))
+            {
+                Logger.Info("下发尖峰平谷时间段，站点Id不能为空。");
+                return Ok(SimpleResult.Failed("设置失败！"));
+            }
+
+            byte sr = obj.sr;
+            JArray srs = obj.srs;
+            byte pr = obj.pr;
+            JArray prs = obj.prs;
+            byte fr = obj.fr;
+            JArray frs = obj.frs;
+            byte vr = obj.vr;
+            JArray vrs = obj.vrs;
+
+            UniversalData data = new UniversalData();
+            data.SetValue("id", Guid.NewGuid().ToString());
+            data.SetValue("oper", ActionTypeEnum.SetPeriod);
+            data.SetValue("stationId", stationId);
+            data.SetValue("sr", sr);
+            data.SetValue("srs", srs);
+            data.SetValue("pr", pr);
+            data.SetValue("prs", prs);
+            data.SetValue("fr", fr);
+            data.SetValue("frs", frs);
+            data.SetValue("vr", vr);
+            data.SetValue("vrs", vrs);
+            
+            CallAsync(data.ToJson());
+
+            return Ok(SimpleResult.Succeed("设置成功！"));
         }
 
         #endregion

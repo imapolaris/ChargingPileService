@@ -8,6 +8,11 @@ namespace CPS.Communication.Service.DataPackets
 {
     class SetTimePeriodPacket : OperPacketBase
     {
+        public SetTimePeriodPacket() : base(PacketTypeEnum.SetTimePeriod)
+        {
+
+        }
+
         private byte _numberOfSharpPeriod;
 
         public byte NumberOfSharpPeriod
@@ -16,9 +21,9 @@ namespace CPS.Communication.Service.DataPackets
             set { _numberOfSharpPeriod = value; }
         }
 
-        private List<byte[]> _sharpPeriods;
+        private byte[] _sharpPeriods;
 
-        public List<byte[]> SharpPeriods
+        public byte[] SharpPeriods
         {
             get { return _sharpPeriods; }
             set { _sharpPeriods = value; }
@@ -32,9 +37,9 @@ namespace CPS.Communication.Service.DataPackets
             set { _numberOfPeakPeriod = value; }
         }
 
-        private List<byte[]> _peakPeriods;
+        private byte[] _peakPeriods;
 
-        public List<byte[]> PeakPeriods
+        public byte[] PeakPeriods
         {
             get { return _peakPeriods; }
             set { _peakPeriods = value; }
@@ -48,9 +53,9 @@ namespace CPS.Communication.Service.DataPackets
             set { _numberOfFlatPeriod = value; }
         }
 
-        private List<byte[]> _flatPeriods;
+        private byte[] _flatPeriods;
 
-        public List<byte[]> FlatPeriods
+        public byte[] FlatPeriods
         {
             get { return _flatPeriods; }
             set { _flatPeriods = value; }
@@ -64,12 +69,90 @@ namespace CPS.Communication.Service.DataPackets
             set { _numberOfValleyPeriod = value; }
         }
 
-        private List<byte[]> _valleyPeriods;
+        private byte[] _valleyPeriods;
 
-        public List<byte[]> ValleyPeriods
+        public byte[] ValleyPeriods
         {
             get { return _valleyPeriods; }
             set { _valleyPeriods = value; }
+        }
+
+        public override byte[] EncodeBody()
+        {
+            BodyLen = OperPacketBodyLen + 1 + this._numberOfSharpPeriod * 2 + 1 + this._numberOfPeakPeriod * 2 + 1 + this._numberOfFlatPeriod * 2 + 1 + this._numberOfValleyPeriod * 2;
+
+            byte[] body = base.EncodeBody();
+            int start = OperPacketBodyLen;
+            body[start] = this._numberOfSharpPeriod;
+            start += 1;
+            for (int i = 0; i < this._sharpPeriods.Length; i++)
+            {
+                body[start] = this._sharpPeriods[i];
+                start += 1;
+            }
+            body[start] = this._numberOfPeakPeriod;
+            start += 1;
+            for (int i = 0; i < this._peakPeriods.Length; i++)
+            {
+                body[start] = this._peakPeriods[i];
+                start += 1;
+            }
+            body[start] = this._numberOfFlatPeriod;
+            start += 1;
+            for (int i = 0; i < this._flatPeriods.Length; i++)
+            {
+                body[start] = this._flatPeriods[i];
+                start += 1;
+            }
+            body[start] = this._numberOfValleyPeriod;
+            start += 1;
+            for (int i = 0; i < this._valleyPeriods.Length; i++)
+            {
+                body[start] = this._valleyPeriods[i];
+                start += 1;
+            }
+
+            return body;
+        }
+
+        public override PacketBase DecodeBody(byte[] buffer)
+        {
+            base.DecodeBody(buffer);
+            int start = OperPacketBodyLen;
+            this._numberOfSharpPeriod = buffer[start];
+            start += 1;
+            this._sharpPeriods = new byte[this._numberOfSharpPeriod * 2];
+            for (int i = 0; i < this._sharpPeriods.Length; i++)
+            {
+                this._sharpPeriods[i] = buffer[start];
+                start += 1;
+            }
+            this._numberOfPeakPeriod = buffer[start];
+            start += 1;
+            this._peakPeriods = new byte[this._numberOfPeakPeriod * 2];
+            for (int i = 0; i < this._peakPeriods.Length; i++)
+            {
+                this._peakPeriods[i] = buffer[start];
+                start += 1;
+            }
+            this._numberOfFlatPeriod = buffer[start];
+            start += 1;
+            this._flatPeriods = new byte[this._numberOfFlatPeriod * 2];
+            for (int i = 0; i < this._flatPeriods.Length; i++)
+            {
+                this._flatPeriods[i] = buffer[start];
+                start += 1;
+            }
+            this._numberOfValleyPeriod = buffer[start];
+            start += 1;
+            this._valleyPeriods = new byte[this._numberOfValleyPeriod * 2];
+            for (int i = 0; i < this._valleyPeriods.Length; i++)
+            {
+                this._valleyPeriods[i] = buffer[start];
+                start += 1;
+            }
+
+            return this;
         }
     }
 }

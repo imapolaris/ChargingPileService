@@ -162,6 +162,13 @@ namespace CPS.Communication.Service
                 case ActionTypeEnum.QueryChargingBilling:
                     result = GetRecordOfCharging(data);
                     break;
+                case ActionTypeEnum.SetElecPrice:
+                case ActionTypeEnum.SetServicePrice:
+                    result = SetPriceAll(data);
+                    break;
+                case ActionTypeEnum.SetPeriod:
+                    result = SetTimePeriod(data);
+                    break;
                 default:
                     break;
             }

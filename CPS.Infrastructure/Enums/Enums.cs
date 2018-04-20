@@ -12,6 +12,13 @@ namespace CPS.Infrastructure.Enums
         Shutdown,
         GetChargingPileState,
         QueryChargingBilling,
+
+        SetElecPrice,
+        SetServicePrice,
+        SetElecPriceSingle,
+        SetServicePriceSingle,
+
+        SetPeriod,
     }
 
     public enum ResultTypeEnum : byte

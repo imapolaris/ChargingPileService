@@ -9,7 +9,7 @@ namespace CPS.Communication.Service.DataPackets
 {
     public class PacketBase
     {
-        protected const double RateCoefficient = 0.0001;
+        protected const double RateCoefficient = 0.001;
         protected const int CardNoLen = 16;
 
         public const int HeaderLen = 14;
