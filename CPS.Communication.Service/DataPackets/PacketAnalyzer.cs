@@ -175,6 +175,9 @@ namespace CPS.Communication.Service.DataPackets
                         break;
                     case PacketTypeEnum.UpgradeResultReply:
                         break;
+                    case PacketTypeEnum.GetSetting:
+                        packet = new GetSettingPacket();
+                        break;
                     default:
                         break;
                 }

@@ -20,76 +20,82 @@ namespace CPS.Communication.Service
 
         public bool SetPriceAll(UniversalData data)
         {
-            var stationId = data.GetStringValue("stationId");
-            if (string.IsNullOrEmpty(stationId))
+            try
             {
-                Logger.Info("无法下发费率");
-                return false;
-            }
-
-            var systemDbContext = new SystemDbContext();
-            List<string> sns = systemDbContext.ChargingPiles.Where(_=>_.StationId == stationId).Select(_ => _.SerialNumber).ToList();
-            int sharpRate = data.GetIntValue("sr");
-            int peakRate = data.GetIntValue("pr");
-            int flatRate = data.GetIntValue("fr");
-            int valleyRate = data.GetIntValue("vr");
-            int priceType = data.GetIntValue("priceType");
-
-            if (sns == null || sns.Count <= 0)
-            {
-                Logger.Error("充电桩列表为空...");
-                return false;
-            }
-
-            OperPacketBase packet = null;
-            if (priceType == 0) // 电价
-            {
-                packet = new SetElecPricePacket()
+                var stationId = data.GetStringValue("stationId");
+                if (string.IsNullOrEmpty(stationId))
                 {
-                    OperType = OperTypeEnum.SetElecPriceOper,
-                    SharpRate = sharpRate,
-                    PeakRate = peakRate,
-                    FlatRate = flatRate,
-                    ValleyRate = valleyRate,
-                };
-            }
-            else // 服务费
-            {
-                packet = new SetServicePricePacket()
-                {
-                    OperType = OperTypeEnum.SetServicePriceOper,
-                    SharpRate = sharpRate,
-                    PeakRate = peakRate,
-                    FlatRate = flatRate,
-                    ValleyRate = valleyRate,
-                };
-            }
+                    Logger.Info("无法下发费率");
+                    return false;
+                }
 
-            byte[] buffer = packet.Encode();
-            return true;
+                var systemDbContext = new SystemDbContext();
+                List<string> sns = systemDbContext.ChargingPiles.Where(_ => _.StationId == stationId).Select(_ => _.SerialNumber).ToList();
+                int sharpRate = data.GetIntValue("sr");
+                int peakRate = data.GetIntValue("pr");
+                int flatRate = data.GetIntValue("fr");
+                int valleyRate = data.GetIntValue("vr");
+                int priceType = data.GetIntValue("priceType");
 
-            foreach (var sn in sns)
-            {
-                try
+                if (sns == null || sns.Count <= 0)
                 {
-                    packet.SerialNumber = sn;
-                    var result = SetParams(Guid.NewGuid().ToString(), sn, packet);
-                    if (!result)
+                    Logger.Error("充电桩列表为空...");
+                    return false;
+                }
+
+                OperPacketBase packet = null;
+                if (priceType == 0) // 电价
+                {
+                    packet = new SetElecPricePacket()
+                    {
+                        OperType = OperTypeEnum.SetElecPriceOper,
+                        SharpRate = sharpRate,
+                        PeakRate = peakRate,
+                        FlatRate = flatRate,
+                        ValleyRate = valleyRate,
+                    };
+                }
+                else // 服务费
+                {
+                    packet = new SetServicePricePacket()
+                    {
+                        OperType = OperTypeEnum.SetServicePriceOper,
+                        SharpRate = sharpRate,
+                        PeakRate = peakRate,
+                        FlatRate = flatRate,
+                        ValleyRate = valleyRate,
+                    };
+                }
+
+                foreach (var sn in sns)
+                {
+                    try
+                    {
+                        packet.SerialNumber = sn;
+                        var result = SetParams(Guid.NewGuid().ToString(), sn, packet);
+                        if (!result)
+                        {
+                            Logger.Info($"向电桩{sn}下发费率失败！");
+                        }
+                        else
+                        {
+                            Logger.Info($"向电桩{sn}下发费率成功！");
+                        }
+                    }
+                    catch (Exception ex)
                     {
                         Logger.Info($"向电桩{sn}下发费率失败！");
-                    }
-                    else
-                    {
-                        Logger.Info($"向电桩{sn}下发费率成功！");
+                        Logger.Error(ex);
                     }
                 }
-                catch (Exception ex)
-                {
-                    Logger.Error(ex);
-                }
+                
+                return true;
             }
-
-            return true;
+            catch (Exception ex)
+            {
+                Logger.Error(ex);
+                return false;
+            }
         }
 
         public bool SetPriceSingle(UniversalData data)
@@ -160,86 +166,91 @@ namespace CPS.Communication.Service
 
         public bool SetTimePeriod(UniversalData data)
         {
-            var stationId = data.GetStringValue("stationId");
-            if (string.IsNullOrEmpty(stationId))
+            try
             {
-                Logger.Info("无法下发尖峰平谷时间段");
+                var stationId = data.GetStringValue("stationId");
+                if (string.IsNullOrEmpty(stationId))
+                {
+                    Logger.Info("无法下发尖峰平谷时间段");
+                    return false;
+                }
+                var systemDbContext = new SystemDbContext();
+                List<string> sns = systemDbContext.ChargingPiles.Where(_ => _.StationId == stationId).Select(_ => _.SerialNumber).ToList();
+
+                string id = data.GetStringValue("id");
+                byte periodType = data.GetByteValue("periodType");
+                byte numberOfSr = data.GetByteValue("sr");
+                byte[] srs = new byte[numberOfSr * 2];
+                var ja = (JArray)data.GetValue("srs");
+                for (int i = 0; i < ja.Count; i++)
+                {
+                    var jt = ja[i];
+                    var jtv = jt.Value<byte>();
+                    srs[i] = jtv;
+                }
+                byte numberOfPr = data.GetByteValue("pr");
+                byte[] prs = new byte[numberOfPr * 2];
+                ja = (JArray)data.GetValue("prs");
+                for (int i = 0; i < ja.Count; i++)
+                {
+                    var jt = ja[i];
+                    var jtv = jt.Value<byte>();
+                    prs[i] = jtv;
+                }
+                byte numberOfFr = data.GetByteValue("fr");
+                byte[] frs = new byte[numberOfFr * 2];
+                ja = (JArray)data.GetValue("frs");
+                for (int i = 0; i < ja.Count; i++)
+                {
+                    var jt = ja[i];
+                    var jtv = jt.Value<byte>();
+                    frs[i] = jtv;
+                }
+                byte numberOfVr = data.GetByteValue("vr");
+                byte[] vrs = new byte[numberOfVr * 2];
+                ja = (JArray)data.GetValue("vrs");
+                for (int i = 0; i < ja.Count; i++)
+                {
+                    var jt = ja[i];
+                    var jtv = jt.Value<byte>();
+                    vrs[i] = jtv;
+                }
+
+                SetTimePeriodPacket packet = new SetTimePeriodPacket()
+                {
+                    PeriodType = periodType,
+                    NumberOfSharpPeriod = numberOfSr,
+                    SharpPeriods = srs,
+                    NumberOfPeakPeriod = numberOfPr,
+                    PeakPeriods = prs,
+                    NumberOfFlatPeriod = numberOfFr,
+                    FlatPeriods = frs,
+                    NumberOfValleyPeriod = numberOfVr,
+                    ValleyPeriods = vrs,
+                    OperType = OperTypeEnum.SetTimePeriodOper,
+                };
+
+                foreach (var sn in sns)
+                {
+                    packet.SerialNumber = sn;
+                    var result = SetParams(id, sn, packet);
+                    if (!result)
+                    {
+                        Logger.Info($"充电桩{sn}下发尖峰平谷时间失败！");
+                    }
+                    else
+                    {
+                        Logger.Info($"充电桩{sn}下发尖峰平谷时间成功！");
+                    }
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex);
                 return false;
             }
-            var systemDbContext = new SystemDbContext();
-            List<string> sns = systemDbContext.ChargingPiles.Where(_ => _.StationId == stationId).Select(_ => _.SerialNumber).ToList();
-
-            string id = data.GetStringValue("id");
-            byte numberOfSr = data.GetByteValue("sr");
-            byte[] srs = new byte[numberOfSr * 2];
-            var ja = (JArray)data.GetValue("srs");
-            for (int i = 0; i < ja.Count; i++)
-            {
-                var jt = ja[i];
-                var jtv = jt.Value<byte>();
-                srs[i] = jtv;
-            }
-            byte numberOfPr = data.GetByteValue("pr");
-            byte[] prs = new byte[numberOfPr * 2];
-            ja = (JArray)data.GetValue("prs");
-            for (int i = 0; i < ja.Count; i++)
-            {
-                var jt = ja[i];
-                var jtv = jt.Value<byte>();
-                prs[i] = jtv;
-            }
-            byte numberOfFr = data.GetByteValue("fr");
-            byte[] frs = new byte[numberOfFr * 2];
-            ja = (JArray)data.GetValue("frs");
-            for (int i = 0; i < ja.Count; i++)
-            {
-                var jt = ja[i];
-                var jtv = jt.Value<byte>();
-                frs[i] = jtv;
-            }
-            byte numberOfVr = data.GetByteValue("vr");
-            byte[] vrs = new byte[numberOfVr * 2];
-            ja = (JArray)data.GetValue("vrs");
-            for (int i = 0; i < ja.Count; i++)
-            {
-                var jt = ja[i];
-                var jtv = jt.Value<byte>();
-                vrs[i] = jtv;
-            }
-
-            SetTimePeriodPacket packet = new SetTimePeriodPacket()
-            {
-                NumberOfSharpPeriod = numberOfSr,
-                SharpPeriods = srs,
-                NumberOfPeakPeriod = numberOfPr,
-                PeakPeriods = prs,
-                NumberOfFlatPeriod = numberOfFr,
-                FlatPeriods = frs,
-                NumberOfValleyPeriod = numberOfVr,
-                ValleyPeriods = vrs,
-                OperType = OperTypeEnum.SetTimePeriodOper,
-            };
-
-            /*
-            byte[] buffer = packet.Encode();
-            return true;
-            */
-
-            foreach (var sn in sns)
-            {
-                packet.SerialNumber = sn;
-                var result = SetParams(id, sn, packet);
-                if (!result)
-                {
-                    Logger.Info($"充电桩{sn}下发尖峰平谷时间失败！");
-                }
-                else
-                {
-                    Logger.Info($"充电桩{sn}下发尖峰平谷时间成功！");
-                }
-            }
-
-            return true;
         }
 
         public bool SetSecretKey(UniversalData data)
@@ -388,6 +399,33 @@ namespace CPS.Communication.Service
             }
 
             return StartSession(id, client, packet);
+        }
+
+        private bool GetSetting(Client client, GetSettingPacket packet)
+        {
+            if (client == null || packet == null )
+            {
+                Logger.Error("请求费率、时间段等配置的参数错误！");
+                return false;
+            }
+
+            var resPacket = new GetSettingPacket()
+            {
+                SerialNumber = packet.SerialNumber,
+                TimeStamp = DateTime.Now.ConvertToTimeStampX()
+            };
+
+            var result = client.Send(packet);
+            if (result)
+            {
+                Logger.Info("下发配置成功！");
+            }
+            else
+            {
+                Logger.Info("下发配置失败！");
+            }
+
+            return true;
         }
 
         #endregion  ====Get操作====

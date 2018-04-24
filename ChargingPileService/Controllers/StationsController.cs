@@ -220,6 +220,8 @@ namespace ChargingPileService.Controllers
                 return Ok(SimpleResult.Failed("设置失败！"));
             }
 
+            byte periodType = obj.periodType; // 0--电价，1--服务费
+
             byte sr = obj.sr;
             JArray srs = obj.srs;
             byte pr = obj.pr;
@@ -233,6 +235,7 @@ namespace ChargingPileService.Controllers
             data.SetValue("id", Guid.NewGuid().ToString());
             data.SetValue("oper", ActionTypeEnum.SetPeriod);
             data.SetValue("stationId", stationId);
+            data.SetValue("periodType", periodType);
             data.SetValue("sr", sr);
             data.SetValue("srs", srs);
             data.SetValue("pr", pr);

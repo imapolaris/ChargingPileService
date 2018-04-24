@@ -52,6 +52,12 @@ namespace CPS.Communication.Service.DataPackets
         SetQRcode=0x23,
         GetQRcode = 0x24,
         GetQRcodeResult = 0x25,
+
+        /// <summary>
+        /// 请求配置（包括电价、服务费、时间段等）
+        /// </summary>
+        GetSetting = 0x26,
+
         /// <summary>
         /// 上报充电桩状态
         /// </summary>

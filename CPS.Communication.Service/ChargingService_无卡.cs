@@ -180,8 +180,7 @@ namespace CPS.Communication.Service
                     Logger.Error(ex);
                 }
 
-                // 检查充电金额是否超出钱包余额
-                /*
+                // 检查充电金额是否超出钱包余额                
                 var costMoney = p.ElecMoney + p.ServiceMoney;
                 var record = hisDbContext.ChargingRecords.Where(_ => _.Transactionsn == p.TransactionSN).FirstOrDefault();
                 if (record != null)
@@ -207,7 +206,6 @@ namespace CPS.Communication.Service
                         }
                     }
                 }
-                */
             });
         }
 
@@ -247,26 +245,28 @@ namespace CPS.Communication.Service
                     {
                         wallet.Remaining -= costMoney / 100.0; // 转换成单位：元
                     }
+                    // 保存钱包信息
+                    SysDbContext.SaveChanges();
 
-                    int result = SysDbContext.SaveChanges();
+                    record.CPPort = packet.QPort;
+                    record.CPSerialNumber = packet.SerialNumber;
+                    record.BeforeElec = packet.BeforeElec;
+                    record.AfterElec = packet.AfterElec;
+                    record.CostMoney = packet.CostMoney;
+                    record.Duration = packet.CostTime;
+                    record.Kwhs = packet.AfterElec - packet.BeforeElec;
+                    record.ServiceMoney = packet.ServiceMoney;
+                    record.StopReason = packet.StopReason;
+                    //EndDate = packet.StopTime;
+                    record.SOC = packet.SOC;
+                    record.Transactionsn = packet.TransactionSN;
+                    record.IsSucceed = true;
+
+                    int result = hisDbContext.SaveChanges();
+
+                    
                     if (result > 0) // 保存账单信息
                     {
-                        record.CPPort = packet.QPort;
-                        record.CPSerialNumber = packet.SerialNumber;
-                        record.BeforeElec = packet.BeforeElec;
-                        record.AfterElec = packet.AfterElec;
-                        record.CostMoney = packet.CostMoney;
-                        record.Duration = packet.CostTime;
-                        record.Kwhs = packet.AfterElec - packet.BeforeElec;
-                        record.ServiceMoney = packet.ServiceMoney;
-                        record.StopReason = packet.StopReason;
-                        //EndDate = packet.StopTime;
-                        record.SOC = packet.SOC;
-                        record.Transactionsn = packet.TransactionSN;
-                        record.IsSucceed = true;
-
-                        hisDbContext.SaveChanges();
-
                         // 回复账单确认信息
                         var sn = packet.SerialNumber;
                         ConfirmRecordOfChargingPacket confirmPacket = new ConfirmRecordOfChargingPacket()
@@ -278,6 +278,8 @@ namespace CPS.Communication.Service
                             CardNo = packet.CardNoVal,
                         };
                         client.Send(confirmPacket);
+
+                        Logger.Info($"SN：{packet.SerialNumber}， TSN：{packet.TransactionSN} 保存交易记录成功！");
                     }
                     else
                     {

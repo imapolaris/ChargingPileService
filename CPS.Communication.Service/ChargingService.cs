@@ -288,6 +288,9 @@ namespace CPS.Communication.Service
                 case PacketTypeEnum.RealDataOfChargingWithCard:
                     RealDataOfCharging(client, packet);
                     break;
+                case PacketTypeEnum.GetSetting:
+                    GetSetting(client, packet as GetSettingPacket);
+                    break;
                 default:
                     break;
             }

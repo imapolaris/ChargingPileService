@@ -13,6 +13,14 @@ namespace CPS.Communication.Service.DataPackets
 
         }
 
+        private byte _periodType;
+
+        public byte PeriodType
+        {
+            get { return _periodType; }
+            set { _periodType = value; }
+        }
+
         private byte _numberOfSharpPeriod;
 
         public byte NumberOfSharpPeriod
@@ -79,10 +87,13 @@ namespace CPS.Communication.Service.DataPackets
 
         public override byte[] EncodeBody()
         {
-            BodyLen = OperPacketBodyLen + 1 + this._numberOfSharpPeriod * 2 + 1 + this._numberOfPeakPeriod * 2 + 1 + this._numberOfFlatPeriod * 2 + 1 + this._numberOfValleyPeriod * 2;
+            BodyLen = OperPacketBodyLen + 1 + 1 + this._numberOfSharpPeriod * 2 + 1 + this._numberOfPeakPeriod * 2 + 1 + this._numberOfFlatPeriod * 2 + 1 + this._numberOfValleyPeriod * 2;
 
             byte[] body = base.EncodeBody();
             int start = OperPacketBodyLen;
+
+            body[start] = this._periodType;
+            start += 1;
             body[start] = this._numberOfSharpPeriod;
             start += 1;
             for (int i = 0; i < this._sharpPeriods.Length; i++)
@@ -119,6 +130,8 @@ namespace CPS.Communication.Service.DataPackets
         {
             base.DecodeBody(buffer);
             int start = OperPacketBodyLen;
+            this._periodType = buffer[start];
+            start += 1;
             this._numberOfSharpPeriod = buffer[start];
             start += 1;
             this._sharpPeriods = new byte[this._numberOfSharpPeriod * 2];
