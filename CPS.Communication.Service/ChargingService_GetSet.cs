@@ -524,8 +524,8 @@ namespace CPS.Communication.Service
                         var vrs = new byte[vr * 2];
                         for (int i = 0; i < vr; i++)
                         {
-                            frs[2 * i] = (byte)vrdata[i];
-                            frs[2 * i + 1] = (byte)(vrdata[i] + 1);
+                            vrs[2 * i] = (byte)vrdata[i];
+                            vrs[2 * i + 1] = (byte)(vrdata[i] + 1);
                         }
                         var packet3 = new SetTimePeriodPacket()
                         {
@@ -591,8 +591,8 @@ namespace CPS.Communication.Service
                         var vrs = new byte[vr * 2];
                         for (int i = 0; i < vr; i++)
                         {
-                            frs[2 * i] = (byte)vrdata[i];
-                            frs[2 * i + 1] = (byte)(vrdata[i] + 1);
+                            vrs[2 * i] = (byte)vrdata[i];
+                            vrs[2 * i + 1] = (byte)(vrdata[i] + 1);
                         }
                         var packet4 = new SetTimePeriodPacket()
                         {

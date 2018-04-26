@@ -328,7 +328,14 @@ namespace CPS.Communication.Client
 
         private void stopcontine_Click(object sender, RoutedEventArgs e)
         {
-            StopContineSend = true;
+            //StopContineSend = true;
+
+            var packet = new GetSettingPacket()
+            {
+                SerialNumber = "1110000001001008",
+                TimeStamp = DateTime.Now.ConvertToTimeStampX()
+            };
+            client.Send(packet);
         }
 
         private void heartBeatServer_Click(object sender, RoutedEventArgs e)
