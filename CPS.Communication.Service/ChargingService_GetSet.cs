@@ -2,11 +2,13 @@
 using CPS.Infrastructure.Models;
 using CPS.Infrastructure.Utils;
 using Newtonsoft.Json.Linq;
+using Soaring.WebMonter.Contract;
 using Soaring.WebMonter.DB;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CPS.Communication.Service
@@ -401,31 +403,230 @@ namespace CPS.Communication.Service
             return StartSession(id, client, packet);
         }
 
-        private bool GetSetting(Client client, GetSettingPacket packet)
+        private void GetSetting(Client client, GetSettingPacket packet)
         {
-            if (client == null || packet == null )
+            if (client == null || packet == null || string.IsNullOrEmpty(packet.SerialNumber))
             {
                 Logger.Error("请求费率、时间段等配置的参数错误！");
-                return false;
+                return;
             }
 
-            var resPacket = new GetSettingPacket()
+            ThreadPool.QueueUserWorkItem((state) =>
             {
-                SerialNumber = packet.SerialNumber,
-                TimeStamp = DateTime.Now.ConvertToTimeStampX()
-            };
+                try
+                {
+                    // 查找所属电站
+                    var sn = packet.SerialNumber;
+                    var systemDbContext = new SystemDbContext();
+                    var cp = systemDbContext.ChargingPiles.Where(_ => _.SerialNumber == sn).FirstOrDefault();
+                    if (cp == null)
+                    {
+                        Logger.Info($"充电桩{sn}不存在，无法查询相关配置");
+                        return;
+                    }
+                    var stationId = cp.StationId;
 
-            var result = client.Send(packet);
-            if (result)
-            {
-                Logger.Info("下发配置成功！");
-            }
-            else
-            {
-                Logger.Info("下发配置失败！");
-            }
+                    // 下发电价
+                    var costDefine = systemDbContext.Sys_CostDefines.Where(x => x.StationId == stationId && x.SettingType == SettingOption.Price).ToList();
+                    if (costDefine?.Count < 1)
+                    {
+                        Logger.Info($"还没有为电站{stationId}配置电价...");
+                    }
+                    else
+                    {
+                        var packet1 = new SetElecPricePacket()
+                        {
+                            SerialNumber = sn,
+                            OperType = OperTypeEnum.SetElecPriceOper,
+                            SharpRate = (byte)(costDefine.Where(_ => _.Option == CastOption.One).FirstOrDefault()?.Fee ?? 0),
+                            PeakRate = (byte)(costDefine.Where(_ => _.Option == CastOption.Two).FirstOrDefault()?.Fee ?? 0),
+                            FlatRate = (byte)(costDefine.Where(_ => _.Option == CastOption.Three).FirstOrDefault()?.Fee ?? 0),
+                            ValleyRate = (byte)(costDefine.Where(_ => _.Option == CastOption.Four).FirstOrDefault()?.Fee ?? 0),
+                        };
+                        var result = client.Send(packet1);
+                        if (result)
+                        {
+                            Logger.Info($"为电桩{sn}下发电价成功！");
+                        }
+                        else
+                        {
+                            Logger.Info($"为电桩{sn}下发电价失败！");
+                        }
 
-            return true;
+                        Thread.Sleep(2500);
+                    }
+
+
+                    // 下发服务费
+                    var serviceDefine = systemDbContext.Sys_CostDefines.Where(_ => _.StationId == stationId && _.SettingType == SettingOption.Service).ToList();
+                    if (serviceDefine?.Count < 1)
+                    {
+                        Logger.Info($"还没有为电站{stationId}配置服务费...");
+                    }
+                    else
+                    {
+                        var packet2 = new SetServicePricePacket()
+                        {
+                            SerialNumber = sn,
+                            OperType = OperTypeEnum.SetServicePriceOper,
+                            SharpRate = (byte)(serviceDefine.Where(_ => _.Option == CastOption.One).FirstOrDefault()?.Fee ?? 0),
+                            PeakRate = (byte)(serviceDefine.Where(_ => _.Option == CastOption.Two).FirstOrDefault()?.Fee ?? 0),
+                            FlatRate = (byte)(serviceDefine.Where(_ => _.Option == CastOption.Three).FirstOrDefault()?.Fee ?? 0),
+                            ValleyRate = (byte)(serviceDefine.Where(_ => _.Option == CastOption.Four).FirstOrDefault()?.Fee ?? 0),
+                        };
+                        var result = client.Send(packet2);
+                        if (result)
+                        {
+                            Logger.Info($"为电桩{sn}下发服务费成功！");
+                        }
+                        else
+                        {
+                            Logger.Info($"为电桩{sn}下发服务费失败！");
+                        }
+
+                        Thread.Sleep(2500);
+                    }
+
+                    // 下发电价时间段
+                    var pricePeriodDefine = systemDbContext.ChargingStandards.Where(_ => _.StationId == stationId && _.IsValid).ToList();
+                    if (pricePeriodDefine?.Count < 1)
+                    {
+                        Logger.Info($"还没有为电站{stationId}配置电价时间段...");
+                    }
+                    else
+                    {
+                        var srdata = pricePeriodDefine.Where(_ => _.Catalog == "0")?.Select(_ => _.StartTime.Hours).ToList();
+                        var sr = (byte)srdata.Count;
+                        var srs = new byte[sr * 2];
+                        for (int i = 0; i < sr; i++)
+                        {
+                            srs[2 * i] = (byte)srdata[i];
+                            srs[2 * i + 1] = (byte)(srdata[i] + 1);
+                        }
+                        var prdata = pricePeriodDefine.Where(_ => _.Catalog == "1")?.Select(_ => _.StartTime.Hours).ToList();
+                        var pr = (byte)prdata.Count;
+                        var prs = new byte[pr * 2];
+                        for (int i = 0; i < pr; i++)
+                        {
+                            prs[2 * i] = (byte)prdata[i];
+                            prs[2 * i + 1] = (byte)(prdata[i] + 1);
+                        }
+                        var frdata = pricePeriodDefine.Where(_ => _.Catalog == "2")?.Select(_ => _.StartTime.Hours).ToList();
+                        var fr = (byte)frdata.Count;
+                        var frs = new byte[fr * 2];
+                        for (int i = 0; i < fr; i++)
+                        {
+                            frs[2 * i] = (byte)frdata[i];
+                            frs[2 * i + 1] = (byte)(frdata[i] + 1);
+                        }
+                        var vrdata = pricePeriodDefine.Where(_ => _.Catalog == "3")?.Select(_ => _.StartTime.Hours).ToList();
+                        var vr = (byte)vrdata.Count;
+                        var vrs = new byte[vr * 2];
+                        for (int i = 0; i < vr; i++)
+                        {
+                            frs[2 * i] = (byte)vrdata[i];
+                            frs[2 * i + 1] = (byte)(vrdata[i] + 1);
+                        }
+                        var packet3 = new SetTimePeriodPacket()
+                        {
+                            SerialNumber = sn,
+                            OperType = OperTypeEnum.SetTimePeriodOper,
+                            PeriodType = 0,
+                            NumberOfSharpPeriod = sr,
+                            SharpPeriods = srs,
+                            NumberOfPeakPeriod = pr,
+                            PeakPeriods = prs,
+                            NumberOfFlatPeriod = fr,
+                            FlatPeriods = frs,
+                            NumberOfValleyPeriod = vr,
+                            ValleyPeriods = vrs,
+                        };
+                        var result = client.Send(packet3);
+                        if (result)
+                        {
+                            Logger.Info($"为电桩{sn}下发电价时间段成功！");
+                        }
+                        else
+                        {
+                            Logger.Info($"为电桩{sn}下发电价时间段失败！");
+                        }
+                        
+                        Thread.Sleep(2500);
+                    }
+
+                    // 下发服务费时间段
+                    var servicePeriodDefine = systemDbContext.ServiceDefines.Where(_ => _.StationId == stationId && _.IsValid).ToList();
+                    if (servicePeriodDefine?.Count < 1)
+                    {
+                        Logger.Info($"还没有为电站{stationId}配置服务费时间段...");
+                    }
+                    else
+                    {
+                        var srdata = servicePeriodDefine.Where(_ => _.Catalog == "0")?.Select(_ => _.StartTime.Hours).ToList();
+                        var sr = (byte)srdata.Count;
+                        var srs = new byte[sr * 2];
+                        for (int i = 0; i < sr; i++)
+                        {
+                            srs[2 * i] = (byte)srdata[i];
+                            srs[2 * i + 1] = (byte)(srdata[i] + 1);
+                        }
+                        var prdata = servicePeriodDefine.Where(_ => _.Catalog == "1")?.Select(_ => _.StartTime.Hours).ToList();
+                        var pr = (byte)prdata.Count;
+                        var prs = new byte[pr * 2];
+                        for (int i = 0; i < pr; i++)
+                        {
+                            prs[2 * i] = (byte)prdata[i];
+                            prs[2 * i + 1] = (byte)(prdata[i] + 1);
+                        }
+                        var frdata = servicePeriodDefine.Where(_ => _.Catalog == "2")?.Select(_ => _.StartTime.Hours).ToList();
+                        var fr = (byte)frdata.Count;
+                        var frs = new byte[fr * 2];
+                        for (int i = 0; i < fr; i++)
+                        {
+                            frs[2 * i] = (byte)frdata[i];
+                            frs[2 * i + 1] = (byte)(frdata[i] + 1);
+                        }
+                        var vrdata = servicePeriodDefine.Where(_ => _.Catalog == "3")?.Select(_ => _.StartTime.Hours).ToList();
+                        var vr = (byte)vrdata.Count;
+                        var vrs = new byte[vr * 2];
+                        for (int i = 0; i < vr; i++)
+                        {
+                            frs[2 * i] = (byte)vrdata[i];
+                            frs[2 * i + 1] = (byte)(vrdata[i] + 1);
+                        }
+                        var packet4 = new SetTimePeriodPacket()
+                        {
+                            SerialNumber = sn,
+                            OperType = OperTypeEnum.SetTimePeriodOper,
+                            PeriodType = 1,
+                            NumberOfSharpPeriod = sr,
+                            SharpPeriods = srs,
+                            NumberOfPeakPeriod = pr,
+                            PeakPeriods = prs,
+                            NumberOfFlatPeriod = fr,
+                            FlatPeriods = frs,
+                            NumberOfValleyPeriod = vr,
+                            ValleyPeriods = vrs,
+                        };
+                        var result = client.Send(packet4);
+                        if (result)
+                        {
+                            Logger.Info($"为电桩{sn}下发服务费时间段成功！");
+                        }
+                        else
+                        {
+                            Logger.Info($"为电桩{sn}下发服务费时间段失败！");
+                        }
+                    }
+
+                    Logger.Info($"充电桩{sn}下发配置成功！");
+                }
+                catch (Exception ex)
+                {
+                    Logger.Info("下发配置失败！");
+                    Logger.Error(ex);
+                }
+            });
         }
 
         #endregion  ====Get操作====

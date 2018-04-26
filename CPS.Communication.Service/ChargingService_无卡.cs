@@ -223,11 +223,31 @@ namespace CPS.Communication.Service
                 {
                     var hisDbContext = new HistoryDbContext();
 
+                    var sn = packet.SerialNumber;
+                    var tsn = packet.TransactionSN;
                     // 结账计费
-                    var record = hisDbContext.ChargingRecords.Where(_ => _.Transactionsn == packet.TransactionSN).FirstOrDefault();
+                    var record = hisDbContext.ChargingRecords.Where(_ => _.Transactionsn == tsn && _.CPSerialNumber == sn).FirstOrDefault();
                     if (record == null)
                     {
-                        Logger.Error($"{packet.SerialNumber}，TSN：{packet.TransactionSN}充电记录不存在！");
+                        Logger.Error($"{sn}，TSN：{tsn}充电记录不存在！");
+                        return;
+                    }
+
+                    // 回复账单确认信息
+                    ConfirmRecordOfChargingPacket confirmPacket = new ConfirmRecordOfChargingPacket()
+                    {
+                        SerialNumber = sn,
+                        HasCard = packet.HasCard,
+                        TransactionSN = tsn,
+                        QPort = packet.QPort,
+                        CardNo = packet.CardNoVal,
+                    };
+
+                    // 如果账单已完成，不再进行处理
+                    if (record.IsSucceed)
+                    {
+                        client.Send(confirmPacket); // 发送账单确认包
+                        Logger.Info($"{sn}，TSN：{tsn}账单已处理！");
                         return;
                     }
 
@@ -249,7 +269,7 @@ namespace CPS.Communication.Service
                     SysDbContext.SaveChanges();
 
                     record.CPPort = packet.QPort;
-                    record.CPSerialNumber = packet.SerialNumber;
+                    record.CPSerialNumber = sn;
                     record.BeforeElec = packet.BeforeElec;
                     record.AfterElec = packet.AfterElec;
                     record.CostMoney = packet.CostMoney;
@@ -259,7 +279,7 @@ namespace CPS.Communication.Service
                     record.StopReason = packet.StopReason;
                     //EndDate = packet.StopTime;
                     record.SOC = packet.SOC;
-                    record.Transactionsn = packet.TransactionSN;
+                    record.Transactionsn = tsn;
                     record.IsSucceed = true;
 
                     int result = hisDbContext.SaveChanges();
@@ -267,23 +287,12 @@ namespace CPS.Communication.Service
                     
                     if (result > 0) // 保存账单信息
                     {
-                        // 回复账单确认信息
-                        var sn = packet.SerialNumber;
-                        ConfirmRecordOfChargingPacket confirmPacket = new ConfirmRecordOfChargingPacket()
-                        {
-                            SerialNumber = sn,
-                            HasCard = packet.HasCard,
-                            TransactionSN = packet.TransactionSN,
-                            QPort = packet.QPort,
-                            CardNo = packet.CardNoVal,
-                        };
                         client.Send(confirmPacket);
-
-                        Logger.Info($"SN：{packet.SerialNumber}， TSN：{packet.TransactionSN} 保存交易记录成功！");
+                        Logger.Info($"SN：{sn}， TSN：{tsn} 保存交易记录成功！");
                     }
                     else
                     {
-                        Logger.Error($"SN：{packet.SerialNumber}， TSN：{packet.TransactionSN} 保存交易记录失败！");
+                        Logger.Error($"SN：{sn}， TSN：{tsn} 保存交易记录失败！");
                     }            
                 }
                 catch (Exception ex)

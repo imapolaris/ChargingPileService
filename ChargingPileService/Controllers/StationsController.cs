@@ -191,6 +191,9 @@ namespace ChargingPileService.Controllers
             int fr = obj.fr;
             int vr = obj.vr;
 
+            // for test.
+            // Logger.Info($"stationId:{stationId}, 类型：{priceType} sr:{sr}, pr:{pr}, fr:{fr}, vr:{vr}");
+
             UniversalData data = new UniversalData();
             data.SetValue("id", Guid.NewGuid().ToString());
             data.SetValue("oper", priceType == 0 ? ActionTypeEnum.SetElecPrice : ActionTypeEnum.SetServicePrice);
@@ -222,14 +225,71 @@ namespace ChargingPileService.Controllers
 
             byte periodType = obj.periodType; // 0--电价，1--服务费
 
-            byte sr = obj.sr;
             JArray srs = obj.srs;
-            byte pr = obj.pr;
+            byte sr = (byte)(srs.Count);
+            var srsT = new JArray();
+            foreach (var item in srs)
+            {
+                var t = item.Value<byte>();
+                srsT.Add(t);
+                srsT.Add(t + 1);
+            }
             JArray prs = obj.prs;
-            byte fr = obj.fr;
+            byte pr = (byte)(prs.Count);
+            var prsT = new JArray();
+            foreach (var item in prs)
+            {
+                var t = item.Value<byte>();
+                prsT.Add(t);
+                prsT.Add(t + 1);
+            }
             JArray frs = obj.frs;
-            byte vr = obj.vr;
+            byte fr = (byte)(frs.Count);
+            var frsT = new JArray();
+            foreach (var item in frs)
+            {
+                var t = item.Value<byte>();
+                frsT.Add(t);
+                frsT.Add(t + 1);
+            }
             JArray vrs = obj.vrs;
+            byte vr = (byte)(vrs.Count);
+            var vrsT = new JArray();
+            foreach (var item in vrs)
+            {
+                var t = item.Value<byte>();
+                vrsT.Add(t);
+                vrsT.Add(t + 1);
+            }
+
+            // for test.
+            /*
+            Logger.Info($"stationId:{stationId}, 类型：{periodType}, sr:{sr}, pr:{pr}, fr:{fr}, vr:{vr}");
+            var temp = "";
+            foreach (var item in srsT)
+            {
+                temp += item.Value<byte>().ToString() + ",";
+            }
+            Logger.Info($"srs:{temp}");
+            temp = "";
+            foreach (var item in prsT)
+            {
+                temp += item.Value<byte>().ToString() + ",";
+            }
+            Logger.Info($"prs:{temp}");
+            temp = "";
+            foreach (var item in frsT)
+            {
+                temp += item.Value<byte>().ToString() + ",";
+            }
+            Logger.Info($"frs:{temp}");
+            temp = "";
+            foreach (var item in vrsT)
+            {
+                temp += item.Value<byte>().ToString() + ",";
+            }
+            Logger.Info($"srs:{temp}");
+            */
 
             UniversalData data = new UniversalData();
             data.SetValue("id", Guid.NewGuid().ToString());
@@ -237,14 +297,14 @@ namespace ChargingPileService.Controllers
             data.SetValue("stationId", stationId);
             data.SetValue("periodType", periodType);
             data.SetValue("sr", sr);
-            data.SetValue("srs", srs);
+            data.SetValue("srs", srsT);
             data.SetValue("pr", pr);
-            data.SetValue("prs", prs);
+            data.SetValue("prs", prsT);
             data.SetValue("fr", fr);
-            data.SetValue("frs", frs);
+            data.SetValue("frs", frsT);
             data.SetValue("vr", vr);
-            data.SetValue("vrs", vrs);
-            
+            data.SetValue("vrs", vrsT);
+
             CallAsync(data.ToJson());
 
             return Ok(SimpleResult.Succeed("设置成功！"));
