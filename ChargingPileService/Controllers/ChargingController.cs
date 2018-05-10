@@ -36,12 +36,14 @@ namespace ChargingPileService.Controllers
                     return Ok(SimpleResult.Failed("充电桩编号不存在！"));
                 }
 
+                var telephone = "";
                 // 验证用户的有效性
                 if (cType == CustomerTypeEnum.Personal)
                 {
-                    var result = SysDbContext.PersonalCustomers.Any(_ => _.Id == userId);
-                    if (result)
+                    var result = SysDbContext.PersonalCustomers.Where(_ => _.Id == userId).FirstOrDefault();
+                    if (result != null)
                     {
+                        telephone = result.Telephone;
                         // 个人用户检查账户余额是否充足
                         var wallet = SysDbContext.Wallets.Where(_ => _.CustomerId == userId).FirstOrDefault();
                         if (wallet == null || wallet.Remaining <= Math.Pow(10, -6))
@@ -56,15 +58,16 @@ namespace ChargingPileService.Controllers
                 }
                 else
                 {
-                    var result = SysDbContext.GroupCustomers.Any(_ => _.Id == userId);
-                    if (!result)
+                    var result = SysDbContext.GroupCustomers.Where(_ => _.Id == userId).FirstOrDefault();
+                    if (result != null)
                     {
+                        telephone = result.Telephone;
                         return Ok(SimpleResult.Failed("登录失效，请重新登录！"));
                     }
                 }
 
                 // 开始请求充电
-                Session session = SessionService.StartOneSession();
+                Session session = SessionService.StartOneSession(100*1000); // 100秒延时
                 UniversalData data = new UniversalData();
                 data.SetValue("id", session.Id);
                 data.SetValue("oper", ActionTypeEnum.Startup);
@@ -73,6 +76,8 @@ namespace ChargingPileService.Controllers
                 data.SetValue("sn", sn);
                 data.SetValue("port", 0);
                 data.SetValue("money", 0);
+                data.SetValue("userId", userId);
+                data.SetValue("userName", telephone);
                 CallAsync(data.ToJson());
                 
                 var status = await session.WaitSessionCompleted();

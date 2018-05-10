@@ -109,6 +109,7 @@ namespace ChargingPileService.Controllers
                         // 添加充值账单记录
                         HisDbContext.PayRecords.Add(new PayRecord()
                         {
+                            CompanyCode = "CP_001",
                             PayDate = DateTime.Now,
                             PayWay = payway,
                             PayMoney = money,

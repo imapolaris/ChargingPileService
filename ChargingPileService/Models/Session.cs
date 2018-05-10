@@ -19,7 +19,6 @@ namespace ChargingPileService.Models
         public DateTime StartDate { get; set; }
         /// <summary>
         /// 超时时间（单位：毫秒）
-        /// 默认值：10秒
         /// </summary>
         public int Timeout { get; private set; }// = DefaultTimeout;
         public bool Outdated

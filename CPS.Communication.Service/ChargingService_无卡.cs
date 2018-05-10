@@ -111,6 +111,17 @@ namespace CPS.Communication.Service
             {
                 money = data.GetIntValue("money");
             }
+            string userId = data.GetStringValue("userId");
+            string userName = data.GetStringValue("userName");
+
+            // 查询余额
+            var systemDbContext = new SystemDbContext();
+            var wallet = systemDbContext.Wallets.Where(_ => _.CustomerId == userId).FirstOrDefault();
+            var remaining = 0;
+            if (wallet != null)
+            {
+                remaining = (int)(wallet.Remaining * 100); // 单位：分
+            }
             SetChargingPacket packet = new SetChargingPacket()
             {
                 SerialNumber = sn,
@@ -119,6 +130,8 @@ namespace CPS.Communication.Service
                 QPort = port,
                 Action = (byte)ate,
                 Money = money,
+                Remaining = remaining,
+                UserName = userName,
             };
 
             var client = MyServer.FindClientBySerialNumber(sn);
@@ -268,6 +281,7 @@ namespace CPS.Communication.Service
                     // 保存钱包信息
                     SysDbContext.SaveChanges();
 
+                    record.CompanyCode = "CP_001"; // 无法言说
                     record.CPPort = packet.QPort;
                     record.CPSerialNumber = sn;
                     record.BeforeElec = packet.BeforeElec;

@@ -11,12 +11,12 @@ namespace CPS.Communication.Service.DataPackets
     {
         public SetChargingPacket() : base(PacketTypeEnum.SetCharging)
         {
-            BodyLen = OperPacketBodyLen + 8 + 1 + 1 + 4;
+            BodyLen = OperPacketBodyLen + 8 + 1 + 1 + 4 + 4 + 11;
         }
 
         public SetChargingPacket(PacketTypeEnum pte) : base(pte)
         {
-            BodyLen = OperPacketBodyLen + 8 + 1 + 1 + 4;
+            BodyLen = OperPacketBodyLen + 8 + 1 + 1 + 4 + 4 + 11;
         }
 
         private long _transactionSN;
@@ -79,6 +79,23 @@ namespace CPS.Communication.Service.DataPackets
             {
                 return this._money * 0.01;
             }
+        }
+
+        private int _remaining = 0;
+        /// <summary>
+        /// 账户余额（单位：分）
+        /// </summary>
+        public int Remaining
+        {
+            get { return _remaining; }
+            set { _remaining = value; }
+        }
+
+        private string _userName = "";
+        public string UserName
+        {
+            get { return _userName; }
+            set { _userName = value; }
         }
 
         public override byte[] EncodeBody()

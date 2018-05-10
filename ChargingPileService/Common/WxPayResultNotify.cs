@@ -102,6 +102,7 @@ namespace ChargingPileService.Common
                             // 添加充值账单记录
                             hisDbContext.PayRecords.Add(new PayRecord()
                             {
+                                CompanyCode = "CP_001",
                                 PayDate = DateTime.Now,
                                 PayWay = "微信支付",
                                 PayMoney = money,
