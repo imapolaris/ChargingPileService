@@ -86,6 +86,7 @@ namespace CPS.Communication.Service
                         hisDbContext.ChargingRecords.Add(new ChargRecord
                         {
                             CompanyCode = "CP_001",
+                            StationCode = "SY_004",
                             ChargingDate = DateTime.Now,
                             CPPort = packet.QPort,
                             CPSerialNumber = packet.SerialNumber,

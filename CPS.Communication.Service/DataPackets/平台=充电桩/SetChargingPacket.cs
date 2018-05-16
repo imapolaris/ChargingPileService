@@ -1,4 +1,5 @@
 ﻿using CPS.Infrastructure.Enums;
+using CPS.Infrastructure.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -111,6 +112,12 @@ namespace CPS.Communication.Service.DataPackets
             start += 1;
             temp = BitConverter.GetBytes(this._money);
             Array.Copy(temp, 0, body, start, temp.Length);
+            start += 4;
+            temp = BitConverter.GetBytes(this._remaining);
+            Array.Copy(temp, 0, body, start, temp.Length);
+            start += 4;
+            temp = EncodeHelper.GetBytes(this._userName);
+            Array.Copy(temp, 0, body, start, temp.Length);
             return body;
         }
 
@@ -125,6 +132,12 @@ namespace CPS.Communication.Service.DataPackets
             this._action = buffer[start];
             start += 1;
             this._money = BitConverter.ToInt32(buffer, start);
+            start += 4;
+            this._remaining = BitConverter.ToInt32(buffer, start);
+            start += 4;
+            byte[] userName = new byte[11];
+            Array.Copy(buffer, start, userName, 0, userName.Length);
+            this._userName = EncodeHelper.GetString(userName);
             return this;
         }
     }

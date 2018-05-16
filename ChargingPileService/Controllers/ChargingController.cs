@@ -92,6 +92,8 @@ namespace ChargingPileService.Controllers
                         {
                             var record = new ChargRecord()
                             {
+                                CompanyCode = "CP_001",
+                                StationCode = "SY_004",
                                 CustomerId = userId,
                                 ChargingDate = DateTime.Now,
                                 CPSerialNumber = sn,
@@ -104,7 +106,7 @@ namespace ChargingPileService.Controllers
                             try
                             {
                                 HisDbContext.ChargingRecords.Add(record);
-                                HisDbContext.SaveChangesAsync();
+                                HisDbContext.SaveChanges();
                             }
                             catch (Exception ex)
                             {
@@ -158,6 +160,8 @@ namespace ChargingPileService.Controllers
                 data.SetValue("sn", sn);
                 data.SetValue("transSn", transSn);
                 data.SetValue("port", 0);
+                data.SetValue("userId", userId);
+                data.SetValue("userName", "00000000000"); // redundant
                 CallAsync(data.ToJson());
 
                 var status = await session.WaitSessionCompleted();
@@ -179,19 +183,23 @@ namespace ChargingPileService.Controllers
                                 {
                                     record = new ChargRecord()
                                     {
+                                        CompanyCode = "CP_001",
+                                        StationCode = "SY_004",
                                         CustomerId = userId,
                                         ChargingDate = DateTime.Now,
                                         CPSerialNumber = sn,
-                                        //StartDate = DateTime.Now,
-                                        //EndDate = DateTime.Now,
+                                        StartDate = DateTime.Now,
+                                        EndDate = DateTime.Now,
+                                        IsSucceed = true,
                                     };
                                     HisDbContext.ChargingRecords.Add(record);
-                                    HisDbContext.SaveChangesAsync();
+                                    HisDbContext.SaveChanges();
                                 }
                                 else
                                 {
                                     record.EndDate = DateTime.Now;
-                                    HisDbContext.SaveChangesAsync();
+                                    record.IsSucceed = true;
+                                    HisDbContext.SaveChanges();
                                 }
                             }
                             catch (Exception ex)
@@ -245,12 +253,21 @@ namespace ChargingPileService.Controllers
                     var tSn = data.GetStringValue("transSn");
                     if (tSn == transSn)
                     {
-                        return Ok(Models.SingleResult<string>.Succeed("查询成功！", rtData));
+                        data.SetValue("cpState", "1"); // 1-还在充电
+                        return Ok(Models.SingleResult<string>.Succeed("查询成功！", data.ToJson()));
                     }
-                    else // 充电是否已结束？
+                    else // 充电是否已结束？ 
                     {
-
-                        return Ok(SimpleResult.Failed("查询充电桩状态失败！"));
+                        var record = HisDbContext.ChargingRecords.Where(_ => _.CPSerialNumber == sn && _.Transactionsn == Convert.ToInt64(transSn)).FirstOrDefault();
+                        if (record == null || !record.IsSucceed)
+                        {
+                            return Ok(SimpleResult.Failed("查询充电桩状态失败！"));
+                        }
+                        else
+                        {
+                            data.SetValue("cpState", "2"); // 2-充电已结束
+                            return Ok(Models.SingleResult<string>.Succeed("充电完成！", data.ToJson()));
+                        }
                     }
                 }
                 else
