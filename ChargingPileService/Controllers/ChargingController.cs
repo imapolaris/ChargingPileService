@@ -112,6 +112,7 @@ namespace ChargingPileService.Controllers
                             {
                                 Logger.Error(ex);
                             }
+                            Logger.Info($"充电桩{sn}已开始充电");
                             return Ok(Models.SingleResult<ChargRecord>.Succeed("已开始充电！", record));
                         }
                         else
@@ -174,6 +175,16 @@ namespace ChargingPileService.Controllers
                         var result = (ResultTypeEnum)sessionResult?.GetByteValue("result");
                         if (result == ResultTypeEnum.Succeed)
                         {
+                            Logger.Info($"充电桩{sn}已结束充电！");
+                            return Ok(SimpleResult.Succeed("已结束充电！"));
+                        }
+                        else
+                        {
+                            Logger.Error($"充电桩{sn}结束充电失败！");
+                            return Ok(SimpleResult.Failed("结束充电失败！"));
+                        }
+                        /*if (result == ResultTypeEnum.Succeed)
+                        {
                             // 防止操作数据库期间发生错误，而此时已经结束充电，APP却得到错误的状态。
                             try
                             {
@@ -214,6 +225,7 @@ namespace ChargingPileService.Controllers
                             Logger.Error("结束充电失败！");
                             return Ok(SimpleResult.Failed("结束充电失败！"));
                         }
+                        */
                     }
                     else
                     {
@@ -258,7 +270,8 @@ namespace ChargingPileService.Controllers
                     }
                     else // 充电是否已结束？ 
                     {
-                        var record = HisDbContext.ChargingRecords.Where(_ => _.CPSerialNumber == sn && _.Transactionsn == Convert.ToInt64(transSn)).FirstOrDefault();
+                        var tsn = Convert.ToInt64(transSn);
+                        var record = HisDbContext.ChargingRecords.Where(_ => _.CPSerialNumber == sn && _.Transactionsn == tsn).FirstOrDefault();
                         if (record == null || !record.IsSucceed)
                         {
                             return Ok(SimpleResult.Failed("查询充电桩状态失败！"));

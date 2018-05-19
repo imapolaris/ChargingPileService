@@ -438,10 +438,10 @@ namespace CPS.Communication.Service
                         {
                             SerialNumber = sn,
                             OperType = OperTypeEnum.SetElecPriceOper,
-                            SharpRate = (byte)(costDefine.Where(_ => _.Option == CastOption.One).FirstOrDefault()?.Fee ?? 0),
-                            PeakRate = (byte)(costDefine.Where(_ => _.Option == CastOption.Two).FirstOrDefault()?.Fee ?? 0),
-                            FlatRate = (byte)(costDefine.Where(_ => _.Option == CastOption.Three).FirstOrDefault()?.Fee ?? 0),
-                            ValleyRate = (byte)(costDefine.Where(_ => _.Option == CastOption.Four).FirstOrDefault()?.Fee ?? 0),
+                            SharpRate = (int)(costDefine.Where(_ => _.Option == CastOption.One).FirstOrDefault()?.Fee ?? 0),
+                            PeakRate = (int)(costDefine.Where(_ => _.Option == CastOption.Two).FirstOrDefault()?.Fee ?? 0),
+                            FlatRate = (int)(costDefine.Where(_ => _.Option == CastOption.Three).FirstOrDefault()?.Fee ?? 0),
+                            ValleyRate = (int)(costDefine.Where(_ => _.Option == CastOption.Four).FirstOrDefault()?.Fee ?? 0),
                         };
                         var result = client.Send(packet1);
                         if (result)
@@ -469,10 +469,10 @@ namespace CPS.Communication.Service
                         {
                             SerialNumber = sn,
                             OperType = OperTypeEnum.SetServicePriceOper,
-                            SharpRate = (byte)(serviceDefine.Where(_ => _.Option == CastOption.One).FirstOrDefault()?.Fee ?? 0),
-                            PeakRate = (byte)(serviceDefine.Where(_ => _.Option == CastOption.Two).FirstOrDefault()?.Fee ?? 0),
-                            FlatRate = (byte)(serviceDefine.Where(_ => _.Option == CastOption.Three).FirstOrDefault()?.Fee ?? 0),
-                            ValleyRate = (byte)(serviceDefine.Where(_ => _.Option == CastOption.Four).FirstOrDefault()?.Fee ?? 0),
+                            SharpRate = (int)(serviceDefine.Where(_ => _.Option == CastOption.One).FirstOrDefault()?.Fee ?? 0),
+                            PeakRate = (int)(serviceDefine.Where(_ => _.Option == CastOption.Two).FirstOrDefault()?.Fee ?? 0),
+                            FlatRate = (int)(serviceDefine.Where(_ => _.Option == CastOption.Three).FirstOrDefault()?.Fee ?? 0),
+                            ValleyRate = (int)(serviceDefine.Where(_ => _.Option == CastOption.Four).FirstOrDefault()?.Fee ?? 0),
                         };
                         var result = client.Send(packet2);
                         if (result)

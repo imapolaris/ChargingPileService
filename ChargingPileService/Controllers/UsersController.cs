@@ -71,10 +71,20 @@ namespace ChargingPileService.Controllers
             string vcode = obj.vcode;
             string pwd = obj.pwd;
 
-            var exists = SysDbContext.PersonalCustomers.Any(_ => _.Telephone == telephone);
-            if (exists)
+            var person = SysDbContext.PersonalCustomers.Where(_ => _.Telephone == telephone).FirstOrDefault();
+            if (person != null)
             {
-                return Ok(SimpleResult.Failed("手机号已注册！"));
+                if (person.IsValid)
+                    return Ok(SimpleResult.Failed("账号已注册！"));
+                else
+                {
+                    person.IsValid = true;
+                    int result = SysDbContext.SaveChanges();
+                    if (result > 0)
+                    {
+                        return Ok(SimpleResult.Succeed("注册成功，请登录！"));
+                    }
+                }
             }
 
             var valid = SmsServiceConfig.Instance.ValidateVCode(telephone, vcode);
