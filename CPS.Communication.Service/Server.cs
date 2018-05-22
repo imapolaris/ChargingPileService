@@ -151,10 +151,12 @@ namespace CPS.Communication.Service
                                 }
                             }
 
+#if SERVERDETECT
                             foreach (var item in outdated)
                             {
                                 this._clients.RemoveClient(item);
                             }
+#endif
                         }
                         catch (Exception ex)
                         {
@@ -335,8 +337,10 @@ namespace CPS.Communication.Service
                 Client client = sender as Client;
                 if (this._clients != null)
                 {
+#if SERVERDETECT
                     Logger.Info($"发送数据异常，关闭远程客户端：{client.ID}");
                     this._clients.RemoveClient(client);
+#endif
                 }
             }
             catch (Exception ex)
@@ -450,7 +454,7 @@ namespace CPS.Communication.Service
             return info;
         }
 
-        #region 【支持IDisposable】
+#region 【支持IDisposable】
 
         public void Dispose()
         {
@@ -483,9 +487,9 @@ namespace CPS.Communication.Service
             }
         }
 
-        #endregion 【支持IDisposable】
+#endregion 【支持IDisposable】
 
-        #region 【事件定义】
+#region 【事件定义】
         public event ErrorOccurredHandler ErrorOccurred;
         public event ClientAcceptedHandler ClientAccepted;
         public event ServerStartedHandler ServerStarted;
@@ -518,6 +522,6 @@ namespace CPS.Communication.Service
             if (handler != null)
                 handler(this, args);
         }
-        #endregion 【事件定义】
+#endregion 【事件定义】
     }
 }

@@ -154,7 +154,7 @@ namespace ChargingPileService.Controllers
                     return Ok(SimpleResult.Failed("充电桩编号不存在！"));
                 }
 
-                Session session = SessionService.StartOneSession();
+                Session session = SessionService.StartOneSession(100*1000);
                 UniversalData data = new UniversalData();
                 data.SetValue("id", session.Id);
                 data.SetValue("oper", ActionTypeEnum.Shutdown);
@@ -256,36 +256,38 @@ namespace ChargingPileService.Controllers
 
             try
             {
-                var db = _redis.GetDatabase();
-                var rtData = db.HashGet(Constants.ChargingRealtimeDataContainerKey, sn);
-                if (!rtData.IsNullOrEmpty)
+                var tsn = Convert.ToInt64(transSn);
+                var record = HisDbContext.ChargingRecords.Where(_ => _.CPSerialNumber == sn && _.Transactionsn == tsn).FirstOrDefault();
+                var data = new UniversalData();
+                if (record != null && record.IsSucceed) // 充电已结束
                 {
-                    var data = new UniversalData();
-                    data.FromJson(rtData);
-                    var tSn = data.GetStringValue("transSn");
-                    if (tSn == transSn)
-                    {
-                        data.SetValue("cpState", "1"); // 1-还在充电
-                        return Ok(Models.SingleResult<string>.Succeed("查询成功！", data.ToJson()));
-                    }
-                    else // 充电是否已结束？ 
-                    {
-                        var tsn = Convert.ToInt64(transSn);
-                        var record = HisDbContext.ChargingRecords.Where(_ => _.CPSerialNumber == sn && _.Transactionsn == tsn).FirstOrDefault();
-                        if (record == null || !record.IsSucceed)
-                        {
-                            return Ok(SimpleResult.Failed("查询充电桩状态失败！"));
-                        }
-                        else
-                        {
-                            data.SetValue("cpState", "2"); // 2-充电已结束
-                            return Ok(Models.SingleResult<string>.Succeed("充电完成！", data.ToJson()));
-                        }
-                    }
+                    data.SetValue("cpState", "2"); // 2-充电已结束
+                    Logger.Info("充电完成，账单已上传。");
+                    return Ok(Models.SingleResult<string>.Succeed("充电完成！", data.ToJson()));
                 }
                 else
                 {
-                    Logger.Info("查询充电桩状态失败：充电桩没有反馈！");
+                    var db = _redis.GetDatabase();
+                    var rtData = db.HashGet(Constants.ChargingRealtimeDataContainerKey, sn);
+                    if (!rtData.IsNullOrEmpty)
+                    {
+                        data.FromJson(rtData);
+                        var tSn = data.GetStringValue("transSn");
+                        if (tSn == transSn)
+                        {
+                            data.SetValue("cpState", "1"); // 1-还在充电
+                            return Ok(Models.SingleResult<string>.Succeed("查询成功！", data.ToJson()));
+                        }
+                        else
+                        {
+                            Logger.Info($"查询充电桩{sn}充电信息失败！");
+                            return Ok(SimpleResult.Failed("查询充电信息失败！"));
+                        }
+                    }
+                    else
+                    {
+                        Logger.Info("查询充电桩状态失败：数据库中没有数据！");
+                    }
                 }
             }
             catch (Exception ex)
@@ -293,7 +295,7 @@ namespace ChargingPileService.Controllers
                 Logger.Error(ex);
             }
 
-            return Ok(SimpleResult.Failed("查询充电桩状态失败！"));
+            return Ok(SimpleResult.Failed("查询充电信息失败！"));
         }
 
         [HttpGet]
@@ -337,7 +339,7 @@ namespace ChargingPileService.Controllers
             else
             {
                 // 向充电桩请求充电账单
-                Session session = SessionService.StartOneSession();
+                Session session = SessionService.StartOneSession(100*1000);
                 UniversalData data = new UniversalData();
                 data.SetValue("id", session.Id);
                 data.SetValue("oper", ActionTypeEnum.QueryChargingBilling);

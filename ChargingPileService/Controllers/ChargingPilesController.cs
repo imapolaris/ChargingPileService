@@ -18,6 +18,8 @@ namespace ChargingPileService.Controllers
         public IEnumerable<Sys_ChargingPile> GetChargingPilesByStationId(string stationId)
         {
             // TODO: 后面改为从缓存中读取。
+
+            
             return SysDbContext.ChargingPiles.Where(_ => _.StationId == stationId).ToList();
         }
 

@@ -155,15 +155,13 @@ namespace CPS.Communication.Service
 
             await Task.Run(() =>
             {
-                Thread.CurrentThread.IsBackground = true;
-
-                var db = _redis.GetDatabase();
-                db.HashSet(Constants.ChargingRealtimeDataContainerKey, packet.SerialNumber, p.GetUniversalData().ToJson());
-
-                var hisDbContext = new HistoryDbContext();
-                // 保存充电明细账到数据库
                 try
                 {
+                    var db = _redis.GetDatabase();
+                    db.HashSet(Constants.ChargingRealtimeDataContainerKey, packet.SerialNumber, p.GetUniversalData().ToJson());
+
+                    var hisDbContext = new HistoryDbContext();
+                    // 保存充电明细账到数据库
                     hisDbContext.ChargingDetailedRecords.Add(new ChargingDetailedRecord
                     {
                         TransactionSN = p.TransactionSN,
@@ -187,37 +185,37 @@ namespace CPS.Communication.Service
                         Vin = p.Vin,
                     });
                     hisDbContext.SaveChanges();
+
+                    // 检查充电金额是否超出钱包余额                
+                    var costMoney = p.ElecMoney + p.ServiceMoney;
+                    var record = hisDbContext.ChargingRecords.Where(_ => _.Transactionsn == p.TransactionSN).FirstOrDefault();
+                    if (record != null)
+                    {
+                        var customerId = record.CustomerId;
+                        var SysDbContext = new SystemDbContext();
+                        var wallet = SysDbContext.Wallets.Where(_ => _.CustomerId == customerId).FirstOrDefault();
+                        if (wallet != null)
+                        {
+                            // 钱包余额不足时，停止充电。
+                            if (wallet.Remaining <= costMoney / 100.0)
+                            {
+                                SetChargingPacket stopPacket = new SetChargingPacket()
+                                {
+                                    SerialNumber = p.SerialNumber,
+                                    OperType = OperTypeEnum.SetChargingOper,
+                                    TransactionSN = p.TransactionSN,
+                                    QPort = 0,
+                                    Action = (byte)ActionTypeEnum.Shutdown,
+                                    Money = 0,
+                                };
+                                client.Send(stopPacket);
+                            }
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
                     Logger.Error(ex);
-                }
-
-                // 检查充电金额是否超出钱包余额                
-                var costMoney = p.ElecMoney + p.ServiceMoney;
-                var record = hisDbContext.ChargingRecords.Where(_ => _.Transactionsn == p.TransactionSN).FirstOrDefault();
-                if (record != null)
-                {
-                    var customerId = record.CustomerId;
-                    var SysDbContext = new SystemDbContext();
-                    var wallet = SysDbContext.Wallets.Where(_ => _.CustomerId == customerId).FirstOrDefault();
-                    if (wallet != null)
-                    {
-                        // 钱包余额不足时，停止充电。
-                        if (wallet.Remaining <= costMoney / 100.0)
-                        {
-                            SetChargingPacket stopPacket = new SetChargingPacket()
-                            {
-                                SerialNumber = p.SerialNumber,
-                                OperType = OperTypeEnum.SetChargingOper,
-                                TransactionSN = p.TransactionSN,
-                                QPort = 0,
-                                Action = (byte)ActionTypeEnum.Shutdown,
-                                Money = 0,
-                            };
-                            client.Send(stopPacket);
-                        }
-                    }
                 }
             });
         }

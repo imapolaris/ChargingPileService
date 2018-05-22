@@ -30,6 +30,7 @@ namespace ChargingPileService.Controllers
                 var remaining = 0.0;
                 if (theWallet != null)
                     remaining = theWallet.Remaining;
+                Logger.Info($"钱包余额：{remaining}");
                 return Ok(Models.SingleResult<double>.Succeed("查询成功！", remaining));
             }
             catch (Exception ex)
